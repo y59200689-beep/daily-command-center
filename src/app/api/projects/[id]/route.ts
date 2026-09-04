@@ -1,0 +1,19 @@
+import { NextResponse } from "next/server";
+import { apiError } from "@/lib/api";
+import { requireUser } from "@/lib/supabase/server";
+
+export async function GET(_:Request,{params}:{params:Promise<{id:string}>}){try{const{id}=await params;const{supabase,userId}=await requireUser();const project=await supabase.from("projects").select("*,clients(id,name),goals(id,title)").eq("id",id).eq("user_id",userId).is("deleted_at",null).maybeSingle();if(project.error)throw project.error;if(!project.data)return NextResponse.json({error:"Project not found."},{status:404});const related=await Promise.all([
+ supabase.from("tasks").select("*").eq("user_id",userId).eq("project_id",id).is("deleted_at",null).order("created_at",{ascending:false}),
+ supabase.from("notes").select("*").eq("user_id",userId).eq("project_id",id).is("deleted_at",null).order("updated_at",{ascending:false}),
+ supabase.from("decisions").select("*").eq("user_id",userId).eq("project_id",id).is("deleted_at",null).order("decision_date",{ascending:false}),
+ supabase.from("ideas").select("*").eq("user_id",userId).eq("project_id",id).is("deleted_at",null).order("updated_at",{ascending:false}),
+ supabase.from("waiting_items").select("*").eq("user_id",userId).eq("project_id",id).is("deleted_at",null).order("created_at",{ascending:false}),
+ supabase.from("content_items").select("*").eq("user_id",userId).eq("project_id",id).is("deleted_at",null).order("updated_at",{ascending:false}),
+ supabase.from("invoices").select("*").eq("user_id",userId).eq("project_id",id).is("deleted_at",null).order("created_at",{ascending:false}),
+ supabase.from("payments").select("*").eq("user_id",userId).eq("project_id",id).is("deleted_at",null).order("payment_date",{ascending:false}),
+ supabase.from("expenses").select("*").eq("user_id",userId).eq("project_id",id).is("deleted_at",null).order("expense_date",{ascending:false}),
+ supabase.from("milestones").select("*").eq("user_id",userId).eq("project_id",id).order("target_date"),
+ supabase.from("focus_sessions").select("*").eq("user_id",userId).eq("project_id",id).order("started_at",{ascending:false}),
+ supabase.from("external_references").select("*").eq("user_id",userId).eq("entity_type","project").eq("entity_id",id).order("updated_at",{ascending:false}),
+ supabase.from("activity_log").select("*").eq("user_id",userId).eq("entity_type","project").eq("entity_id",id).order("created_at",{ascending:false}).limit(30)
+]);const failure=related.find((result)=>result.error);if(failure?.error)throw failure.error;const[tasks,notes,decisions,ideas,waiting,content,invoices,payments,expenses,milestones,focus,files,activity]=related.map((result)=>result.data??[]);const currency=String(project.data.currency??"MAD");const currencyInvoices=invoices.filter((item)=>String(item.currency??"MAD")===currency);const currencyPayments=payments.filter((item)=>String(item.currency??"MAD")===currency);const currencyExpenses=expenses.filter((item)=>String(item.currency??"MAD")===currency);const invoiced=currencyInvoices.reduce((sum,item)=>sum+Number(item.total_amount??item.amount??0),0);const received=currencyPayments.reduce((sum,item)=>sum+Number(item.amount??0),0);const directExpenses=currencyExpenses.reduce((sum,item)=>sum+Number(item.amount??0),0);const projectValue=Number(project.data.value_amount??invoiced);return NextResponse.json({project:project.data,related:{tasks,notes,decisions,ideas,waiting,content,invoices,payments,expenses,milestones,focus,files,activity},finance:{projectValue,invoiced,received,outstanding:Math.max(invoiced-received,0),directExpenses,estimatedGrossMargin:projectValue?((projectValue-directExpenses)/projectValue)*100:null},focusMinutes:Math.round(focus.reduce((sum,item)=>sum+Number(item.duration_seconds??0),0)/60)})}catch(error){return apiError(error,"Project could not be loaded.")}}

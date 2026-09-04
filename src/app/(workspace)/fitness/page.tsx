@@ -1,0 +1,1 @@
+import type { Metadata } from "next";import { FitnessDashboard } from "@/features/v2/fitness-dashboard";export const metadata:Metadata={title:"Fitness — Daily Command Center"};export default function Page(){return <FitnessDashboard/>}

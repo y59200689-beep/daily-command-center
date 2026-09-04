@@ -1,0 +1,38 @@
+# Daily Command Center UX contract
+
+## Canonical UI Map
+
+| Capability | Canonical owner | Source of truth | Allowed variants | Verification |
+| --- | --- | --- | --- | --- |
+| Navigation shell | `AppShell` | This contract | Desktop rail / mobile bar | Responsive browser check |
+| Commands and capture | `CommandPalette`, `QuickCapture` | This contract | Dialog / mobile sheet | Keyboard and mobile checks |
+| Form | Shared field classes + Zod server validation | This contract | Create / sign-in | Validation tests |
+| Select/Listbox | Native control | `DESIGN.md` and this contract | Native | Keyboard and popup check |
+| Date | Native control | This contract | Native ISO date | Locale and keyboard check |
+| Toast | `ToastProvider` | This contract | Success / warning / info / error | Live-region check |
+| CRUD | Domain API routes | This contract | Return to list / stay in context | Task flow test |
+| Scrollbar | `globals.css` | `DESIGN.md` | Stable-gutter exception | Computed style check |
+| Dialog/drawer | `Modal` | This contract | Centered dialog / mobile sheet | Focus and viewport check |
+| Finance ledger | Invoice/payment RPCs | Supabase | MAD summary / per-currency detail | Calculation and RLS tests |
+| Content workflow | `ContentCommandCenter` | Supabase | Kanban / list / calendar | URL, approval, and upload checks |
+| Attention ranking | Server insight engine | Supabase | Maximum five derived signals | Ranking and expiry tests |
+
+## Navigation and state
+
+The authenticated workspace opens at `/today`. Filters, committed search, sort, and pagination belong in URL parameters when server-backed. A task/client detail opens in a non-routing drawer on desktop and a full-screen sheet on mobile. Escape closes the top layer and restores focus.
+
+## Feedback and recovery
+
+Create, update, complete, archive, and connection actions show one shared toast. Validation is inline. Raw exceptions are never shown. Failed optimistic actions restore the prior value and keep the user in context. Loading reserves final geometry. Empty, no-results, no-permission, offline, and failure are distinct states.
+
+## Data safety
+
+Supabase is the production source of truth. Demo mode is explicit and uses in-memory sample data only; it never writes production records or persists user content to local storage. User IDs come only from verified server sessions. Archive is preferred for routine removal. Permanent deletion uses an app-owned danger confirmation and is not exposed in the first release UI.
+
+Financial receipts are append-only in the product UI. Payments are recorded through an authenticated, row-locking database function that updates the invoice balance in the same transaction. Cross-currency values are never silently combined. Content uploads remain private in the existing attachments bucket and are opened through short-lived signed URLs.
+
+Today insights are derived server-side from current workspace data, filtered through category/severity preferences, deduplicated, expired, ranked, and capped at five. External-effect and financial assistant writes require explicit confirmation; assistant arguments never select a user identity.
+
+## Accessibility
+
+Target WCAG 2.2 AA. Actions use semantic buttons/links, keyboard focus remains visible, every icon-only action has a name, drag operations have menu/button alternatives, motion respects reduced-motion, and touch targets are at least 44px on mobile.

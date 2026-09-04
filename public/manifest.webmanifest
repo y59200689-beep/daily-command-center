@@ -1,0 +1,1 @@
+{"name":"Daily Command Center","short_name":"Daily Command","description":"A calm, intelligent personal operating system.","start_url":"/today","display":"standalone","background_color":"#F4F5F1","theme_color":"#3157D5","icons":[{"src":"/icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]}

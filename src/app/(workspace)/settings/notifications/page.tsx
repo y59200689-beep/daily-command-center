@@ -1,0 +1,1 @@
+import type { Metadata } from "next";import { DomainPage } from "@/features/domains/domain-page";export const metadata:Metadata={title:"Notification preferences — Daily Command Center"};export default function Page(){return <DomainPage domain="notification-preferences"/>}

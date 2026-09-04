@@ -1,0 +1,11 @@
+{
+  "profile": "product-admin",
+  "sourceRoots": ["src"],
+  "locale": "en-MA",
+  "canonicalMap": "UX-CONTRACT.md",
+  "requiredCapabilities": ["Select/Listbox", "Date", "Form", "Scrollbar", "Toast", "CRUD"],
+  "ownership": {"Select/Listbox": "native", "Date": "native"},
+  "requiredCommands": ["unit", "premium"],
+  "commands": {"unit": "npm run test", "premium": "npm run typecheck"},
+  "evidence": {"crudFullFlow": "tests/task-transformations.test.ts", "failurePaths": "tests/validation.test.ts"}
+}

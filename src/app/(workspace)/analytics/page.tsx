@@ -1,0 +1,1 @@
+import type { Metadata } from "next";import { AnalyticsDashboard } from "@/features/v2/analytics-dashboard";export const metadata:Metadata={title:"Analytics — Daily Command Center"};export default function Page(){return <AnalyticsDashboard/>}

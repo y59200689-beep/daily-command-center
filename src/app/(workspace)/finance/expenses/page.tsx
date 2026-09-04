@@ -1,0 +1,1 @@
+import type { Metadata } from "next";import { FinanceCollection } from "@/features/v2/finance-collection";export const metadata:Metadata={title:"Expenses — Daily Command Center"};export default function Page(){return <FinanceCollection domain="expenses"/>}

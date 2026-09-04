@@ -1,0 +1,1 @@
+import type { Metadata } from "next";import { FinanceBreakdown } from "@/features/v2/finance-breakdown";export const metadata:Metadata={title:"Project finance — Daily Command Center"};export default function Page(){return <FinanceBreakdown by="projects"/>}
