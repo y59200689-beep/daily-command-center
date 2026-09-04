@@ -25,10 +25,10 @@ export async function POST(request: NextRequest, context: { params: Promise<{ do
     const parsed = parseDomainInput(domain, await request.json());
     if (!parsed.success) throw parsed.error;
     const { supabase, userId } = await requireUser();
-    const values={...(parsed.data as Record<string,unknown>)};const dailyPosition=domain==="tasks"?Number(values.daily_position)||null:null;delete values.daily_position;
+    const values={...(parsed.data as Record<string,unknown>)};const hasDailyPosition=domain==="tasks"&&Object.hasOwn(values,"daily_position");const dailyPosition=hasDailyPosition?values.daily_position as number|null:undefined;delete values.daily_position;
     let record = await createRecord(supabase, userId, domain, values);
     if(domain==="prompts")await syncPromptVariables(supabase,userId,record.id,String(record.prompt_text??record.prompt??""));
-    if(domain==="tasks"&&dailyPosition)await setDailyPriority(supabase,userId,record.id,dailyPosition);
+    if(domain==="tasks"&&hasDailyPosition)await setDailyPriority(supabase,userId,record.id,dailyPosition??null);
     if (domain === "calendar") record = await pushGoogleEvent(supabase, userId, record);
     return NextResponse.json({ record }, { status: 201 });
   } catch (error) { return apiError(error, "Record could not be saved."); }

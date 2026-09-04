@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
 import { useToast } from "@/components/toast-provider";
 import type { DomainRecord, PersistedDomain } from "@/lib/domains";
+import { normalizeOptionalNumberInput } from "@/lib/numeric-input";
 import { useDeferredEffect } from "@/lib/use-deferred-effect";
 type DomainKey = PersistedDomain | "assistant" | "settings";
 type Field = {
@@ -103,7 +104,7 @@ export function DomainPage({ domain, embedded = false }: {
         return <SettingsView config={config}/>;
     function begin(record?: DomainRecord) { setError(""); setArchiveArmed(false); setEditing(record ?? null); setValues(record ? Object.fromEntries(config.fields.map((field) => [field.key, toInputValue(record[field.key], field.type)])) : emptyValues(config)); setOpen(true); }
     async function save(event: React.FormEvent) { event.preventDefault(); setSaving(true); setError(""); try {
-        const body = Object.fromEntries(config.fields.map((field) => [field.key, normalizeInput(values[field.key], field.type)]).filter(([, value]) => value !== ""));
+        const body = Object.fromEntries(config.fields.map((field) => [field.key, normalizeInput(values[field.key], field)]).filter(([, value]) => value !== ""));
         const response = await fetch(`/api/entities/${domain}${editing ? `/${editing.id}` : ""}`, { method: editing ? "PATCH" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
         const data = await response.json();
         if (!response.ok)
@@ -147,8 +148,8 @@ function FormField({ field, value, setValue }: {
     return; let active = true; fetch(`/api/entities/${field.relation}`, { cache: "no-store" }).then((response) => response.json()).then((data) => { if (active)
     setRelations(data.records ?? []); }).catch(() => { if (active)
     setRelations([]); }); return () => { active = false; }; }, [field.relation]); return <div><label htmlFor={id}>{field.label}{!field.required ? <span> Optional</span> : null}</label>{field.type === "textarea" ? <textarea className="resize-none" id={id} rows={4} required={field.required} value={value} onChange={(event) => setValue(event.target.value)}/> : field.type === "select" ? <select id={id} value={value} onChange={(event) => setValue(event.target.value)}>{field.options?.map((option) => <option value={option} key={option}>{display(option)}</option>)}</select> : field.type === "relation" ? <select id={id} value={value} onChange={(event) => setValue(event.target.value)}><option value="">No {field.label.toLowerCase()}</option>{relations.map((record) => <option value={record.id} key={record.id}>{String(record.name ?? record.title)}</option>)}</select> : <input id={id} type={field.type ?? "text"} required={field.required} value={value} onChange={(event) => setValue(event.target.value)}/>}</div>; }
-function normalizeInput(value: string, type: Field["type"]) { if (type === "number")
-    return value === "" ? null : Number(value); if(value==="true"||value==="false")return value==="true"; if (type === "datetime-local")
+function normalizeInput(value: string, field: Field) { if (field.type === "number" || field.key === "daily_position")
+    return normalizeOptionalNumberInput(value); if(value==="true"||value==="false")return value==="true"; if (field.type === "datetime-local")
     return value ? new Date(value).toISOString() : null; return value || null; }
 function toInputValue(value: unknown, type: Field["type"]) { if (value == null)
     return ""; if (type === "datetime-local") {

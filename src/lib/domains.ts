@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { normalizeOptionalNumberInput } from "@/lib/numeric-input";
 
 export const domainKeys = ["tasks", "inbox", "projects", "clients", "followups", "waiting", "notes", "goals", "ideas", "decisions", "prompts", "invoices", "payments", "expenses", "subscriptions", "campaigns", "finance", "content", "fitness", "fitness-targets", "notification-preferences", "calendar"] as const;
 export type PersistedDomain = (typeof domainKeys)[number];
@@ -9,9 +10,13 @@ const date = z.iso.date().optional().nullable();
 const dateTime = z.iso.datetime({ offset: true }).optional().nullable();
 const currency = z.string().trim().length(3).transform((value) => value.toUpperCase()).default("MAD");
 const money = z.coerce.number().finite().nonnegative();
+const optionalInteger = (minimum: number, maximum: number) => z.preprocess(
+  normalizeOptionalNumberInput,
+  z.number().int().min(minimum).max(maximum).optional().nullable(),
+);
 
 const schemas = {
-  tasks: z.object({ title: z.string().trim().min(1).max(240), description: optionalText, status: z.enum(["inbox","planned","in_progress","waiting","blocked","completed","cancelled"]).default("inbox"), priority: z.enum(["none","low","medium","high","urgent"]).default("none"), project_id: optionalUuid, client_id: optionalUuid, goal_id: optionalUuid, due_date: date, estimated_minutes: z.coerce.number().int().min(1).max(1440).optional().nullable(), completed_at: dateTime, daily_position: z.coerce.number().int().min(1).max(3).optional() }),
+  tasks: z.object({ title: z.string().trim().min(1).max(240), description: optionalText, status: z.enum(["inbox","planned","in_progress","waiting","blocked","completed","cancelled"]).default("inbox"), priority: z.enum(["none","low","medium","high","urgent"]).default("none"), project_id: optionalUuid, client_id: optionalUuid, goal_id: optionalUuid, due_date: date, estimated_minutes: optionalInteger(1, 1440), completed_at: dateTime, daily_position: optionalInteger(1, 3) }),
   inbox: z.object({ raw_text: z.string().trim().min(1).max(2000), detected_type: z.string().trim().max(40).default("inbox"), confidence: z.coerce.number().min(0).max(1).default(0), status: z.enum(["unprocessed","processed","archived"]).default("unprocessed") }),
   projects: z.object({ name: z.string().trim().min(1).max(240), description: optionalText, status: z.enum(["idea","planning","active","paused","completed","archived"]).default("active"), client_id: optionalUuid, goal_id: optionalUuid, target_date: date, progress: z.coerce.number().min(0).max(100).default(0), value_amount: money.optional().nullable(), currency, color: z.string().trim().max(30).optional().nullable() }),
   clients: z.object({ name: z.string().trim().min(1).max(240), company: optionalText, email: z.email().optional().nullable().or(z.literal("")), phone: optionalText, status: z.string().trim().max(40).default("active"), notes: optionalText, next_follow_up_at: dateTime }),
