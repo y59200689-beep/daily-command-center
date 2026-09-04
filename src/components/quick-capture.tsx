@@ -4,9 +4,12 @@ import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
 import { useToast } from "@/components/toast-provider";
-import { parseCapture } from "@/lib/capture";
+import { parseCapture, type CaptureKind } from "@/lib/capture";
+import type { PersistedDomain } from "@/lib/domains";
+import { announceWorkspaceMutation } from "@/lib/workspace-mutations";
 
 interface QuickCaptureProps { open: boolean; onClose: () => void }
+const captureDomains: Record<CaptureKind, PersistedDomain> = { task: "tasks", note: "notes", idea: "ideas", decision: "decisions", followup: "followups", inbox: "inbox" };
 
 export function QuickCapture({ open, onClose }: QuickCaptureProps) {
   const [value, setValue] = useState("");
@@ -22,7 +25,10 @@ export function QuickCapture({ open, onClose }: QuickCaptureProps) {
     setBusy(true);
     try {
       const response = await fetch("/api/capture", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text: value }) });
-      if (!response.ok) { const data=await response.json(); throw new Error(data.error??"Capture could not be saved."); }
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error??"Capture could not be saved.");
+      const savedKind = String(data.parsed?.kind ?? classification.kind);
+      announceWorkspaceMutation(Object.hasOwn(captureDomains, savedKind) ? captureDomains[savedKind as CaptureKind] : captureDomains[classification.kind]);
       showToast(classification.kind === "inbox" ? "Captured to Inbox for review." : `${classification.kind[0].toUpperCase()}${classification.kind.slice(1)} saved.`);
       setValue(""); onClose();
     } catch (reason) { setError(reason instanceof Error ? reason.message : "Capture could not be saved. Try again."); }

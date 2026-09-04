@@ -1,15 +1,16 @@
 "use client";
 import Link from "next/link";
-import { useCallback,useState } from "react";
+import { useCallback,useEffect,useState } from "react";
 import { Icons } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/toast-provider";
 import { minutesLabel } from "@/lib/utils";
 import { useDeferredEffect } from "@/lib/use-deferred-effect";
+import { subscribeToWorkspaceMutations } from "@/lib/workspace-mutations";
 
 type Item=Record<string,unknown>&{id:string};type Insight={id:string;severity:string;title:string;message:string;action_label:string;action_route:string};type TodayData={date:string;profile:{display_name?:string;timezone?:string}|null;priorities:Item[];inboxCount:number;events:Item[];nextEvent:Item|null;waiting:Item[];waitingCount:number;overdueCount:number;projects:Item[];followups:Item[];notes:Item[];insights:Insight[];summary:string};
 const formatTime=(value:unknown)=>value?new Intl.DateTimeFormat("en",{hour:"2-digit",minute:"2-digit"}).format(new Date(String(value))):"—";
-export function TodayDashboard(){const[data,setData]=useState<TodayData|null>(null);const[error,setError]=useState("");const[loading,setLoading]=useState(true);const[tab,setTab]=useState("Priorities");const{showToast}=useToast();const load=useCallback(async()=>{try{const response=await fetch("/api/today",{cache:"no-store"});const body=await response.json();if(!response.ok)throw new Error(body.error);setData(body)}catch(reason){setError(reason instanceof Error?reason.message:"Today could not be loaded.")}finally{setLoading(false)}},[]);useDeferredEffect(useCallback(()=>{void load()},[load]));
+export function TodayDashboard(){const[data,setData]=useState<TodayData|null>(null);const[error,setError]=useState("");const[loading,setLoading]=useState(true);const[tab,setTab]=useState("Priorities");const{showToast}=useToast();const load=useCallback(async()=>{try{const response=await fetch("/api/today",{cache:"no-store"});const body=await response.json();if(!response.ok)throw new Error(body.error);setData(body)}catch(reason){setError(reason instanceof Error?reason.message:"Today could not be loaded.")}finally{setLoading(false)}},[]);useDeferredEffect(useCallback(()=>{void load()},[load]));useEffect(()=>subscribeToWorkspaceMutations(["tasks","inbox","projects","followups","waiting","notes","calendar","content"],()=>{void load()}),[load]);
  async function complete(task:Item){const completed=task.status==="completed";const response=await fetch(`/api/entities/tasks/${task.id}`,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({status:completed?"planned":"completed",completed_at:completed?null:new Date().toISOString()})});if(response.ok){showToast(completed?"Task reopened.":"Task completed.");await load()}else showToast("Task could not be updated.","error")}
  if(loading)return <div className="today-page"><div className="empty-state"><span>···</span><h2>Preparing your daily brief</h2></div></div>;if(error||!data)return <div className="today-page"><div className="empty-state"><span>!</span><h2>Today could not be loaded</h2><p>{error}</p><Button emphasis="outline" onClick={()=>void load()}>Try again</Button></div></div>;
  const completed=data.priorities.filter((task)=>task.status==="completed").length;const date=new Intl.DateTimeFormat("en",{weekday:"long",month:"long",day:"numeric"}).format(new Date(`${data.date}T12:00:00`));const name=data.profile?.display_name?.split(" ")[0];

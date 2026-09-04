@@ -8,6 +8,7 @@ import { useToast } from "@/components/toast-provider";
 import type { DomainRecord, PersistedDomain } from "@/lib/domains";
 import { normalizeOptionalNumberInput } from "@/lib/numeric-input";
 import { useDeferredEffect } from "@/lib/use-deferred-effect";
+import { announceWorkspaceMutation } from "@/lib/workspace-mutations";
 type DomainKey = PersistedDomain | "assistant" | "settings";
 type Field = {
     key: string;
@@ -37,7 +38,7 @@ const configs: Record<DomainKey, Config> = {
     clients: c("Relationships", "Clients", "Keep promises, context, and follow-ups close together.", "New client", ["Client", "Company", "Next contact"], "name", "company", "next_follow_up_at", [f("name", "Client name", "text", undefined, true), f("company", "Company"), f("email", "Email"), f("phone", "Phone"), f("notes", "Notes", "textarea")]),
     followups: c("Relationships", "Follow-ups", "Keep every promised check-in visible.", "New follow-up", ["Follow-up", "Status", "Due"], "title", "status", "due_at", [f("title", "Follow-up", "text", undefined, true), f("due_at", "Due", "datetime-local"), f("status", "Status", "select", ["open", "done", "cancelled"]), f("notes", "Notes", "textarea")]),
     waiting: c("Open loops", "Waiting", "Know exactly where momentum depends on someone else.", "Track request", ["Waiting for", "Contact", "Expected"], "title", "contact", "expected_by", [f("title", "Waiting for", "text", undefined, true), f("contact", "Contact"), f("expected_by", "Expected by", "datetime-local"), f("status", "Status", "select", ["waiting", "received", "cancelled"]), f("notes", "Notes", "textarea")]),
-    notes: c("Second brain", "Notes", "Working knowledge with context and a way back to the source.", "New note", ["Note", "Category", "Updated"], "title", "category", "updated_at", [f("title", "Title", "text", undefined, true), f("content", "Note", "textarea", undefined, true), f("category", "Category")]),
+    notes: c("Second brain", "Notes", "Working knowledge with context and a way back to the source.", "New note", ["Note", "Category", "Updated"], "title", "category", "updated_at", [f("title", "Title", "text", undefined, true), f("content", "Note", "textarea"), f("category", "Category")]),
     goals: c("Direction", "Goals", "Connect the week in front of you to the quarter you want.", "New goal", ["Goal", "Period", "Progress"], "title", "period", "progress", [f("title", "Goal", "text", undefined, true), f("description", "Description", "textarea"), f("period", "Period", "select", ["quarter", "month", "week"]), f("target_date", "Target date", "date"), f("progress", "Progress", "number")]),
     ideas: c("Possibilities", "Idea vault", "Interesting is enough. Ideas do not need to become obligations.", "Capture idea", ["Idea", "Potential", "State"], "title", "potential", "status", [f("title", "Idea", "text", undefined, true), f("description", "Description", "textarea"), f("potential", "Potential", "select", ["low", "medium", "high", "huge"]), f("status", "State")]),
     decisions: c("Memory", "Decision log", "Keep the why, impact, and review point—not just the outcome.", "Log decision", ["Decision", "Impact", "Review"], "title", "impact", "review_date", [f("title", "Decision title", "text", undefined, true), f("decision", "Outcome", "textarea", undefined, true), f("reasoning", "Reasoning", "textarea"), f("impact", "Impact", "select", ["low","medium","high","critical"]), f("confidence", "Confidence", "select", ["low","medium","high"]), f("status", "Status", "select", ["active","review_due","superseded","reversed","archived"]), f("decision_date", "Date", "date"), f("review_date", "Review date", "date")]),
@@ -62,9 +63,11 @@ for (const [key, fields] of Object.entries(relationshipFields))
     configs[key as DomainKey].fields.push(...fields);
 const emptyValues = (config: Config) => Object.fromEntries(config.fields.map((field) => [field.key, field.options?.[0] ?? (field.key === "currency" ? "MAD" : field.key === "timezone" ? "Africa/Casablanca" : "")]));
 const display = (value: unknown) => value == null || value === "" ? "—" : String(value).replaceAll("_", " ");
-export function DomainPage({ domain, embedded = false }: {
+export function DomainPage({ domain, embedded = false, onMutationSuccess, refreshToken }: {
     domain: DomainKey;
     embedded?: boolean;
+    onMutationSuccess?: () => void | Promise<void>;
+    refreshToken?: number;
 }) {
     const config = configs[domain];
     const [records, setRecords] = useState<DomainRecord[]>([]);
@@ -80,6 +83,7 @@ export function DomainPage({ domain, embedded = false }: {
     const [saving, setSaving] = useState(false);
     const [archiveArmed, setArchiveArmed] = useState(false);
     const inputRef = useRef<HTMLInputElement>(null);
+    const previousRefreshToken = useRef(refreshToken);
     const { showToast } = useToast();
     const load = useCallback(async () => { if (domain === "assistant" || domain === "settings")
         return; try {
@@ -97,6 +101,11 @@ export function DomainPage({ domain, embedded = false }: {
         setLoading(false);
     } }, [domain,deferredQuery,page]);
     useDeferredEffect(useCallback(() => { void load(); }, [load]));
+    useEffect(() => {
+        if (previousRefreshToken.current === refreshToken) return;
+        previousRefreshToken.current = refreshToken;
+        void load();
+    }, [load, refreshToken]);
     const rows = records;
     if (domain === "assistant")
         return <AssistantView config={config}/>;
@@ -110,6 +119,8 @@ export function DomainPage({ domain, embedded = false }: {
         if (!response.ok)
             throw new Error(data.error);
         setRecords((current) => editing ? current.map((item) => item.id === editing.id ? data.record : item) : [data.record, ...current]);if(!editing)setTotal((current)=>current+1);
+        await onMutationSuccess?.();
+        if(domain!=="assistant"&&domain!=="settings")announceWorkspaceMutation(domain);
         setOpen(false);
         showToast(editing ? "Changes saved." : "Record saved.");
     }
@@ -122,6 +133,8 @@ export function DomainPage({ domain, embedded = false }: {
     async function archive(record: DomainRecord) { if (!archiveArmed) { setArchiveArmed(true); showToast(`Click Archive again to confirm archiving “${display(record[config.titleField])}”.`, "warning"); return; } const response = await fetch(`/api/entities/${domain}/${record.id}`, { method: "DELETE" }); if (response.ok) {
         setRecords((current) => current.filter((item) => item.id !== record.id));
         setTotal((current)=>Math.max(0,current-1));
+        await onMutationSuccess?.();
+        if(domain!=="assistant"&&domain!=="settings")announceWorkspaceMutation(domain);
         setOpen(false);
         showToast("Archived.");
     }

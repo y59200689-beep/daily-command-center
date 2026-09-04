@@ -61,7 +61,10 @@ function prepareRecord(domain: PersistedDomain,input:Record<string,unknown>){
   if(domain==="content"&&prepared.creative_brief!==undefined)prepared.brief=prepared.creative_brief;
   if(domain==="content"&&prepared.approval_status!==undefined)prepared.approved_at=prepared.approval_status==="approved"?prepared.approved_at??new Date().toISOString():null;
   if(domain==="fitness"){
-    prepared.activity_date=prepared.date;prepared.duration_seconds=prepared.duration_minutes?Number(prepared.duration_minutes)*60:null;prepared.distance_meters=prepared.distance_km?Number(prepared.distance_km)*1000:null;prepared.external_activity_id=prepared.external_id??null;
+    if(Object.hasOwn(prepared,"date"))prepared.activity_date=prepared.date;
+    if(Object.hasOwn(prepared,"duration_minutes"))prepared.duration_seconds=prepared.duration_minutes == null?null:Number(prepared.duration_minutes)*60;
+    if(Object.hasOwn(prepared,"distance_km"))prepared.distance_meters=prepared.distance_km == null?null:Number(prepared.distance_km)*1000;
+    if(Object.hasOwn(prepared,"external_id"))prepared.external_activity_id=prepared.external_id??null;
   }
   return prepared;
 }

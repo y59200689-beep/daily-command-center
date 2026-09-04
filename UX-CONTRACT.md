@@ -21,6 +21,8 @@
 
 The authenticated workspace opens at `/today`. Filters, committed search, sort, and pagination belong in URL parameters when server-backed. A task/client detail opens in a non-routing drawer on desktop and a full-screen sheet on mobile. Escape closes the top layer and restores focus.
 
+Successful client-side CRUD mutations update the owning `DomainPage` collection from the mutation response. Pages with separate derived data, sibling collections, or shell-level counts await an authoritative no-store refetch through `onMutationSuccess` and publish a typed workspace-mutation notification. Full-page reloads and unrelated cache invalidation are not part of the CRUD refresh contract.
+
 ## Feedback and recovery
 
 Create, update, complete, archive, and connection actions show one shared toast. Validation is inline. Raw exceptions are never shown. Failed optimistic actions restore the prior value and keep the user in context. Loading reserves final geometry. Empty, no-results, no-permission, offline, and failure are distinct states.
