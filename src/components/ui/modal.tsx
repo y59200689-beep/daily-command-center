@@ -13,6 +13,11 @@ interface ModalProps {
 
 export function Modal({ open, onClose, title, description, children }: ModalProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
+  const onCloseRef = useRef(onClose);
+
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
 
   useEffect(() => {
     if (!open) return;
@@ -20,7 +25,7 @@ export function Modal({ open, onClose, title, description, children }: ModalProp
     const dialog = dialogRef.current;
     dialog?.querySelector<HTMLElement>("input, button, textarea, select, a[href]")?.focus();
     const handleKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
+      if (event.key === "Escape") onCloseRef.current();
       if (event.key !== "Tab" || !dialog) return;
       const focusable = [...dialog.querySelectorAll<HTMLElement>("input, button, textarea, select, a[href]")].filter((node) => !node.hasAttribute("disabled"));
       if (!focusable.length) return;
@@ -36,7 +41,7 @@ export function Modal({ open, onClose, title, description, children }: ModalProp
       document.body.classList.remove("modal-open");
       previous?.focus();
     };
-  }, [open, onClose]);
+  }, [open]);
 
   if (!open) return null;
   return (
