@@ -5,6 +5,7 @@
 | Capability | Canonical owner | Source of truth | Allowed variants | Verification |
 | --- | --- | --- | --- | --- |
 | Navigation shell | `AppShell` | This contract | Desktop rail / mobile bar | Responsive browser check |
+| Authentication session | `AppShell` + Supabase SSR helpers | Supabase Auth | Current-browser sign out | Auth flow test |
 | Commands and capture | `CommandPalette`, `QuickCapture` | This contract | Dialog / mobile sheet | Keyboard and mobile checks |
 | Form | Shared field classes + Zod server validation | This contract | Create / sign-in | Validation tests |
 | Select/Listbox | Native control | `DESIGN.md` and this contract | Native | Keyboard and popup check |
@@ -34,6 +35,8 @@ Supabase is the production source of truth. Demo mode is explicit and uses in-me
 Financial receipts are append-only in the product UI. Payments are recorded through an authenticated, row-locking database function that updates the invoice balance in the same transaction. Cross-currency values are never silently combined. Content uploads remain private in the existing attachments bucket and are opened through short-lived signed URLs.
 
 Today insights are derived server-side from current workspace data, filtered through category/severity preferences, deduplicated, expired, ranked, and capped at five. External-effect and financial assistant writes require explicit confirmation; assistant arguments never select a user identity.
+
+The account disclosure is owned by `AppShell` on desktop and in the mobile navigation drawer. Sign out is pessimistic, disables duplicate activation, clears the current Supabase browser session, replaces the route with `/login`, and refreshes server-rendered state. Protected routes continue to rely on the authenticated proxy and ownership-scoped database access; account-specific records are never persisted in shared browser storage.
 
 ## Accessibility
 

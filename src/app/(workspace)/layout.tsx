@@ -8,5 +8,5 @@ export default async function WorkspaceLayout({ children }: { children: React.Re
   const email=typeof claims.data?.claims?.email==="string"?claims.data.claims.email:"";
   const name=String(profile.data?.display_name?.trim()||email.split("@")[0]||"Workspace owner");
   const initials=name.split(/\s+/).slice(0,2).map((part)=>part[0]?.toUpperCase()).join("")||"DC";
-  return <AppShell user={{name,initials}}>{children}</AppShell>;
+  return <AppShell user={{name,email,initials}}>{children}</AppShell>;
 }

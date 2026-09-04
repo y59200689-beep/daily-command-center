@@ -2,11 +2,13 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { CommandPalette } from "@/components/command-palette";
 import { Icons } from "@/components/icons";
 import { QuickCapture } from "@/components/quick-capture";
-import { ToastProvider } from "@/components/toast-provider";
+import { ToastProvider, useToast } from "@/components/toast-provider";
+import { signOutCurrentSession } from "@/lib/auth";
+import { createClient } from "@/lib/supabase/client";
 import { setTheme, useTheme } from "@/lib/theme-store";
 import { InboxBadge } from "@/components/inbox-badge";
 
@@ -25,18 +27,44 @@ const groups = [
   ] },
 ] as const;
 
-function Shell({ children,user }: { children: ReactNode;user:{name:string;initials:string} }) {
+type ShellUser = { name: string; email: string; initials: string };
+
+function Shell({ children,user }: { children: ReactNode;user:ShellUser }) {
   const pathname = usePathname();
   const router = useRouter();
+  const { showToast } = useToast();
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [captureOpen, setCaptureOpen] = useState(false);
   const [mobileMenu, setMobileMenu] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
+  const accountRef = useRef<HTMLDivElement>(null);
+  const accountButtonRef = useRef<HTMLButtonElement>(null);
   const theme = useTheme();
   const dark = theme === "dark";
 
   const toggleTheme = useCallback(() => {
     setTheme(dark ? "light" : "dark");
   }, [dark]);
+
+  const goToLogin = useCallback(() => {
+    setAccountOpen(false);
+    setMobileMenu(false);
+    router.replace("/login");
+    router.refresh();
+  }, [router]);
+
+  const signOut = useCallback(async () => {
+    if (signingOut) return;
+    setSigningOut(true);
+    try {
+      await signOutCurrentSession(createClient());
+      goToLogin();
+    } catch {
+      showToast("Sign out could not be completed. Try again.", "error");
+      setSigningOut(false);
+    }
+  }, [goToLogin, showToast, signingOut]);
 
   useEffect(() => {
     function shortcut(event: KeyboardEvent) {
@@ -50,6 +78,33 @@ function Shell({ children,user }: { children: ReactNode;user:{name:string;initia
     return () => window.removeEventListener("keydown", shortcut);
   }, [router]);
 
+  useEffect(() => {
+    if (!accountOpen) return;
+    function dismiss(event: PointerEvent) {
+      if (!accountRef.current?.contains(event.target as Node)) setAccountOpen(false);
+    }
+    function escape(event: KeyboardEvent) {
+      if (event.key !== "Escape") return;
+      event.preventDefault();
+      setAccountOpen(false);
+      accountButtonRef.current?.focus();
+    }
+    document.addEventListener("pointerdown", dismiss);
+    document.addEventListener("keydown", escape);
+    return () => {
+      document.removeEventListener("pointerdown", dismiss);
+      document.removeEventListener("keydown", escape);
+    };
+  }, [accountOpen]);
+
+  useEffect(() => {
+    const supabase = createClient();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_OUT") goToLogin();
+    });
+    return () => subscription.unsubscribe();
+  }, [goToLogin]);
+
   return (
     <div className="app-frame">
       <a className="skip-link" href="#main-content">Skip to content</a>
@@ -61,7 +116,17 @@ function Shell({ children,user }: { children: ReactNode;user:{name:string;initia
         <div className="sidebar__footer">
           <button className="nav-link" onClick={() => setPaletteOpen(true)}><Icons.Search size={16} /><span>Search</span><kbd>⌘K</kbd></button>
           <Link className="nav-link" href="/settings"><Icons.Settings size={16} /><span>Settings</span></Link>
-          <button className="profile-button" onClick={toggleTheme} aria-label={`Switch to ${dark ? "light" : "dark"} theme`}><span className="avatar">{user.initials}</span><span><strong>{user.name}</strong><small>Private workspace</small></span>{dark ? <Icons.Sun size={16} /> : <Icons.Moon size={16} />}</button>
+          <div className="account-control" ref={accountRef}>
+            {accountOpen ? <div className="account-menu" id="account-menu" aria-label="Account">
+              <div className="account-menu__identity" role="presentation"><span className="avatar">{user.initials}</span><span><strong>{user.name}</strong><small>{user.email}</small></span></div>
+              <div className="account-menu__actions">
+                <Link href="/settings" onClick={() => { setAccountOpen(false); setMobileMenu(false); }}><Icons.Settings size={16}/><span>Settings</span></Link>
+                <button type="button" onClick={toggleTheme}>{dark ? <Icons.Sun size={16}/> : <Icons.Moon size={16}/>}<span>{dark ? "Light mode" : "Dark mode"}</span></button>
+                <button className="account-menu__signout" type="button" disabled={signingOut} onClick={() => void signOut()}><Icons.LogOut size={16}/><span>{signingOut ? "Signing out…" : "Sign out"}</span></button>
+              </div>
+            </div> : null}
+            <button ref={accountButtonRef} className="profile-button" type="button" onClick={() => setAccountOpen((open) => !open)} aria-expanded={accountOpen} aria-controls="account-menu"><span className="avatar">{user.initials}</span><span><strong>{user.name}</strong><small>Private workspace</small></span><Icons.ChevronDown className={accountOpen ? "profile-button__chevron profile-button__chevron--open" : "profile-button__chevron"} size={16}/></button>
+          </div>
         </div>
       </aside>
       {mobileMenu ? <button className="sidebar-scrim" aria-label="Close navigation" onClick={() => setMobileMenu(false)} /> : null}
@@ -82,6 +147,6 @@ function Shell({ children,user }: { children: ReactNode;user:{name:string;initia
   );
 }
 
-export function AppShell({ children,user }: { children: ReactNode;user:{name:string;initials:string} }) {
+export function AppShell({ children,user }: { children: ReactNode;user:ShellUser }) {
   return <ToastProvider><Shell user={user}>{children}</Shell></ToastProvider>;
 }
