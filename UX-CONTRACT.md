@@ -16,6 +16,7 @@
 | Dialog/drawer | `Modal` | This contract | Centered dialog / mobile sheet | Focus and viewport check |
 | Finance ledger | Invoice/payment RPCs | Supabase | MAD summary / per-currency detail | Calculation and RLS tests |
 | Content workflow | `ContentCommandCenter` | Supabase | Kanban / list / calendar | URL, approval, and upload checks |
+| Private attachments | `AttachmentSection` + attachment API | Supabase Storage + `attachments` | Entity section / global Files ledger | Upload, ownership, signed-open, delete tests |
 | Attention ranking | Server insight engine | Supabase | Maximum five derived signals | Ranking and expiry tests |
 
 ## Navigation and state
@@ -33,6 +34,8 @@ Create, update, complete, archive, and connection actions show one shared toast.
 Supabase is the production source of truth. Demo mode is explicit and uses in-memory sample data only; it never writes production records or persists user content to local storage. User IDs come only from verified server sessions. Archive is preferred for routine removal. Permanent deletion uses an app-owned danger confirmation and is not exposed in the first release UI.
 
 Financial receipts are append-only in the product UI. Payments are recorded through an authenticated, row-locking database function that updates the invoice balance in the same transaction. Cross-currency values are never silently combined. Content uploads remain private in the existing attachments bucket and are opened through short-lived signed URLs.
+
+Attachments use the shared private `attachments` bucket and metadata table. Uploads are limited to 6 MB, use owner-prefixed immutable object paths, validate metadata and file signatures server-side, and require an owned supported entity. Signed URLs live for 60 seconds and are issued only after authenticated row ownership is verified. Successful upload and delete operations update the visible list immediately; permanent file deletion uses the canonical app-owned confirmation dialog.
 
 Today insights are derived server-side from current workspace data, filtered through category/severity preferences, deduplicated, expired, ranked, and capped at five. External-effect and financial assistant writes require explicit confirmation; assistant arguments never select a user identity.
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, type ReactNode } from "react";
+import { useEffect, useId, useRef, type ReactNode } from "react";
 import { Icons } from "@/components/icons";
 
 interface ModalProps {
@@ -10,10 +10,13 @@ interface ModalProps {
   description?: string;
   children: ReactNode;
 }
+let openModalCount = 0;
 
 export function Modal({ open, onClose, title, description, children }: ModalProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
   const onCloseRef = useRef(onClose);
+  const titleId = useId();
+  const descriptionId = useId();
 
   useEffect(() => {
     onCloseRef.current = onClose;
@@ -25,6 +28,8 @@ export function Modal({ open, onClose, title, description, children }: ModalProp
     const dialog = dialogRef.current;
     dialog?.querySelector<HTMLElement>("input, button, textarea, select, a[href]")?.focus();
     const handleKey = (event: KeyboardEvent) => {
+      const dialogs = document.querySelectorAll<HTMLElement>("[role='dialog']");
+      if (dialogs.item(dialogs.length - 1) !== dialog) return;
       if (event.key === "Escape") onCloseRef.current();
       if (event.key !== "Tab" || !dialog) return;
       const focusable = [...dialog.querySelectorAll<HTMLElement>("input, button, textarea, select, a[href]")].filter((node) => !node.hasAttribute("disabled"));
@@ -35,10 +40,12 @@ export function Modal({ open, onClose, title, description, children }: ModalProp
       if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
     };
     document.addEventListener("keydown", handleKey);
+    openModalCount += 1;
     document.body.classList.add("modal-open");
     return () => {
       document.removeEventListener("keydown", handleKey);
-      document.body.classList.remove("modal-open");
+      openModalCount = Math.max(0, openModalCount - 1);
+      if (openModalCount === 0) document.body.classList.remove("modal-open");
       previous?.focus();
     };
   }, [open]);
@@ -46,14 +53,14 @@ export function Modal({ open, onClose, title, description, children }: ModalProp
   if (!open) return null;
   return (
     <div className="modal-layer" role="presentation" onMouseDown={(event) => { if (event.currentTarget === event.target) onClose(); }}>
-      <div ref={dialogRef} className="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" aria-describedby={description ? "modal-description" : undefined}>
+      <div ref={dialogRef} className="modal" role="dialog" aria-modal="true" aria-labelledby={titleId} aria-describedby={description ? descriptionId : undefined}>
         <div className="modal__header">
           <div>
             <p className="eyebrow">Command center</p>
-            <h2 id="modal-title">{title}</h2>
-            {description ? <p id="modal-description" className="modal__description">{description}</p> : null}
+            <h2 id={titleId}>{title}</h2>
+            {description ? <p id={descriptionId} className="modal__description">{description}</p> : null}
           </div>
-          <button className="icon-button" onClick={onClose} aria-label="Close dialog"><Icons.X size={18} /></button>
+          <button className="icon-button" type="button" onClick={onClose} aria-label="Close dialog"><Icons.X size={18} /></button>
         </div>
         {children}
       </div>

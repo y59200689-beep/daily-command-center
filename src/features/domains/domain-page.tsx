@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useCallback, useDeferredValue, useEffect, useRef, useState } from "react";
+import { AttachmentSection } from "@/components/attachment-section";
 import { Icons } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
@@ -10,6 +11,7 @@ import { normalizeOptionalNumberInput } from "@/lib/numeric-input";
 import { useDeferredEffect } from "@/lib/use-deferred-effect";
 import { announceWorkspaceMutation } from "@/lib/workspace-mutations";
 type DomainKey = PersistedDomain | "assistant" | "settings";
+const attachmentEntities = { tasks: "task", projects: "project", clients: "client", notes: "note", content: "content", decisions: "decision", invoices: "invoice" } as const;
 type Field = {
     key: string;
     label: string;
@@ -150,6 +152,7 @@ export function DomainPage({ domain, embedded = false, onMutationSuccess, refres
         <div className="dataset-pagination"><p className="dataset-note">Showing {rows.length?((page-1)*50)+1:0}–{Math.min(page*50,total)} of {total} · Authenticated Supabase workspace</p><div><Button emphasis="ghost" disabled={page===1} onClick={()=>setPage((current)=>Math.max(1,current-1))}>Previous</Button><Button emphasis="ghost" disabled={page*50>=total} onClick={()=>setPage((current)=>current+1)}>Next</Button></div></div>
         <Modal open={open} onClose={() => setOpen(false)} title={editing ? `Edit ${config.title.toLowerCase().replace(/s$/, "")}` : config.action} description="Changes are saved to your private workspace.">
             <form className="simple-form" onSubmit={save} noValidate>{config.fields.map((field) => <FormField field={field} value={values[field.key] ?? ""} setValue={(value) => setValues((current) => ({ ...current, [field.key]: value }))} key={field.key}/>)}{error ? <p className="field-error" role="alert">{error}</p> : null}<div className="modal__actions">{editing ? <Button emphasis="danger" onClick={() => void archive(editing)}>{archiveArmed ? "Confirm archive" : "Archive"}</Button> : null}<Button emphasis="ghost" onClick={() => setOpen(false)}>Cancel</Button><Button intent="brand" type="submit" disabled={saving}>{saving ? "Saving…" : "Save changes"}</Button></div></form>
+            {editing && domain in attachmentEntities ? <AttachmentSection entityType={attachmentEntities[domain as keyof typeof attachmentEntities]} entityId={editing.id}/> : null}
         </Modal>
     </div>;
 }

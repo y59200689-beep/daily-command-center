@@ -20,7 +20,7 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
       supabase.from("content_items").select("*").eq("user_id", userId).eq("client_id", id).is("deleted_at", null),
       supabase.from("invoices").select("*").eq("user_id", userId).eq("client_id", id).is("deleted_at", null),
       supabase.from("payments").select("*").eq("user_id", userId).eq("client_id", id).is("deleted_at", null),
-      supabase.from("external_references").select("*").eq("user_id", userId).eq("entity_type", "client").eq("entity_id", id),
+      supabase.from("attachments").select("*").eq("user_id", userId).eq("entity_type", "client").eq("entity_id", id).is("deleted_at", null),
     ]);
     const failed = queries.find((item) => item.error);
     if (failed?.error) throw failed.error;
