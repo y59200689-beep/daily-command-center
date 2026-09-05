@@ -2,10 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { apiError } from "@/lib/api";
 import { requireUser } from "@/lib/supabase/server";
-import { getTodayInsights } from "@/lib/intelligence";
+import { adaptiveModules } from "@/lib/intelligence/overview";
+import { getIntelligence } from "@/lib/intelligence/server";
 
 export async function GET(){try{const{supabase,userId}=await requireUser();const profile=await supabase.from("profiles").select("display_name,timezone").eq("id",userId).maybeSingle();if(profile.error)throw profile.error;const timezone=profile.data?.timezone??"UTC";const today=dateInTimezone(new Date(),timezone);const {start,end}=dayBounds(today,timezone);
- const [plan,inbox,events,waiting,overdue,projects,followups,notes,insights]=await Promise.all([
+ const [plan,inbox,events,waiting,overdue,projects,followups,notes,intelligenceResult]=await Promise.all([
   supabase.from("daily_plans").select("id,notes,daily_priorities(position,tasks(*))").eq("user_id",userId).eq("plan_date",today).maybeSingle(),
   supabase.from("inbox_items").select("id",{count:"exact",head:true}).eq("user_id",userId).eq("status","unprocessed").is("deleted_at",null),
   supabase.from("calendar_events").select("*").eq("user_id",userId).gte("starts_at",start).lte("starts_at",end).is("deleted_at",null).neq("status","cancelled").order("starts_at"),
@@ -14,12 +15,14 @@ export async function GET(){try{const{supabase,userId}=await requireUser();const
   supabase.from("projects").select("*").eq("user_id",userId).eq("status","active").is("deleted_at",null).order("updated_at",{ascending:false}).limit(5),
   supabase.from("followups").select("*").eq("user_id",userId).eq("status","open").is("deleted_at",null).order("due_at").limit(5),
   supabase.from("notes").select("*").eq("user_id",userId).is("deleted_at",null).order("updated_at",{ascending:false}).limit(3),
-  getTodayInsights(supabase,userId)
+  getIntelligence(supabase,userId)
  ]);const failure=[plan,inbox,events,waiting,overdue,projects,followups,notes].find((result)=>result.error);if(failure?.error)throw failure.error;
  const priorities=((plan.data?.daily_priorities??[]) as unknown as {position:number;tasks:Record<string,unknown>}[]).sort((a,b)=>a.position-b.position).map((item)=>({...item.tasks,position:item.position}));
  const nextEvent=(events.data??[]).find((event)=>new Date(event.ends_at)>=new Date())??null;
  const summary=buildSummary({priorities,inbox:inbox.count??0,waiting:waiting.count??waiting.data?.length??0,overdue:overdue.count??0,nextEvent,followups:followups.data??[]});
- return NextResponse.json({date:today,profile:profile.data,priorities,inboxCount:inbox.count??0,events:events.data??[],nextEvent,waiting:waiting.data??[],waitingCount:waiting.count??0,overdueCount:overdue.count??0,projects:projects.data??[],followups:followups.data??[],notes:notes.data??[],insights,summary});
+ const intelligence=intelligenceResult.overview;
+ const insights=intelligence.attentionQueue.map((item)=>({id:item.key,severity:item.priority>=80?"critical":item.priority>=60?"high":item.priority>=35?"medium":"low",title:item.label,message:item.reason,action_label:"Act",action_route:item.route}));
+ return NextResponse.json({date:today,profile:profile.data,priorities,inboxCount:inbox.count??0,events:events.data??[],nextEvent,waiting:waiting.data??[],waitingCount:waiting.count??0,overdueCount:overdue.count??0,projects:projects.data??[],followups:followups.data??[],notes:notes.data??[],insights,summary,intelligence,modules:adaptiveModules(intelligence)});
  }catch(error){return apiError(error,"Today could not be loaded.")}}
 
 const prioritySchema=z.object({taskId:z.uuid(),position:z.number().int().min(1).max(3)});

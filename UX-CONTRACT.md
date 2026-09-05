@@ -39,6 +39,8 @@ Attachments use the shared private `attachments` bucket and metadata table. Uplo
 
 Today insights are derived server-side from current workspace data, filtered through category/severity preferences, deduplicated, expired, ranked, and capped at five. External-effect and financial assistant writes require explicit confirmation; assistant arguments never select a user identity.
 
+V3 intelligence remains deterministic on page load and never calls OpenAI merely to render Today, planning, health, risks, analytics, or reviews. Every recommendation has a stable key, bounded score, action route, concise reason, and inspectable evidence. Today adapts to meeting, finance, content-deadline, deep-work, or balanced context. Dismissed items cool down, snoozed items stay hidden until their selected time, and irrelevant/hidden types are excluded. Accepted morning plans are the only suggestions allowed to replace daily wins; ownership and the three-win maximum are enforced atomically in Postgres. Predictions require minimum samples and expose evidence and assumptions. Structured memory is user-owned, confidence-aware, correctable, archivable, and validates source ownership in both the API and database. V3 assistant writes for plans and insight feedback require explicit confirmation and never accept a user ID.
+
 The account disclosure is owned by `AppShell` on desktop and in the mobile navigation drawer. Sign out is pessimistic, disables duplicate activation, clears the current Supabase browser session, replaces the route with `/login`, and refreshes server-rendered state. Protected routes continue to rely on the authenticated proxy and ownership-scoped database access; account-specific records are never persisted in shared browser storage.
 
 ## Accessibility
