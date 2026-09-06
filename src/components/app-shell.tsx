@@ -11,16 +11,20 @@ import { signOutCurrentSession } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/client";
 import { setTheme, useTheme } from "@/lib/theme-store";
 import { InboxBadge } from "@/components/inbox-badge";
+import { NotificationCenter } from "@/features/notifications/notification-center";
 
 const groups = [
   { label: "Command center", items: [
-    ["Today", "/today", Icons.Zap], ["Plan", "/plan", Icons.Target], ["Inbox", "/inbox", Icons.Inbox], ["Tasks", "/tasks", Icons.ListTodo], ["Calendar", "/calendar", Icons.CalendarDays], ["Focus", "/focus", Icons.Focus], ["Risks", "/risks", Icons.Bell], ["Analytics", "/analytics", Icons.ChartNoAxesCombined],
+    ["Today", "/today", Icons.Zap], ["Plan", "/plan", Icons.Target], ["Inbox", "/inbox", Icons.Inbox], ["Tasks", "/tasks", Icons.ListTodo], ["Calendar", "/calendar", Icons.CalendarDays], ["Focus", "/focus", Icons.Focus], ["Communication", "/communication", Icons.MessageSquareText], ["Approvals", "/approvals", Icons.Check], ["Risks", "/risks", Icons.Bell], ["Analytics", "/analytics", Icons.ChartNoAxesCombined],
   ] },
   { label: "Workspace", items: [
     ["Projects", "/projects", Icons.BriefcaseBusiness], ["Clients", "/clients", Icons.Users], ["Follow-ups", "/followups", Icons.MessageSquareText], ["Notes", "/notes", Icons.FileText], ["Files", "/files", Icons.Paperclip], ["Goals", "/goals", Icons.Target], ["Waiting", "/waiting", Icons.Clock3], ["Content", "/content", Icons.BookOpen], ["Campaigns", "/campaigns", Icons.Zap],
   ] },
+  { label: "Business", items: [
+    ["Founder", "/founder", Icons.ChartNoAxesCombined], ["Business", "/business", Icons.ChartNoAxesCombined], ["Pipeline", "/pipeline", Icons.BriefcaseBusiness], ["Leads", "/leads", Icons.Users], ["Proposals", "/proposals", Icons.FileText], ["Services", "/services", Icons.CircleDollarSign],
+  ] },
   { label: "Knowledge", items: [
-    ["Ideas", "/ideas", Icons.Lightbulb], ["Decisions", "/decisions", Icons.MessageSquareText], ["Memory", "/memory", Icons.BookOpen], ["Prompts", "/prompts", Icons.Command], ["Weekly review", "/review/weekly", Icons.ChartNoAxesCombined],
+    ["Ideas", "/ideas", Icons.Lightbulb], ["Decisions", "/decisions", Icons.MessageSquareText], ["Memory", "/memory", Icons.BookOpen], ["Prompts", "/prompts", Icons.Command], ["Automations", "/automations", Icons.Zap], ["Weekly review", "/review/weekly", Icons.ChartNoAxesCombined],
   ] },
   { label: "Personal", items: [
     ["Finance", "/finance", Icons.CircleDollarSign], ["Invoices", "/finance/invoices", Icons.ReceiptText], ["Fitness", "/fitness", Icons.Dumbbell],
@@ -114,7 +118,7 @@ function Shell({ children,user }: { children: ReactNode;user:ShellUser }) {
           {groups.map((group) => <div className="nav-group" key={group.label}><p>{group.label}</p>{group.items.map(([label, href, Icon]) => <Link className={pathname === href || pathname.startsWith(`${href}/`) ? "nav-link nav-link--active" : "nav-link"} href={href} key={href} onClick={() => setMobileMenu(false)}><Icon size={16} strokeWidth={1.8} /><span>{label}</span>{label === "Inbox" ? <InboxBadge /> : null}</Link>)}</div>)}
         </nav>
         <div className="sidebar__footer">
-          <button className="nav-link" onClick={() => setPaletteOpen(true)}><Icons.Search size={16} /><span>Search</span><kbd>⌘K</kbd></button>
+          <div className="sidebar-footer-row"><button className="nav-link" onClick={() => setPaletteOpen(true)}><Icons.Search size={16} /><span>Search</span><kbd>⌘K</kbd></button><NotificationCenter /></div>
           <Link className="nav-link" href="/settings"><Icons.Settings size={16} /><span>Settings</span></Link>
           <div className="account-control" ref={accountRef}>
             {accountOpen ? <div className="account-menu" id="account-menu" aria-label="Account">
@@ -131,7 +135,7 @@ function Shell({ children,user }: { children: ReactNode;user:ShellUser }) {
       </aside>
       {mobileMenu ? <button className="sidebar-scrim" aria-label="Close navigation" onClick={() => setMobileMenu(false)} /> : null}
       <div className="workspace">
-        <header className="mobile-header"><button className="icon-button" onClick={() => setMobileMenu(true)} aria-label="Open navigation"><Icons.Menu size={20} /></button><span className="mobile-brand">DAILY COMMAND</span><button className="icon-button" onClick={() => setPaletteOpen(true)} aria-label="Search"><Icons.Search size={19} /></button></header>
+        <header className="mobile-header"><button className="icon-button" onClick={() => setMobileMenu(true)} aria-label="Open navigation"><Icons.Menu size={20} /></button><span className="mobile-brand">DAILY COMMAND</span><span className="mobile-header__actions"><NotificationCenter mobile/><button className="icon-button" onClick={() => setPaletteOpen(true)} aria-label="Search"><Icons.Search size={19} /></button></span></header>
         <main id="main-content" className="workspace__content">{children}</main>
       </div>
       <nav className="mobile-nav" aria-label="Mobile navigation">

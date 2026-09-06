@@ -81,6 +81,14 @@ The UI targets WCAG 2.2 AA, supports reduced motion and forced colors, uses visi
 
 A custom domain can replace `NEXT_PUBLIC_APP_URL` later; update Supabase and OAuth callback allowlists at the same time.
 
+## V4 integrations
+
+The V4 provider layer keeps OAuth tokens encrypted on the server and uses connection-specific, owner-scoped records. Google Calendar retains its manual sync fallback; Gmail stores thread metadata/snippets rather than mailbox bodies, Drive stores file references, GitHub stores project context, and Strava imports activities by immutable external ID. Provider requests run only from server routes and provider adapters—never from browser UI code.
+
+Set the callback URLs shown in `.env.example` in each provider console. Gmail uses `gmail.metadata` by default (no sending permission). Drive uses metadata-only access. GitHub requests repository-status/public-repository context, and Strava requests activity read access. `INTEGRATION_ENCRYPTION_KEY` must be a base64-encoded 32-byte value and must remain server-only.
+
+V4 background work is deliberately represented by safe automation records and run logs. Deploy a scheduled authenticated worker before enabling recurring provider sync. Until then, each connected integration exposes **Sync now** as the supported fallback. Sending email, recording payment, rescheduling calendar events, and changing automation rules enter the approval queue; they are never executed directly by assistant drafts.
+
 ## Current integration boundary
 
 Credentials are intentionally absent from the repository. To activate the real services, provide: Supabase project URL/publishable key, OpenAI API key, Google client ID/secret, a 32-byte base64 encryption key, and—when those integrations are implemented—GitHub and Strava client credentials.

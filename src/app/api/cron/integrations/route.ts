@@ -1,0 +1,6 @@
+import { NextResponse } from "next/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { syncGoogleCalendar } from "@/lib/integrations/google-calendar";
+import { syncProvider } from "@/lib/integrations/sync";
+import { emitWorkspaceNotifications } from "@/lib/notification-producers";
+export async function GET(request:Request){const secret=process.env.CRON_SECRET;if(!secret||request.headers.get("authorization")!==`Bearer ${secret}`)return NextResponse.json({error:"Unauthorized"},{status:401});const client=createAdminClient();const{data,error}=await client.from("integrations").select("user_id,provider").eq("status","connected").in("provider",["google","gmail","google_drive","github","strava"]);if(error)return NextResponse.json({error:"Sync inventory unavailable."},{status:500});let attempted=0,failed=0;const users=new Set<string>();for(const item of data??[]){try{attempted++;users.add(item.user_id);if(item.provider==="google")await syncGoogleCalendar(client,item.user_id);else await syncProvider(client,item.user_id,item.provider as "gmail"|"google_drive"|"github"|"strava")}catch{failed++}}for(const userId of users)await emitWorkspaceNotifications(client,userId);return NextResponse.json({attempted,failed})}

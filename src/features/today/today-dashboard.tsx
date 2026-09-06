@@ -57,6 +57,9 @@ type TodayData = {
   notes: Item[];
   insights: Insight[];
   summary: string;
+  calendarConflict: { id: string; title: string; conflictType: string; startsAt?: string; route: string } | null;
+  businessSignals: Array<{ id: string; title: string; message: string; route: string }>;
+  founderSignals: Array<{ id: string; title: string; message: string; route: string }>;
   intelligence: Intelligence;
   modules: string[];
 };
@@ -333,6 +336,28 @@ export function TodayDashboard() {
           }
         />
       )}
+      {data.calendarConflict ? (
+        <section className="today-conflict-signal" aria-label="Calendar conflict">
+          <div>
+            <p className="eyebrow">Calendar conflict</p>
+            <h2>{data.calendarConflict.title}</h2>
+            <p>{data.calendarConflict.conflictType === "external_deleted" ? "Deleted in Google Calendar while local changes remain." : data.calendarConflict.conflictType === "remote_changed_before_local_delete" ? "Google changed before your deletion could finish." : "Changed in both Google Calendar and Daily Command Center."}</p>
+          </div>
+          <Link className="button button--outline button--neutral" href={data.calendarConflict.route}>Review</Link>
+        </section>
+      ) : null}
+      {data.businessSignals.length ? (
+        <section className="today-business-signals" aria-label="Business signals">
+          <div className="section-heading section-heading--small"><div><p className="eyebrow">Business</p><h2>Worth protecting</h2></div><Link href="/business">Open business</Link></div>
+          {data.businessSignals.map((signal) => <Link className="brief-item" href={signal.route} key={signal.id}><strong>{signal.title}</strong><p>{signal.message}</p></Link>)}
+        </section>
+      ) : null}
+      {data.founderSignals.length ? (
+        <section className="today-business-signals" aria-label="Founder attention">
+          <div className="section-heading section-heading--small"><div><p className="eyebrow">Founder attention</p><h2>Requires a decision</h2></div><Link href="/founder">Open founder</Link></div>
+          {data.founderSignals.map((signal) => <Link className="brief-item" href={signal.route} key={signal.id}><strong>{signal.title}</strong><p>{signal.message}</p></Link>)}
+        </section>
+      ) : null}
       <Attention
         recommendations={data.intelligence.attentionQueue}
         onChanged={load}

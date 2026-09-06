@@ -7,7 +7,7 @@ export type AttachmentRow = {
   file_name: string; mime_type: string | null; size_bytes: number; description: string | null; created_at: string; updated_at: string;
 };
 
-const entities: Record<AttachmentEntityType, { table: string; title: string; select: string; href: (id: string) => string }> = {
+const entities: Record<AttachmentEntityType, { table: string; title: string; select: string; href: (id: string) => string; archived?: boolean }> = {
   task: { table: "tasks", title: "title", select: "id,title,project_id,client_id", href: (id) => `/tasks/${id}` },
   project: { table: "projects", title: "name", select: "id,name,client_id", href: (id) => `/projects/${id}` },
   client: { table: "clients", title: "name", select: "id,name", href: (id) => `/clients/${id}` },
@@ -15,11 +15,16 @@ const entities: Record<AttachmentEntityType, { table: string; title: string; sel
   content: { table: "content_items", title: "title", select: "id,title,project_id,client_id", href: (id) => `/content/${id}` },
   decision: { table: "decisions", title: "title", select: "id,title,project_id,client_id", href: (id) => `/decisions/${id}` },
   invoice: { table: "invoices", title: "title", select: "id,title,invoice_number,project_id,client_id", href: (id) => `/invoices/${id}` },
+  lead: { table: "leads", title: "name", select: "id,name", href: (id) => `/leads/${id}`, archived: true },
+  opportunity: { table: "opportunities", title: "title", select: "id,title,client_id", href: (id) => `/pipeline?opportunity=${id}`, archived: true },
+  proposal: { table: "proposals", title: "title", select: "id,title,client_id", href: (id) => `/proposals?proposal=${id}`, archived: true },
 };
 
 export async function requireOwnedAttachmentEntity(client: Client, userId: string, entityType: AttachmentEntityType, entityId: string) {
   const entity = entities[entityType];
-  const { data, error } = await client.from(entity.table).select("id").eq("id", entityId).eq("user_id", userId).is("deleted_at", null).maybeSingle();
+  let query = client.from(entity.table).select("id").eq("id", entityId).eq("user_id", userId);
+  query = query.is(entity.archived ? "archived_at" : "deleted_at", null);
+  const { data, error } = await query.maybeSingle();
   if (error) throw error;
   return Boolean(data);
 }
@@ -35,7 +40,9 @@ export async function hydrateAttachments(client: Client, userId: string, rows: A
   await Promise.all(Object.entries(entities).map(async ([type, config]) => {
     const ids = rows.filter((row) => row.entity_type === type).map((row) => row.entity_id);
     if (!ids.length) return;
-    const { data, error } = await client.from(config.table).select(config.select).eq("user_id", userId).is("deleted_at", null).in("id", ids);
+    let query = client.from(config.table).select(config.select).eq("user_id", userId).in("id", ids);
+    query = query.is(config.archived ? "archived_at" : "deleted_at", null);
+    const { data, error } = await query;
     if (error) throw error;
     for (const item of (data ?? []) as Array<Record<string, unknown> & { id: string }>) related.set(`${type}:${String(item.id)}`, item);
   }));

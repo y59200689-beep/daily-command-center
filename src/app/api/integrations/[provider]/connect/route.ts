@@ -1,0 +1,4 @@
+import { NextResponse } from "next/server";
+import { beginOAuth, safeProvider } from "@/lib/integrations/provider-registry";
+import { requireUser } from "@/lib/supabase/server";
+export async function GET(request: Request, { params }: { params: Promise<{ provider: string }> }) { const { provider: raw } = await params; const provider = safeProvider(raw); if (!provider) return NextResponse.json({ error: "Unknown integration." }, { status: 404 }); try { await requireUser(); return NextResponse.redirect(await beginOAuth(provider)); } catch (error) { const message = error instanceof Error ? error.message : ""; return message === "AUTH_REQUIRED" ? NextResponse.redirect(new URL("/login", request.url)) : NextResponse.redirect(new URL(`/settings/integrations?error=${encodeURIComponent(raw)}`, request.url)); } }

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
+import { Modal } from "@/components/ui/modal";
 import { useToast } from "@/components/toast-provider";
 import { useDeferredEffect } from "@/lib/use-deferred-effect";
 import { minutesLabel } from "@/lib/utils";
@@ -48,12 +49,18 @@ type Plan = {
     insight: string;
   };
 };
+type PlanConflict = { id: string; versionKey: string; overlapMinutes: number; firstId: string; secondId: string; first: { title: string; source: string }; second: { title: string; source: string } };
 
 function formatTime(value: string) {
   return new Intl.DateTimeFormat("en", {
     hour: "2-digit",
     minute: "2-digit",
   }).format(new Date(value));
+}
+function localDateTimeInput(value: string) {
+  const date = new Date(value);
+  const local = new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
+  return local.toISOString().slice(0, 16);
 }
 function Loading({ label = "Preparing your brief" }: { label?: string }) {
   return (
@@ -79,6 +86,9 @@ function Failure({ message, retry }: { message: string; retry: () => void }) {
 export function PlannerPage() {
   const [plan, setPlan] = useState<Plan | null>(null);
   const [selected, setSelected] = useState<string[]>([]);
+  const [conflicts, setConflicts] = useState<PlanConflict[]>([]);
+  const [keptOverlapKeys, setKeptOverlapKeys] = useState<string[]>([]);
+  const [moving, setMoving] = useState<{ index: number; startsAt: string; endsAt: string } | null>(null);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const { showToast } = useToast();
@@ -91,6 +101,8 @@ export function PlannerPage() {
       const body = await response.json();
       if (!response.ok) throw new Error(body.error);
       setPlan(body.plan);
+      setConflicts(body.conflicts ?? []);
+      setKeptOverlapKeys([]);
       setSelected(body.plan.wins.map((item: Recommendation) => item.entityId));
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Plan unavailable.");
@@ -107,10 +119,10 @@ export function PlannerPage() {
       const response = await fetch("/api/intelligence/plan", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action, selectedTaskIds: selected }),
+        body: JSON.stringify({ action, selectedTaskIds: selected, blocks: plan?.blocks, keptOverlapKeys }),
       });
       const body = await response.json();
-      if (!response.ok) throw new Error(body.error);
+      if (!response.ok) { if (body.conflicts) setConflicts(body.conflicts); throw new Error(body.error); }
       showToast(
         action === "accept"
           ? "Today’s plan is accepted."
@@ -207,6 +219,7 @@ export function PlannerPage() {
               </div>
             </article>
           ))}
+          {conflicts.length ? <div className="planner-conflicts"><p className="eyebrow">Schedule conflicts</p>{conflicts.map((conflict) => { const proposedId = conflict.firstId.startsWith("proposed:") ? conflict.firstId : conflict.secondId; const index = Number(proposedId.split(":")[1]); const block = plan.blocks[index]; return <article className="planner-conflict" key={conflict.id}><div><strong>This block conflicts with your Calendar.</strong><p>{conflict.first.title} overlaps {conflict.second.title} by {conflict.overlapMinutes} min.</p></div><div className="integration-actions"><Button emphasis="outline" disabled={!block} onClick={() => block && setMoving({ index, startsAt: localDateTimeInput(block.startsAt), endsAt: localDateTimeInput(block.endsAt) })}>Move block</Button><Button emphasis="ghost" disabled={!block} onClick={() => { if (!block) return; setPlan((current) => current ? { ...current, blocks: current.blocks.filter((_, blockIndex) => blockIndex !== index) } : current); setConflicts((current) => current.filter((item) => item.id !== conflict.id)); }}>Remove block</Button><Button emphasis="ghost" onClick={() => { setKeptOverlapKeys((current) => [...new Set([...current, conflict.versionKey])]); setConflicts((current) => current.filter((item) => item.id !== conflict.id)); }}>Keep overlap</Button></div></article>; })}</div> : null}
         </section>
         <aside>
           <p className="eyebrow">Consider deferring</p>
@@ -245,6 +258,7 @@ export function PlannerPage() {
           </Button>
         </aside>
       </div>
+      {moving ? <Modal open onClose={() => setMoving(null)} title="Move plan block" description="Choose a new time that does not overlap your Calendar."><form className="simple-form" noValidate onSubmit={(event) => { event.preventDefault(); const start = new Date(moving.startsAt); const end = new Date(moving.endsAt); if (!(end > start)) { showToast("The block must end after it starts.", "error"); return; } setPlan((current) => current ? { ...current, blocks: current.blocks.map((block, index) => index === moving.index ? { ...block, startsAt: start.toISOString(), endsAt: end.toISOString() } : block) } : current); setConflicts((current) => current.filter((conflict) => !conflict.firstId.startsWith(`proposed:${moving.index}:`) && !conflict.secondId.startsWith(`proposed:${moving.index}:`))); setMoving(null); }}><label htmlFor="move-block-start">Starts</label><input id="move-block-start" type="datetime-local" value={moving.startsAt} onChange={(event) => setMoving({ ...moving, startsAt: event.target.value })}/><label htmlFor="move-block-end">Ends</label><input id="move-block-end" type="datetime-local" value={moving.endsAt} onChange={(event) => setMoving({ ...moving, endsAt: event.target.value })}/><div className="modal__actions"><Button emphasis="ghost" type="button" onClick={() => setMoving(null)}>Cancel</Button><Button type="submit">Move block</Button></div></form></Modal> : null}
     </div>
   );
 }
@@ -333,6 +347,8 @@ type WeeklyReview = {
   unfinished: Array<{ id: string; title: string; dueDate: string }>;
   recommendations: Recommendation[];
   insights: string[];
+  business?: { leadsCreated: number; opportunitiesCreated: number; opportunitiesAdvanced: number; proposalsSent: number; dealsWon: number; dealsLost: number; trackedHours: number; scopeCreep: number; profitabilityWarnings: number; reactivationCandidates: number; currencies: Record<string, { received: number; outstanding: number; overdue: number; pipeline: number }> };
+  founder?: { revenue: Record<string, number>; orders: number; failedProductionDeployments: number; incidents: number; supportCases: number; aiRequests: number; aiFailures: number; funnel: { sessions: number; conversion: number | null } | null };
 };
 export function WeeklyReviewPage() {
   const [review, setReview] = useState<WeeklyReview | null>(null);
@@ -405,6 +421,8 @@ export function WeeklyReviewPage() {
           label="Fitness sessions"
         />
       </section>
+      {review.business ? <section className="data-surface weekly-business-review"><p className="eyebrow">Business</p><div className="metric-ledger metric-ledger--four"><Metric value={String(review.business.leadsCreated)} label="Leads created"/><Metric value={String(review.business.opportunitiesCreated)} label="Opportunities created"/><Metric value={String(review.business.opportunitiesAdvanced)} label="Opportunities advanced"/><Metric value={String(review.business.proposalsSent)} label="Proposals sent"/><Metric value={`${review.business.trackedHours.toFixed(1)} h`} label="Tracked project hours"/><Metric value={String(review.business.scopeCreep)} label="Scope changes approved"/><Metric value={String(review.business.dealsWon)} label="Deals won"/><Metric value={String(review.business.dealsLost)} label="Deals lost"/></div>{Object.entries(review.business.currencies).map(([currency, values]) => <div className="metric-ledger metric-ledger--four" key={currency}><Metric value={`${values.received.toLocaleString()} ${currency}`} label="Received"/><Metric value={`${values.outstanding.toLocaleString()} ${currency}`} label="Outstanding"/><Metric value={`${values.overdue.toLocaleString()} ${currency}`} label="Overdue"/><Metric value={`${values.pipeline.toLocaleString()} ${currency}`} label="Open pipeline"/></div>)}</section> : null}
+      {review.founder ? <section className="data-surface weekly-business-review"><p className="eyebrow">Para Officinal</p><div className="metric-ledger metric-ledger--four"><Metric value={String(review.founder.orders)} label="Orders"/><Metric value={String(review.founder.failedProductionDeployments)} label="Failed production deployments"/><Metric value={String(review.founder.incidents)} label="Incidents"/><Metric value={String(review.founder.supportCases)} label="Support cases"/><Metric value={String(review.founder.aiRequests)} label="AI requests"/><Metric value={String(review.founder.aiFailures)} label="AI failures"/>{review.founder.funnel ? <><Metric value={String(review.founder.funnel.sessions)} label="Sessions"/><Metric value={review.founder.funnel.conversion == null ? "—" : `${(review.founder.funnel.conversion * 100).toFixed(1)}%`} label="Conversion"/></> : null}</div>{Object.entries(review.founder.revenue).map(([currency, revenue]) => <Metric key={currency} value={`${revenue.toLocaleString()} ${currency}`} label="Revenue"/>)}</section> : null}
       <div className="editorial-split">
         <section>
           <p className="eyebrow">Interpretation</p>
@@ -894,12 +912,12 @@ export function MeetingBriefPage({ id }: { id: string }) {
         </section>
       </div>
       <div className="hero-actions">
-        <Link
+        {new Date(String(event.ends_at)).getTime() <= Date.now() ? <Link
           className="button button--outline button--neutral"
-          href={`/notes?meeting=${id}`}
+          href={`/meeting/${id}/capture`}
         >
-          Capture outcome
-        </Link>
+          Capture meeting outcome
+        </Link> : null}
         <Link className="button button--ghost button--neutral" href="/tasks">
           Add task
         </Link>
