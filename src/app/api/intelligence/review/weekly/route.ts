@@ -44,12 +44,34 @@ async function withFounderReview(supabase: Awaited<ReturnType<typeof requireUser
   const funnel = funnels.data?.[0] ?? null; const orderCount = Number(funnel?.orders_confirmed ?? funnel?.orders_created ?? 0); const sessions = Number(funnel?.sessions ?? 0);
   return { ...review, founder: { revenue: currencies, orders: (orders.data ?? []).filter((item) => !["canceled", "failed_payment", "refunded"].includes(item.status)).length, failedProductionDeployments: (deployments.data ?? []).filter((item) => item.environment === "production" && item.status === "failed").length, incidents: incidents.data?.length ?? 0, supportCases: support.data?.length ?? 0, aiRequests: usage.data?.length ?? 0, aiFailures: (usage.data ?? []).filter((item) => item.status === "failed").length, funnel: funnel ? { sessions, conversion: sessions > 0 ? orderCount / sessions : null } : null } };
 }
+async function withLifeReview(supabase: Awaited<ReturnType<typeof requireUser>>["supabase"], userId: string, review: Awaited<ReturnType<typeof withFounderReview>>) {
+  const [trips, renewals, documents, admin, routines, completions, fitness] = await Promise.all([
+    supabase.from("trips").select("id,title,start_date").eq("user_id", userId).is("archived_at", null).not("status", "in", "(completed,canceled)").order("start_date").limit(5),
+    supabase.from("personal_renewals").select("id,due_date,status").eq("user_id", userId).not("status", "in", "(renewed,canceled)"),
+    supabase.from("personal_documents").select("id,expires_at").eq("user_id", userId).is("archived_at", null).not("expires_at", "is", null),
+    supabase.from("personal_admin_items").select("id,status").eq("user_id", userId).gte("completed_at", review.periodStart).lte("completed_at", review.periodEnd),
+    supabase.from("personal_routines").select("id").eq("user_id", userId).eq("active", true),
+    supabase.from("routine_completions").select("routine_id").eq("user_id", userId).gte("completed_on", review.periodStart).lte("completed_on", review.periodEnd),
+    supabase.from("fitness_activities").select("id").eq("user_id", userId).gte("date", review.periodStart).lte("date", review.periodEnd).is("deleted_at", null),
+  ]); const failed = [trips, renewals, documents, admin, routines, completions, fitness].find((result) => result.error); if (failed?.error) throw failed.error;
+  const documentAttentionCutoff = new Date(); documentAttentionCutoff.setUTCDate(documentAttentionCutoff.getUTCDate() + 60);
+  const cutoff = documentAttentionCutoff.toISOString().slice(0, 10);
+  return { ...review, life: { upcomingTrips: trips.data ?? [], renewalsDue: (renewals.data ?? []).filter((item) => item.due_date && item.due_date <= review.periodEnd).length, documentsNeedingAttention: (documents.data ?? []).filter((item) => item.expires_at && item.expires_at <= cutoff).length, adminCompleted: admin.data?.length ?? 0, fitnessSessions: fitness.data?.length ?? 0, routinesActive: routines.data?.length ?? 0, routineCompletions: completions.data?.length ?? 0 } };
+}
+async function withStrategyReview(supabase: Awaited<ReturnType<typeof requireUser>>["supabase"], userId: string, review: Awaited<ReturnType<typeof withLifeReview>>) {
+  const [commitments,milestones,gates,events]=await Promise.all([
+    supabase.from("strategic_commitments").select("id,status,planning_period_id,updated_at").eq("user_id",userId),
+    supabase.from("strategic_milestones").select("id,status,updated_at").eq("user_id",userId),
+    supabase.from("decision_gates").select("id,title,status").eq("user_id",userId).eq("status","open").limit(1),
+    supabase.from("calendar_events").select("starts_at,ends_at").eq("user_id",userId).gte("starts_at",review.periodStart+"T00:00:00Z").lte("starts_at",review.periodEnd+"T23:59:59Z").is("deleted_at",null),
+  ]);const failed=[commitments,milestones,gates,events].find(result=>result.error);if(failed?.error)throw failed.error;const rows=commitments.data??[];const hours=(events.data??[]).reduce((sum,row)=>sum+(Date.parse(row.ends_at)-Date.parse(row.starts_at))/3600000,0);return {...review,strategy:{planned:rows.filter(row=>["planned","committed","at_risk"].includes(row.status)).length,completed:rows.filter(row=>row.status==="completed").length,moved:rows.filter(row=>row.status==="planned"&&row.planning_period_id).length,dropped:rows.filter(row=>row.status==="dropped").length,milestonesReached:(milestones.data??[]).filter(row=>row.status==="reached").length,mainBlocker:gates.data?.[0]?.title??null,capacity:hours>12?"heavy":"balanced",topRisk:rows.find(row=>row.status==="at_risk")?.id??null}};
+}
 
 export async function GET() {
   try {
     const { supabase, userId } = await requireUser();
     const { snapshot, overview } = await getIntelligence(supabase, userId);
-    const review = await withFounderReview(supabase, userId, await withBusinessReview(supabase, userId, buildWeeklyReview(snapshot, overview)));
+    const review = await withStrategyReview(supabase, userId, await withLifeReview(supabase, userId, await withFounderReview(supabase, userId, await withBusinessReview(supabase, userId, buildWeeklyReview(snapshot, overview)))));
     const saved = await supabase.from("weekly_reviews").select("id,status,created_at,updated_at").eq("user_id", userId).eq("period_start", review.periodStart).maybeSingle();
     if (saved.error) throw saved.error;
     return NextResponse.json({ review, saved: saved.data }, { headers: { "Cache-Control": "private, no-store" } });
@@ -62,7 +84,7 @@ export async function POST() {
   try {
     const { supabase, userId } = await requireUser();
     const { snapshot, overview } = await getIntelligence(supabase, userId);
-    const review = await withFounderReview(supabase, userId, await withBusinessReview(supabase, userId, buildWeeklyReview(snapshot, overview)));
+    const review = await withStrategyReview(supabase, userId, await withLifeReview(supabase, userId, await withFounderReview(supabase, userId, await withBusinessReview(supabase, userId, buildWeeklyReview(snapshot, overview)))));
     const result = await supabase.from("weekly_reviews").upsert({ user_id: userId, period_start: review.periodStart, period_end: review.periodEnd, status: "accepted", summary: review } as never, { onConflict: "user_id,period_start" }).select("*").single();
     if (result.error) throw result.error;
     return NextResponse.json({ review: result.data }, { status: 201 });

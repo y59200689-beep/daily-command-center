@@ -18,6 +18,8 @@ const entities: Record<AttachmentEntityType, { table: string; title: string; sel
   lead: { table: "leads", title: "name", select: "id,name", href: (id) => `/leads/${id}`, archived: true },
   opportunity: { table: "opportunities", title: "title", select: "id,title,client_id", href: (id) => `/pipeline?opportunity=${id}`, archived: true },
   proposal: { table: "proposals", title: "title", select: "id,title,client_id", href: (id) => `/proposals?proposal=${id}`, archived: true },
+  trip: { table: "trips", title: "title", select: "id,title", href: (id) => `/travel/${id}`, archived: true },
+  personal_document: { table: "personal_documents", title: "label", select: "id,label", href: (id) => `/documents?document=${id}`, archived: true },
 };
 
 export async function requireOwnedAttachmentEntity(client: Client, userId: string, entityType: AttachmentEntityType, entityId: string) {

@@ -6,6 +6,12 @@ export type NotificationSeverity = "info" | "attention" | "important" | "critica
 const level: Record<NotificationSeverity, number> = { info: 0, attention: 1, important: 2, critical: 3 };
 
 export function notificationRoute(type: string, entityType?: string | null, entityId?: string | null) {
+  if (["commitment", "milestone", "decision_gate"].includes(entityType ?? "")) return "/control-tower";
+  if (entityType === "strategy_week_plan") return "/plan/week";
+  if (entityType === "strategy_month_plan") return "/plan/month";
+  if (entityType === "strategy_quarter_plan") return "/plan/quarter";
+  if (entityType === "planning_period") return "/plan/week";
+  if (entityType === "dependency") return "/control-tower";
   if (type === "integrations") return "/settings/integrations";
   if (type === "automations") return "/automations";
   if (entityType === "invoice") return entityId ? `/finance/invoices/${entityId}` : "/finance";

@@ -6,7 +6,7 @@ export async function GET(request: Request) {
     const { supabase, userId } = await requireUser();
     const query = new URL(request.url).searchParams.get("q")?.trim() ?? "";
     if (query.length < 2) return NextResponse.json({ data: [] });
-    const [workspace, products, suppliers, orders, roadmap, incidents, support, githubWork, marketing] = await Promise.all([
+    const [workspace, products, suppliers, orders, roadmap, incidents, support, githubWork, marketing, trips, segments, reservations, documents, visas, renewals, admin, dates, routines] = await Promise.all([
       supabase.rpc("search_workspace", { search_query: query, result_limit: 30 }),
       supabase.from("product_catalog_refs").select("id,name,sku").eq("user_id", userId).ilike("name", `%${query.replaceAll("%", "\\%")}%`).limit(8),
       supabase.from("supplier_records").select("id,name,contact_reference").eq("user_id", userId).ilike("name", `%${query.replaceAll("%", "\\%")}%`).limit(8),
@@ -16,9 +16,34 @@ export async function GET(request: Request) {
       supabase.from("support_cases").select("id,summary,category").eq("user_id", userId).ilike("summary", `%${query.replaceAll("%", "\\%")}%`).limit(8),
       supabase.from("github_work_items").select("id,title,kind,state").eq("user_id", userId).ilike("title", `%${query.replaceAll("%", "\\%")}%`).limit(8),
       supabase.from("marketing_attribution_records").select("id,channel,utm_campaign,currency").eq("user_id", userId).or(`channel.ilike.%${query.replaceAll("%", "\\%")}%,utm_campaign.ilike.%${query.replaceAll("%", "\\%")}%`).limit(8),
+      supabase.from("trips").select("id,title,destination_city").eq("user_id", userId).is("archived_at", null).ilike("title", `%${query.replaceAll("%", "\\%")}%`).limit(8),
+      supabase.from("trip_segments").select("id,title,type,trip_id").eq("user_id", userId).ilike("title", `%${query.replaceAll("%", "\\%")}%`).limit(8),
+      supabase.from("travel_reservations").select("id,name,type,trip_id").eq("user_id", userId).ilike("name", `%${query.replaceAll("%", "\\%")}%`).limit(8),
+      supabase.from("personal_documents").select("id,label,type").eq("user_id", userId).is("archived_at", null).ilike("label", `%${query.replaceAll("%", "\\%")}%`).limit(8),
+      supabase.from("visa_applications").select("id,country,status").eq("user_id", userId).ilike("country", `%${query.replaceAll("%", "\\%")}%`).limit(8),
+      supabase.from("personal_renewals").select("id,title,status").eq("user_id", userId).ilike("title", `%${query.replaceAll("%", "\\%")}%`).limit(8),
+      supabase.from("personal_admin_items").select("id,title,status").eq("user_id", userId).ilike("title", `%${query.replaceAll("%", "\\%")}%`).limit(8),
+      supabase.from("important_dates").select("id,title,date").eq("user_id", userId).ilike("title", `%${query.replaceAll("%", "\\%")}%`).limit(8),
+      supabase.from("personal_routines").select("id,title,category").eq("user_id", userId).ilike("title", `%${query.replaceAll("%", "\\%")}%`).limit(8),
     ]);
-    const failed = [workspace, products, suppliers, orders, roadmap, incidents, support, githubWork, marketing].find((result) => result.error);
+    const failed = [workspace, products, suppliers, orders, roadmap, incidents, support, githubWork, marketing, trips, segments, reservations, documents, visas, renewals, admin, dates, routines].find((result) => result.error);
     if (failed?.error) throw failed.error;
+    const [planningPeriods, commitments, milestones, gates, scenarios] = await Promise.all([
+      supabase.from("planning_periods").select("id,title,status").eq("user_id", userId).ilike("title", `%${query.replaceAll("%", "\\%")}%`).limit(8),
+      supabase.from("strategic_commitments").select("id,title,status").eq("user_id", userId).ilike("title", `%${query.replaceAll("%", "\\%")}%`).limit(8),
+      supabase.from("strategic_milestones").select("id,title,status").eq("user_id", userId).ilike("title", `%${query.replaceAll("%", "\\%")}%`).limit(8),
+      supabase.from("decision_gates").select("id,title,status").eq("user_id", userId).ilike("title", `%${query.replaceAll("%", "\\%")}%`).limit(8),
+      supabase.from("strategic_scenarios").select("id,title,updated_at").eq("user_id", userId).ilike("title", `%${query.replaceAll("%", "\\%")}%`).limit(8),
+    ]);
+    const strategyFailure = [planningPeriods, commitments, milestones, gates, scenarios].find((result) => result.error);
+    if (strategyFailure?.error) throw strategyFailure.error;
+    const strategyRows = [
+      ...(planningPeriods.data ?? []).map((row) => ({ entity_type: "planning_period", entity_id: row.id, title: row.title, snippet: row.status })),
+      ...(commitments.data ?? []).map((row) => ({ entity_type: "commitment", entity_id: row.id, title: row.title, snippet: row.status })),
+      ...(milestones.data ?? []).map((row) => ({ entity_type: "milestone", entity_id: row.id, title: row.title, snippet: row.status })),
+      ...(gates.data ?? []).map((row) => ({ entity_type: "decision_gate", entity_id: row.id, title: row.title, snippet: row.status })),
+      ...(scenarios.data ?? []).map((row) => ({ entity_type: "scenario", entity_id: row.id, title: row.title, snippet: "Hypothetical planning" })),
+    ];
     const founderRows = [
       ...(products.data ?? []).map((row) => ({ entity_type: "product", entity_id: row.id, title: row.name, snippet: row.sku ?? "Product" })),
       ...(suppliers.data ?? []).map((row) => ({ entity_type: "supplier", entity_id: row.id, title: row.name, snippet: row.contact_reference ?? "Supplier" })),
@@ -28,7 +53,16 @@ export async function GET(request: Request) {
       ...(support.data ?? []).map((row) => ({ entity_type: "support_case", entity_id: row.id, title: row.summary, snippet: row.category })),
       ...(githubWork.data ?? []).map((row) => ({ entity_type: "github_work_item", entity_id: row.id, title: row.title, snippet: `${row.kind.replace("_", " ")} · ${row.state}` })),
       ...(marketing.data ?? []).map((row) => ({ entity_type: "campaign_performance", entity_id: row.id, title: row.utm_campaign ?? row.channel ?? "Tracked campaign", snippet: row.currency })),
+      ...(trips.data ?? []).map((row) => ({ entity_type: "trip", entity_id: row.id, title: row.title, snippet: row.destination_city ?? "Trip" })),
+      ...(segments.data ?? []).map((row) => ({ entity_type: "trip_segment", entity_id: row.id, title: row.title, snippet: row.type.replaceAll("_", " "), trip_id: row.trip_id })),
+      ...(reservations.data ?? []).map((row) => ({ entity_type: "travel_reservation", entity_id: row.id, title: row.name, snippet: row.type.replaceAll("_", " "), trip_id: row.trip_id })),
+      ...(documents.data ?? []).map((row) => ({ entity_type: "personal_document", entity_id: row.id, title: row.label, snippet: row.type.replaceAll("_", " ") })),
+      ...(visas.data ?? []).map((row) => ({ entity_type: "visa", entity_id: row.id, title: `${row.country} visa`, snippet: row.status.replaceAll("_", " ") })),
+      ...(renewals.data ?? []).map((row) => ({ entity_type: "renewal", entity_id: row.id, title: row.title, snippet: row.status.replaceAll("_", " ") })),
+      ...(admin.data ?? []).map((row) => ({ entity_type: "admin", entity_id: row.id, title: row.title, snippet: row.status.replaceAll("_", " ") })),
+      ...(dates.data ?? []).map((row) => ({ entity_type: "important_date", entity_id: row.id, title: row.title, snippet: row.date })),
+      ...(routines.data ?? []).map((row) => ({ entity_type: "routine", entity_id: row.id, title: row.title, snippet: row.category ?? "Routine" })),
     ];
-    return NextResponse.json({ data: [...(workspace.data ?? []), ...founderRows].slice(0, 30) });
+    return NextResponse.json({ data: [...(workspace.data ?? []), ...founderRows, ...strategyRows].slice(0, 30) });
   } catch (error) { return NextResponse.json({ error: error instanceof Error && error.message === "AUTH_REQUIRED" ? "Authentication required." : "Search is unavailable." }, { status: error instanceof Error && error.message === "AUTH_REQUIRED" ? 401 : 500 }); }
 }

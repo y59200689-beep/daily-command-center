@@ -15,7 +15,7 @@ import { NotificationCenter } from "@/features/notifications/notification-center
 
 const groups = [
   { label: "Command center", items: [
-    ["Today", "/today", Icons.Zap], ["Plan", "/plan", Icons.Target], ["Inbox", "/inbox", Icons.Inbox], ["Tasks", "/tasks", Icons.ListTodo], ["Calendar", "/calendar", Icons.CalendarDays], ["Focus", "/focus", Icons.Focus], ["Communication", "/communication", Icons.MessageSquareText], ["Approvals", "/approvals", Icons.Check], ["Risks", "/risks", Icons.Bell], ["Analytics", "/analytics", Icons.ChartNoAxesCombined],
+    ["Today", "/today", Icons.Zap], ["Control Tower", "/control-tower", Icons.Target], ["Plan", "/plan", Icons.Target], ["Inbox", "/inbox", Icons.Inbox], ["Tasks", "/tasks", Icons.ListTodo], ["Calendar", "/calendar", Icons.CalendarDays], ["Focus", "/focus", Icons.Focus], ["Communication", "/communication", Icons.MessageSquareText], ["Approvals", "/approvals", Icons.Check], ["Risks", "/risks", Icons.Bell], ["Analytics", "/analytics", Icons.ChartNoAxesCombined],
   ] },
   { label: "Workspace", items: [
     ["Projects", "/projects", Icons.BriefcaseBusiness], ["Clients", "/clients", Icons.Users], ["Follow-ups", "/followups", Icons.MessageSquareText], ["Notes", "/notes", Icons.FileText], ["Files", "/files", Icons.Paperclip], ["Goals", "/goals", Icons.Target], ["Waiting", "/waiting", Icons.Clock3], ["Content", "/content", Icons.BookOpen], ["Campaigns", "/campaigns", Icons.Zap],
@@ -24,10 +24,10 @@ const groups = [
     ["Founder", "/founder", Icons.ChartNoAxesCombined], ["Business", "/business", Icons.ChartNoAxesCombined], ["Pipeline", "/pipeline", Icons.BriefcaseBusiness], ["Leads", "/leads", Icons.Users], ["Proposals", "/proposals", Icons.FileText], ["Services", "/services", Icons.CircleDollarSign],
   ] },
   { label: "Knowledge", items: [
-    ["Ideas", "/ideas", Icons.Lightbulb], ["Decisions", "/decisions", Icons.MessageSquareText], ["Memory", "/memory", Icons.BookOpen], ["Prompts", "/prompts", Icons.Command], ["Automations", "/automations", Icons.Zap], ["Weekly review", "/review/weekly", Icons.ChartNoAxesCombined],
+    ["Knowledge", "/knowledge", Icons.BookOpen], ["Ideas", "/ideas", Icons.Lightbulb], ["Decisions", "/decisions", Icons.MessageSquareText], ["Memory", "/memory", Icons.BookOpen], ["Prompts", "/prompts", Icons.Command], ["Automations", "/automations", Icons.Zap], ["Weekly review", "/review/weekly", Icons.ChartNoAxesCombined],
   ] },
   { label: "Personal", items: [
-    ["Finance", "/finance", Icons.CircleDollarSign], ["Invoices", "/finance/invoices", Icons.ReceiptText], ["Fitness", "/fitness", Icons.Dumbbell],
+    ["Life", "/life", Icons.BookOpen], ["Travel", "/travel", Icons.CalendarDays], ["Documents", "/documents", Icons.FileText], ["Finance", "/finance", Icons.CircleDollarSign], ["Invoices", "/finance/invoices", Icons.ReceiptText], ["Fitness", "/fitness", Icons.Dumbbell],
   ] },
 ] as const;
 

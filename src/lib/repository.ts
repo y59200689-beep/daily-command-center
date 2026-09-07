@@ -2,6 +2,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { domainConfig, type DomainRecord, type PersistedDomain } from "@/lib/domains";
 
 type UntypedClient = SupabaseClient<Record<string, unknown>>;
+type StrategyDomain = "strategic_commitments" | "strategic_milestones" | "planning_periods" | "strategic_scenarios" | "decision_gates";
+const strategyTables: Record<StrategyDomain, string> = { strategic_commitments: "strategic_commitments", strategic_milestones: "strategic_milestones", planning_periods: "planning_periods", strategic_scenarios: "strategic_scenarios", decision_gates: "decision_gates" };
 
 export async function listRecords(client: UntypedClient, userId: string, domain: PersistedDomain, search?: string, page=1, pageSize=50) {
   const config = domainConfig[domain];
@@ -19,10 +21,16 @@ export async function getRecord(client: UntypedClient, userId: string, domain: P
   return data as DomainRecord | null;
 }
 
-export async function createRecord(client: UntypedClient, userId: string, domain: PersistedDomain, input: Record<string, unknown>) {
+export async function createRecord(client: UntypedClient, userId: string, domain: PersistedDomain | StrategyDomain, input: Record<string, unknown>) {
+  if (domain in strategyTables) {
+    const { data, error } = await client.from(strategyTables[domain as StrategyDomain]).insert({ ...input, user_id: userId } as never).select("*").single();
+    if (error) throw error;
+    return data as DomainRecord;
+  }
+  const persistedDomain = domain as PersistedDomain;
   await validateRelationships(client, userId, input);
-  const prepared = prepareRecord(domain, input);
-  const { data, error } = await client.from(domainConfig[domain].table).insert({ ...prepared, user_id: userId } as never).select("*").single();
+  const prepared = prepareRecord(persistedDomain, input);
+  const { data, error } = await client.from(domainConfig[persistedDomain].table).insert({ ...prepared, user_id: userId } as never).select("*").single();
   if (error) throw error;
   return data as DomainRecord;
 }

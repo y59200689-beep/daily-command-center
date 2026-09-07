@@ -2,7 +2,7 @@ export const ATTACHMENT_BUCKET = "attachments";
 export const MAX_ATTACHMENT_BYTES = 6 * 1024 * 1024;
 export const ATTACHMENT_ACCEPT = ".jpg,.jpeg,.png,.webp,.gif,.pdf,.doc,.docx,.txt,.csv,.xls,.xlsx,.zip";
 
-export const attachmentEntityTypes = ["task", "project", "client", "note", "content", "decision", "invoice", "lead", "opportunity", "proposal"] as const;
+export const attachmentEntityTypes = ["task", "project", "client", "note", "content", "decision", "invoice", "lead", "opportunity", "proposal", "trip", "personal_document"] as const;
 export type AttachmentEntityType = (typeof attachmentEntityTypes)[number];
 
 const mimeByExtension: Record<string, readonly string[]> = {
