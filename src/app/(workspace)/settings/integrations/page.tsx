@@ -1,6 +1,24 @@
 import type { Metadata } from "next";
-import { Icons } from "@/components/icons";
 import { GoogleCalendarCard } from "@/features/integrations/google-calendar-card";
 import { IntegrationCard } from "@/features/integrations/integration-card";
-export const metadata: Metadata={title:"Integrations"};
-export default function IntegrationsPage(){return <div className="domain-page"><header className="page-header"><div><p className="eyebrow">Settings · Connections</p><h1>Integrations</h1><p>Bring in context without turning the command center into a copy of every service.</p></div></header><div className="project-grid integration-grid"><GoogleCalendarCard/><IntegrationCard provider="gmail" name="Gmail" detail="Reference relevant threads and reply state without copying your inbox." icon={Icons.MessageSquareText}/><IntegrationCard provider="google_drive" name="Google Drive" detail="Link provider-owned files beside private workspace attachments." icon={Icons.Paperclip}/><IntegrationCard provider="github" name="GitHub" detail="Use repository activity, pull requests, and issues as project context." icon={Icons.BriefcaseBusiness}/><IntegrationCard provider="strava" name="Strava" detail="Import activities without overwriting the notes you add yourself." icon={Icons.Dumbbell}/></div></div>}
+export const metadata: Metadata = { title: "Integrations" };
+export default function IntegrationsPage() {
+  return (
+    <div className="domain-page">
+      <header className="page-header">
+        <div>
+          <p className="eyebrow">Settings · Connections</p>
+          <h1>Integrations</h1>
+          <p>Bring in context without turning the command center into a copy of every service.</p>
+        </div>
+      </header>
+      <div className="project-grid integration-grid">
+        <GoogleCalendarCard />
+        <IntegrationCard provider="gmail" name="Gmail" detail="Reference relevant threads and reply state without copying your inbox." iconName="message-square-text" />
+        <IntegrationCard provider="google_drive" name="Google Drive" detail="Link provider-owned files beside private workspace attachments." iconName="paperclip" />
+        <IntegrationCard provider="github" name="GitHub" detail="Use repository activity, pull requests, and issues as project context." iconName="briefcase-business" />
+        <IntegrationCard provider="strava" name="Strava" detail="Import activities without overwriting the notes you add yourself." iconName="dumbbell" />
+      </div>
+    </div>
+  );
+}
