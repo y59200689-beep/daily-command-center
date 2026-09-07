@@ -21,7 +21,7 @@ const groups = [
     ["Projects", "/projects", Icons.BriefcaseBusiness], ["Clients", "/clients", Icons.Users], ["Follow-ups", "/followups", Icons.MessageSquareText], ["Notes", "/notes", Icons.FileText], ["Files", "/files", Icons.Paperclip], ["Goals", "/goals", Icons.Target], ["Waiting", "/waiting", Icons.Clock3], ["Content", "/content", Icons.BookOpen], ["Campaigns", "/campaigns", Icons.Zap],
   ] },
   { label: "Business", items: [
-    ["Founder", "/founder", Icons.ChartNoAxesCombined], ["Business", "/business", Icons.ChartNoAxesCombined], ["Pipeline", "/pipeline", Icons.BriefcaseBusiness], ["Leads", "/leads", Icons.Users], ["Proposals", "/proposals", Icons.FileText], ["Services", "/services", Icons.CircleDollarSign],
+    ["Founder", "/founder", Icons.ChartNoAxesCombined], ["Business", "/business", Icons.ChartNoAxesCombined], ["Growth", "/growth", Icons.TrendingUp], ["Pipeline", "/pipeline", Icons.BriefcaseBusiness], ["Leads", "/leads", Icons.Users], ["Proposals", "/proposals", Icons.FileText], ["Services", "/services", Icons.CircleDollarSign],
   ] },
   { label: "Knowledge", items: [
     ["Knowledge", "/knowledge", Icons.BookOpen], ["Watchlist", "/knowledge/watch", Icons.Bell], ["Review", "/knowledge/review", Icons.Check], ["Ideas", "/ideas", Icons.Lightbulb], ["Decisions", "/decisions", Icons.MessageSquareText], ["Memory", "/memory", Icons.BookOpen], ["Prompts", "/prompts", Icons.Command], ["Automations", "/automations", Icons.Zap], ["Weekly review", "/review/weekly", Icons.ChartNoAxesCombined],

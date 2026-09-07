@@ -28,7 +28,7 @@ export async function GET(request: Request) {
     ]);
     const failed = [workspace, products, suppliers, orders, roadmap, incidents, support, githubWork, marketing, trips, segments, reservations, documents, visas, renewals, admin, dates, routines].find((result) => result.error);
     if (failed?.error) throw failed.error;
-    const [planningPeriods, commitments, milestones, gates, scenarios, kTopics, kSources, kFindings, kBriefs, kCollections, kWatches] = await Promise.all([
+    const [planningPeriods, commitments, milestones, gates, scenarios, kTopics, kSources, kFindings, kBriefs, kCollections, kWatches, gPlaybooks, gExperiments, gTargets] = await Promise.all([
       supabase.from("planning_periods").select("id,title,status").eq("user_id", userId).ilike("title", `%${query.replaceAll("%", "\\%")}%`).limit(8),
       supabase.from("strategic_commitments").select("id,title,status").eq("user_id", userId).ilike("title", `%${query.replaceAll("%", "\\%")}%`).limit(8),
       supabase.from("strategic_milestones").select("id,title,status").eq("user_id", userId).ilike("title", `%${query.replaceAll("%", "\\%")}%`).limit(8),
@@ -40,9 +40,17 @@ export async function GET(request: Request) {
       supabase.from("research_briefs").select("id,title,status").eq("user_id", userId).ilike("title", `%${query.replaceAll("%", "\\%")}%`).limit(8),
       supabase.from("knowledge_collections").select("id,title,description").eq("user_id", userId).ilike("title", `%${query.replaceAll("%", "\\%")}%`).limit(8),
       supabase.from("watch_entities").select("id,name,watch_type").eq("user_id", userId).ilike("name", `%${query.replaceAll("%", "\\%")}%`).limit(8),
+      supabase.from("sales_playbooks").select("id,name,target_type").eq("user_id", userId).ilike("name", `%${query.replaceAll("%", "\\%")}%`).limit(8),
+      supabase.from("growth_experiments").select("id,name,target_metric").eq("user_id", userId).ilike("name", `%${query.replaceAll("%", "\\%")}%`).limit(8),
+      supabase.from("sales_targets").select("id,metric_type,target_value,currency,period").eq("user_id", userId).limit(8),
     ]);
-    const strategyFailure = [planningPeriods, commitments, milestones, gates, scenarios, kTopics, kSources, kFindings, kBriefs, kCollections, kWatches].find((result) => result.error);
+    const strategyFailure = [planningPeriods, commitments, milestones, gates, scenarios, kTopics, kSources, kFindings, kBriefs, kCollections, kWatches, gPlaybooks, gExperiments, gTargets].find((result) => result.error);
     if (strategyFailure?.error) throw strategyFailure.error;
+    const growthRows = [
+      ...(gPlaybooks.data ?? []).map((row) => ({ entity_type: "sales_playbook", entity_id: row.id, title: row.name, snippet: `${row.target_type} playbook` })),
+      ...(gExperiments.data ?? []).map((row) => ({ entity_type: "growth_experiment", entity_id: row.id, title: row.name, snippet: `Experiment · ${row.target_metric}` })),
+      ...(gTargets.data ?? []).map((row) => ({ entity_type: "sales_target", entity_id: row.id, title: row.metric_type.replace(/_/g, " "), snippet: `${row.target_value} ${row.currency} · ${row.period}` })),
+    ];
     const knowledgeRows = [
       ...(kTopics.data ?? []).map((row) => ({ entity_type: "research_topic", entity_id: row.id, title: row.title, snippet: row.domain })),
       ...(kSources.data ?? []).map((row) => ({ entity_type: "knowledge_source", entity_id: row.id, title: row.title, snippet: row.source_type })),
@@ -77,6 +85,6 @@ export async function GET(request: Request) {
       ...(dates.data ?? []).map((row) => ({ entity_type: "important_date", entity_id: row.id, title: row.title, snippet: row.date })),
       ...(routines.data ?? []).map((row) => ({ entity_type: "routine", entity_id: row.id, title: row.title, snippet: row.category ?? "Routine" })),
     ];
-    return NextResponse.json({ data: [...(workspace.data ?? []), ...knowledgeRows, ...founderRows, ...strategyRows].slice(0, 30) });
+    return NextResponse.json({ data: [...(workspace.data ?? []), ...knowledgeRows, ...founderRows, ...strategyRows, ...growthRows].slice(0, 30) });
   } catch (error) { return NextResponse.json({ error: error instanceof Error && error.message === "AUTH_REQUIRED" ? "Authentication required." : "Search is unavailable." }, { status: error instanceof Error && error.message === "AUTH_REQUIRED" ? 401 : 500 }); }
 }

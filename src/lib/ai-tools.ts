@@ -28,7 +28,8 @@ export const assistantTools=[
  tool("get_control_tower","Get owner-scoped strategic planning context.",{}),tool("get_current_commitments","Get active strategic commitments.",{}),tool("get_capacity","Get conservative strategic capacity.",{}),tool("get_portfolio","Get current strategic portfolio.",{}),tool("get_strategic_risks","Get bounded strategic risks.",{}),tool("get_next_strategic_move","Get the next deterministic strategic move.",{}),tool("get_upcoming_milestones","Get upcoming strategic milestones.",{}),tool("get_blocked_dependencies","Get blocked strategic dependencies.",{}),tool("get_decision_gates","Get unresolved decision gates.",{}),tool("get_30_60_90_plan","Get dated strategic horizons.",{}),tool("get_weekly_plan","Get active weekly planning period.",{}),tool("get_monthly_plan","Get active monthly planning period.",{}),tool("get_quarterly_plan","Get active quarterly planning period.",{}),tool("get_scenarios","Get hypothetical scenarios.",{}),tool("get_slippage_signals","Get deterministic strategic slippage signals.",{}),tool("create_commitment","Create a commitment after explicit confirmation.",{planning_period_id:string,title:string,confirmed:{type:"boolean"}},["planning_period_id","title","confirmed"]),tool("create_milestone","Create a milestone after explicit confirmation.",{title:string,confirmed:{type:"boolean"}},["title","confirmed"]),tool("create_planning_period","Create a planning period after explicit confirmation.",{title:string,type:string,starts_at:string,ends_at:string,confirmed:{type:"boolean"}},["title","type","starts_at","ends_at","confirmed"]),tool("create_scenario","Create a hypothetical scenario after explicit confirmation.",{title:string,confirmed:{type:"boolean"}},["title","confirmed"]),tool("create_decision_gate","Create a decision gate after explicit confirmation.",{title:string,confirmed:{type:"boolean"}},["title","confirmed"]),
  tool("create_trip","Create a trip after explicit confirmation.",{title:string,start_date:nullableString,end_date:nullableString,confirmed:{type:"boolean"}},["title","start_date","end_date","confirmed"]),tool("add_trip_task","Create a task linked to an owned trip after explicit confirmation.",{trip_id:string,title:string,due_date:nullableString,confirmed:{type:"boolean"}},["trip_id","title","due_date","confirmed"]),tool("add_packing_item","Add a packing item to an owned list after explicit confirmation.",{packing_list_id:string,title:string,confirmed:{type:"boolean"}},["packing_list_id","title","confirmed"]),tool("create_visa_application","Create a visa application after explicit confirmation.",{trip_id:nullableString,country:string,confirmed:{type:"boolean"}},["trip_id","country","confirmed"]),tool("create_personal_document","Create a personal document after explicit confirmation.",{label:string,type:string,expires_at:nullableString,confirmed:{type:"boolean"}},["label","type","expires_at","confirmed"]),tool("create_renewal","Create a renewal after explicit confirmation.",{title:string,due_date:nullableString,confirmed:{type:"boolean"}},["title","due_date","confirmed"]),tool("create_personal_admin_item","Create a personal admin item after explicit confirmation.",{title:string,due_date:nullableString,confirmed:{type:"boolean"}},["title","due_date","confirmed"]),tool("create_important_date","Create an important date after explicit confirmation.",{title:string,date:string,confirmed:{type:"boolean"}},["title","date","confirmed"]),tool("create_routine","Create a routine after explicit confirmation.",{title:string,confirmed:{type:"boolean"}},["title","confirmed"]),
  tool("get_fitness_progress","Get the current owned fitness progress for Life.",{}),tool("add_visa_document_requirement","Add a user-defined visa checklist requirement after explicit confirmation.",{visa_application_id:string,title:string,confirmed:{type:"boolean"}},["visa_application_id","title","confirmed"]),
- tool("search_knowledge_topics","Search the user's research topics.",{query:string},["query"]),tool("get_knowledge_topic","Get a research topic and its linked findings, questions, and sources.",{id:string},["id"]),tool("search_knowledge_findings","Search research findings.",{query:string},["query"]),tool("get_knowledge_overview","Get the knowledge library overview: active topics, open questions, stale sources, and watchlist.",{}),tool("create_research_topic","Create a research topic after explicit confirmation.",{title:string,domain:nullableString,priority:nullableString,confirmed:{type:"boolean"}},["title","confirmed"]),tool("create_research_finding","Create a research finding linked to a topic after explicit confirmation.",{topic_id:string,title:string,summary:string,confirmed:{type:"boolean"}},["topic_id","title","summary","confirmed"]),tool("create_research_question","Create a research question linked to a topic after explicit confirmation.",{topic_id:string,question:string,priority:nullableString,confirmed:{type:"boolean"}},["topic_id","question","confirmed"])
+  tool("search_knowledge_topics","Search the user's research topics.",{query:string},["query"]),tool("get_knowledge_topic","Get a research topic and its linked findings, questions, and sources.",{id:string},["id"]),tool("search_knowledge_findings","Search research findings.",{query:string},["query"]),tool("get_knowledge_overview","Get the knowledge library overview: active topics, open questions, stale sources, and watchlist.",{}),tool("create_research_topic","Create a research topic after explicit confirmation.",{title:string,domain:nullableString,priority:nullableString,confirmed:{type:"boolean"}},["title","confirmed"]),tool("create_research_finding","Create a research finding linked to a topic after explicit confirmation.",{topic_id:string,title:string,summary:string,confirmed:{type:"boolean"}},["topic_id","title","summary","confirmed"]),tool("create_research_question","Create a research question linked to a topic after explicit confirmation.",{topic_id:string,question:string,priority:nullableString,confirmed:{type:"boolean"}},["topic_id","question","confirmed"]),
+  tool("get_growth_overview","Get overview of sales pipeline health, next growth move, active experiments, and expansion opportunities.",{}),tool("get_growth_experiments","Get active and planned growth experiments.",{}),tool("get_expansion_candidates","Get identified upsell, cross-sell, and renewal candidates.",{}),tool("get_lead_reactivations","Get dormant leads that can be reactivated.",{}),tool("create_growth_experiment","Create a growth experiment after explicit confirmation.",{name:string,hypothesis:string,target_metric:string,channel:nullableString,confirmed:{type:"boolean"}},["name","hypothesis","target_metric","confirmed"]),tool("create_sales_playbook","Create a sales playbook sequence after explicit confirmation.",{name:string,purpose:nullableString,target_type:string,confirmed:{type:"boolean"}},["name","target_type","confirmed"]),tool("create_sales_target","Create a commercial sales target after explicit confirmation.",{metric_type:string,target_value:{type:"number"},period:string,period_start:string,period_end:string,confirmed:{type:"boolean"}},["metric_type","target_value","period","period_start","period_end","confirmed"]),tool("record_deal_review","Record a won or lost deal retrospective review after explicit confirmation.",{opportunity_id:string,review_type:string,reason:nullableString,why_we_won:nullableString,lessons:nullableString,confirmed:{type:"boolean"}},["opportunity_id","review_type","confirmed"])
 ];
 type Ctx={client:SupabaseClient;userId:string};
 const searchSchema=query;const writeGuard=(confirmed:boolean)=>confirmed?null:{confirmation_required:true,message:"Ask the user to confirm this change before executing it."};
@@ -95,5 +96,76 @@ export async function executeAssistantTool(ctx:Ctx,name:string,raw:unknown){
  if(name==="create_research_topic"){const input=z.object({title:z.string().min(1).max(240),domain:z.string().nullable().optional(),priority:z.string().nullable().optional(),confirmed:z.boolean()}).strict().parse(raw);const blocked=writeGuard(input.confirmed);if(blocked)return blocked;const{data,error}=await ctx.client.from("research_topics").insert({user_id:ctx.userId,title:input.title,domain:input.domain??"other",priority:input.priority??"medium",status:"active"} as never).select("*").single();if(error)throw error;return data}
  if(name==="create_research_finding"){const input=z.object({topic_id:z.uuid(),title:z.string().min(1).max(400),summary:z.string().max(20000).default(""),confirmed:z.boolean()}).strict().parse(raw);const blocked=writeGuard(input.confirmed);if(blocked)return blocked;const topic=await ctx.client.from("research_topics").select("id").eq("id",input.topic_id).eq("user_id",ctx.userId).maybeSingle();if(topic.error)throw topic.error;if(!topic.data)throw new Error("Topic is not available in your workspace.");const{data,error}=await ctx.client.from("research_findings").insert({user_id:ctx.userId,topic_id:input.topic_id,title:input.title,summary:input.summary,status:"draft"} as never).select("*").single();if(error)throw error;return data}
  if(name==="create_research_question"){const input=z.object({topic_id:z.uuid(),question:z.string().min(1).max(1000),priority:z.string().nullable().optional(),confirmed:z.boolean()}).strict().parse(raw);const blocked=writeGuard(input.confirmed);if(blocked)return blocked;const topic=await ctx.client.from("research_topics").select("id").eq("id",input.topic_id).eq("user_id",ctx.userId).maybeSingle();if(topic.error)throw topic.error;if(!topic.data)throw new Error("Topic is not available in your workspace.");const{data,error}=await ctx.client.from("research_questions").insert({user_id:ctx.userId,topic_id:input.topic_id,question:input.question,priority:input.priority??"medium",status:"open"} as never).select("*").single();if(error)throw error;return data}
+  if(name==="get_growth_overview"){
+    const today = new Date().toISOString().slice(0, 10);
+    const [opps, leads, proposals, experiments] = await Promise.all([
+      ctx.client.from("opportunities").select("id,title,stage,estimated_value,currency,next_action,updated_at").eq("user_id", ctx.userId).is("archived_at", null),
+      ctx.client.from("leads").select("id,name,company,status,source,potential_value,currency,last_contact_at,next_follow_up_at,created_at,updated_at").eq("user_id", ctx.userId).is("archived_at", null),
+      ctx.client.from("proposals").select("id,opportunity_id,title,status,total,valid_until,currency").eq("user_id", ctx.userId).is("archived_at", null),
+      ctx.client.from("growth_experiments").select("*").eq("user_id", ctx.userId).eq("status", "running"),
+    ]);
+    const { rankNextGrowthMove, evaluatePipelineQuality } = await import("@/lib/growth");
+    return {
+      nextMove: rankNextGrowthMove(opps.data ?? [], leads.data ?? [], proposals.data ?? [], today),
+      pipeline: evaluatePipelineQuality(opps.data ?? [], today),
+      activeExperiments: experiments.data ?? [],
+    };
+  }
+  if(name==="get_growth_experiments"){
+    const { data, error } = await ctx.client.from("growth_experiments").select("*").eq("user_id", ctx.userId).order("created_at", { ascending: false });
+    if (error) throw error;
+    return data ?? [];
+  }
+  if(name==="get_expansion_candidates"||name==="get_lead_reactivations"){
+    const today = new Date().toISOString().slice(0, 10);
+    const [clients, projects, invoices, services, leads, opps] = await Promise.all([
+      ctx.client.from("clients").select("id,name,status,last_contact_at,updated_at").eq("user_id", ctx.userId).is("deleted_at", null),
+      ctx.client.from("projects").select("id,client_id,name,status,updated_at").eq("user_id", ctx.userId).is("deleted_at", null),
+      ctx.client.from("invoices").select("id,client_id,total_amount,currency,status,paid_at,updated_at").eq("user_id", ctx.userId).is("deleted_at", null),
+      ctx.client.from("services").select("id,name").eq("user_id", ctx.userId).is("archived_at", null),
+      ctx.client.from("leads").select("id,name,company,status,potential_value,currency,last_contact_at,notes").eq("user_id", ctx.userId).is("archived_at", null),
+      ctx.client.from("opportunities").select("id,lead_id,lost_reason,stage").eq("user_id", ctx.userId).is("archived_at", null),
+    ]);
+    const { identifyExpansionCandidates, identifyLeadReactivations } = await import("@/lib/growth");
+    if (name === "get_expansion_candidates") {
+      return identifyExpansionCandidates(clients.data ?? [], projects.data ?? [], invoices.data ?? [], (services.data ?? []).map(s => ({ client_id: "", service_name: s.name })), today);
+    }
+    return identifyLeadReactivations(leads.data ?? [], opps.data ?? [], today);
+  }
+  if(name==="create_growth_experiment"){
+    const input = z.object({ name: z.string().min(1).max(240), hypothesis: z.string().min(1).max(2000), target_metric: z.string().min(1).max(240), channel: z.string().nullable().optional(), confirmed: z.boolean() }).strict().parse(raw);
+    const blocked = writeGuard(input.confirmed);
+    if (blocked) return blocked;
+    const { data, error } = await ctx.client.from("growth_experiments").insert({ user_id: ctx.userId, name: input.name, hypothesis: input.hypothesis, target_metric: input.target_metric, channel: input.channel ?? null, status: "idea" } as never).select("*").single();
+    if (error) throw error;
+    return data;
+  }
+  if(name==="create_sales_playbook"){
+    const input = z.object({ name: z.string().min(1).max(240), purpose: z.string().nullable().optional(), target_type: z.enum(["lead", "opportunity", "client"]), confirmed: z.boolean() }).strict().parse(raw);
+    const blocked = writeGuard(input.confirmed);
+    if (blocked) return blocked;
+    const { data, error } = await ctx.client.from("sales_playbooks").insert({ user_id: ctx.userId, name: input.name, purpose: input.purpose ?? null, target_type: input.target_type, steps: [], default_delays: [], status: "active" } as never).select("*").single();
+    if (error) throw error;
+    return data;
+  }
+  if(name==="create_sales_target"){
+    const input = z.object({ metric_type: z.enum(["monthly_revenue", "new_leads", "qualified_leads", "proposals_sent", "deals_won", "new_clients", "expansion_revenue", "pipeline_generated"]), target_value: z.number().nonnegative(), period: z.enum(["week", "month", "quarter", "year"]), period_start: z.iso.date(), period_end: z.iso.date(), confirmed: z.boolean() }).strict().parse(raw);
+    const blocked = writeGuard(input.confirmed);
+    if (blocked) return blocked;
+    const { data, error } = await ctx.client.from("sales_targets").insert({ user_id: ctx.userId, metric_type: input.metric_type, target_value: input.target_value, current_value: 0, period: input.period, period_start: input.period_start, period_end: input.period_end, currency: "MAD" } as never).select("*").single();
+    if (error) throw error;
+    return data;
+  }
+  if(name==="record_deal_review"){
+    const input = z.object({ opportunity_id: z.uuid(), review_type: z.enum(["lost", "won"]), reason: z.string().nullable().optional(), why_we_won: z.string().nullable().optional(), lessons: z.string().nullable().optional(), confirmed: z.boolean() }).strict().parse(raw);
+    const blocked = writeGuard(input.confirmed);
+    if (blocked) return blocked;
+    const opp = await ctx.client.from("opportunities").select("id").eq("id", input.opportunity_id).eq("user_id", ctx.userId).maybeSingle();
+    if (opp.error) throw opp.error;
+    if (!opp.data) throw new Error("Opportunity is not available.");
+    const { data, error } = await ctx.client.from("deal_reviews").upsert({ user_id: ctx.userId, opportunity_id: input.opportunity_id, review_type: input.review_type, reason: input.reason ?? null, why_we_won: input.why_we_won ?? null, lessons: input.lessons ?? null, review_date: new Date().toISOString().slice(0, 10) } as never, { onConflict: "user_id,opportunity_id,review_type" }).select("*").single();
+    if (error) throw error;
+    return data;
+  }
  throw new Error("Unknown assistant tool.");
 }

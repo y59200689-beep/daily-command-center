@@ -86,11 +86,29 @@ async function withKnowledgeReview(supabase: Awaited<ReturnType<typeof requireUs
   return { ...review, knowledge: { activeTopics, newFindings, staleSources, openQuestions, watchesDue } };
 }
 
+async function withGrowthReview(supabase: Awaited<ReturnType<typeof requireUser>>["supabase"], userId: string, review: Awaited<ReturnType<typeof withKnowledgeReview>>) {
+  const [experiments, oppsWon, oppsLost, reviews] = await Promise.all([
+    supabase.from("growth_experiments").select("id").eq("user_id", userId).eq("status", "running"),
+    supabase.from("opportunities").select("id").eq("user_id", userId).eq("stage", "won").gte("won_at", `${review.periodStart}T00:00:00Z`),
+    supabase.from("opportunities").select("id").eq("user_id", userId).eq("stage", "lost").gte("lost_at", `${review.periodStart}T00:00:00Z`),
+    supabase.from("deal_reviews").select("id").eq("user_id", userId).gte("review_date", review.periodStart),
+  ]);
+  return {
+    ...review,
+    growth: {
+      activeExperiments: (experiments.data ?? []).length,
+      dealsWon: (oppsWon.data ?? []).length,
+      dealsLost: (oppsLost.data ?? []).length,
+      dealReviews: (reviews.data ?? []).length,
+    },
+  };
+}
+
 export async function GET() {
   try {
     const { supabase, userId } = await requireUser();
     const { snapshot, overview } = await getIntelligence(supabase, userId);
-    const review = await withKnowledgeReview(supabase, userId, await withStrategyReview(supabase, userId, await withLifeReview(supabase, userId, await withFounderReview(supabase, userId, await withBusinessReview(supabase, userId, buildWeeklyReview(snapshot, overview))))));
+    const review = await withGrowthReview(supabase, userId, await withKnowledgeReview(supabase, userId, await withStrategyReview(supabase, userId, await withLifeReview(supabase, userId, await withFounderReview(supabase, userId, await withBusinessReview(supabase, userId, buildWeeklyReview(snapshot, overview)))))));
     const saved = await supabase.from("weekly_reviews").select("id,status,created_at,updated_at").eq("user_id", userId).eq("period_start", review.periodStart).maybeSingle();
     if (saved.error) throw saved.error;
     return NextResponse.json({ review, saved: saved.data }, { headers: { "Cache-Control": "private, no-store" } });
@@ -103,7 +121,7 @@ export async function POST() {
   try {
     const { supabase, userId } = await requireUser();
     const { snapshot, overview } = await getIntelligence(supabase, userId);
-    const review = await withKnowledgeReview(supabase, userId, await withStrategyReview(supabase, userId, await withLifeReview(supabase, userId, await withFounderReview(supabase, userId, await withBusinessReview(supabase, userId, buildWeeklyReview(snapshot, overview))))));
+    const review = await withGrowthReview(supabase, userId, await withKnowledgeReview(supabase, userId, await withStrategyReview(supabase, userId, await withLifeReview(supabase, userId, await withFounderReview(supabase, userId, await withBusinessReview(supabase, userId, buildWeeklyReview(snapshot, overview)))))));
     const result = await supabase.from("weekly_reviews").upsert({ user_id: userId, period_start: review.periodStart, period_end: review.periodEnd, status: "accepted", summary: review } as never, { onConflict: "user_id,period_start" }).select("*").single();
     if (result.error) throw result.error;
     return NextResponse.json({ review: result.data }, { status: 201 });

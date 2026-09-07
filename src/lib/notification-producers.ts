@@ -6,7 +6,7 @@ for(const event of events.data??[])await notifyOnce(client,userId,{type:"calenda
 for(const thread of threads.data??[]){const metadata=thread.metadata as Record<string,unknown>|null;if(!metadata?.handled_at)await notifyOnce(client,userId,{type:"clients",title:"Client reply needs attention",body:String(thread.subject),entityType:"client",severity:"important",dedupeKey:`reply:${thread.id}:${metadata?.latest_message_id??"latest"}`})}
 for(const followup of followups.data??[])await notifyOnce(client,userId,{type:"clients",title:"Follow-up due",body:String(followup.title),entityType:"followup",entityId:String(followup.id),severity:"important",dedupeKey:`followup:${followup.id}:${followup.due_at}`});
 for(const invoice of invoices.data??[])await notifyOnce(client,userId,{type:"finance",title:"Invoice overdue",body:`${invoice.invoice_number??"Invoice"} is overdue.`,entityType:"invoice",entityId:String(invoice.id),severity:"important",dedupeKey:`invoice:overdue:${invoice.id}`});for(const sub of subs.data??[])await notifyOnce(client,userId,{type:"finance",title:"Subscription renewal soon",body:String(sub.name),entityType:"subscription",entityId:String(sub.id),severity:"attention",dedupeKey:`subscription:${sub.id}:${sub.next_billing_date}`});
-for(const item of content.data??[]){if(item.approval_status==="pending"&&item.due_date&&item.due_date<today)await notifyOnce(client,userId,{type:"content",title:"Content approval overdue",body:String(item.title),entityType:"content",entityId:String(item.id),severity:"important",dedupeKey:`content:approval:${item.id}`});else if(item.due_date===today)await notifyOnce(client,userId,{type:"content",title:"Content deadline today",body:String(item.title),entityType:"content",entityId:String(item.id),severity:"attention",dedupeKey:`content:deadline:${item.id}:${item.due_date}`})}for(const decision of decisions.data??[])await notifyOnce(client,userId,{type:"decisions",title:"Decision review due",body:String(decision.title),entityType:"decision",entityId:String(decision.id),severity:"attention",dedupeKey:`decision:${decision.id}:${decision.review_date}`});for(const target of fitness.data??[])await notifyOnce(client,userId,{type:"fitness",title:"Weekly fitness target needs attention",body:String(target.activity_type),severity:"attention",dedupeKey:`fitness:${target.id}:${today.slice(0,7)}`});for(const item of integrations.data??[])await notifyOnce(client,userId,{type:"integrations",title:"Reconnect required",body:`${item.provider} needs attention.`,entityType:"integration",entityId:String(item.id),severity:"important",dedupeKey:`integration:${item.id}:${item.status}`});for(const item of automations.data??[])await notifyOnce(client,userId,{type:"automations",title:"Automation failed",body:String(item.name),entityType:"automation",entityId:String(item.id),severity:"important",dedupeKey:`automation:${item.id}:${item.last_status}`});for(const conflict of conflicts.data??[])await notifyOnce(client,userId,{type:"calendar",title:"Calendar conflict needs review",body:"A Calendar event changed and needs your decision.",entityType:"calendar_event",entityId:String(conflict.calendar_event_id),severity:"important",dedupeKey:`calendar-conflict:${conflict.calendar_event_id}:${conflict.conflict_type}`});await emitFounderOperationalHooks(client,userId,today);await emitLifeNotifications(client,userId,today);await emitKnowledgeNotifications(client,userId,today);
+for(const item of content.data??[]){if(item.approval_status==="pending"&&item.due_date&&item.due_date<today)await notifyOnce(client,userId,{type:"content",title:"Content approval overdue",body:String(item.title),entityType:"content",entityId:String(item.id),severity:"important",dedupeKey:`content:approval:${item.id}`});else if(item.due_date===today)await notifyOnce(client,userId,{type:"content",title:"Content deadline today",body:String(item.title),entityType:"content",entityId:String(item.id),severity:"attention",dedupeKey:`content:deadline:${item.id}:${item.due_date}`})}for(const decision of decisions.data??[])await notifyOnce(client,userId,{type:"decisions",title:"Decision review due",body:String(decision.title),entityType:"decision",entityId:String(decision.id),severity:"attention",dedupeKey:`decision:${decision.id}:${decision.review_date}`});for(const target of fitness.data??[])await notifyOnce(client,userId,{type:"fitness",title:"Weekly fitness target needs attention",body:String(target.activity_type),severity:"attention",dedupeKey:`fitness:${target.id}:${today.slice(0,7)}`});for(const item of integrations.data??[])await notifyOnce(client,userId,{type:"integrations",title:"Reconnect required",body:`${item.provider} needs attention.`,entityType:"integration",entityId:String(item.id),severity:"important",dedupeKey:`integration:${item.id}:${item.status}`});for(const item of automations.data??[])await notifyOnce(client,userId,{type:"automations",title:"Automation failed",body:String(item.name),entityType:"automation",entityId:String(item.id),severity:"important",dedupeKey:`automation:${item.id}:${item.last_status}`});for(const conflict of conflicts.data??[])await notifyOnce(client,userId,{type:"calendar",title:"Calendar conflict needs review",body:"A Calendar event changed and needs your decision.",entityType:"calendar_event",entityId:String(conflict.calendar_event_id),severity:"important",dedupeKey:`calendar-conflict:${conflict.calendar_event_id}:${conflict.conflict_type}`});await emitFounderOperationalHooks(client,userId,today);await emitLifeNotifications(client,userId,today);await emitKnowledgeNotifications(client,userId,today);await emitGrowthNotifications(client,userId,today);
 }
 
 export async function emitLifeNotifications(client: SupabaseClient, userId: string, today = new Date().toISOString().slice(0, 10)) {
@@ -135,3 +135,136 @@ export async function emitKnowledgeNotifications(client: SupabaseClient, userId:
   for (const w of checkedWatches.data ?? []) await resolveNotifications(client, userId, `knowledge:watch-due:${w.id}:`);
 }
 
+export async function emitGrowthNotifications(client: SupabaseClient, userId: string, today = new Date().toISOString().slice(0, 10)) {
+  const [oppsRes, proposalsRes, leadsRes, targetsRes, experimentsRes, playbooksRes] = await Promise.all([
+    client.from("opportunities").select("id,title,stage,estimated_value,currency,expected_close_date,next_action,updated_at").eq("user_id", userId).is("archived_at", null).not("stage", "in", '("won","lost")'),
+    client.from("proposals").select("id,title,valid_until,status,sent_at,total,currency").eq("user_id", userId).is("archived_at", null).eq("status", "sent"),
+    client.from("leads").select("id,name,status,next_follow_up_at,potential_value,currency").eq("user_id", userId).is("archived_at", null),
+    client.from("sales_targets").select("id,metric_type,target_value,current_value,period_end").eq("user_id", userId).gte("period_end", today),
+    client.from("growth_experiments").select("id,name,end_date,status").eq("user_id", userId).eq("status", "running").not("end_date", "is", null).lte("end_date", today),
+    client.from("playbook_runs").select("id,current_step,step_states,status").eq("user_id", userId).eq("status", "active"),
+  ]);
+
+  const failed = [oppsRes, proposalsRes, leadsRes, targetsRes, experimentsRes, playbooksRes].find((r) => r.error);
+  if (failed?.error) throw failed.error;
+
+  const activeOppIdsWithNoAction = new Set<string>();
+  const activeOppIdsAtRisk = new Set<string>();
+  for (const opp of oppsRes.data ?? []) {
+    const val = Number(opp.estimated_value ?? 0);
+    if (!opp.next_action || !opp.next_action.trim()) {
+      activeOppIdsWithNoAction.add(opp.id);
+      await notifyOnce(client, userId, {
+        type: "clients",
+        title: "Opportunity has no next action",
+        body: `${opp.title} (${val} ${opp.currency ?? "MAD"}) has no scheduled next sales action.`,
+        entityType: "opportunity",
+        entityId: opp.id,
+        severity: val >= 20000 ? "important" : "attention",
+        dedupeKey: `growth:no-next-action:${opp.id}`,
+        cooldownHours: 72,
+      });
+    }
+
+    const updated = opp.updated_at ? opp.updated_at.slice(0, 10) : today;
+    const days = Math.floor((Date.parse(`${today}T00:00:00Z`) - Date.parse(`${updated}T00:00:00Z`)) / 86400000);
+    const overdueClose = opp.expected_close_date && opp.expected_close_date < today;
+    if (overdueClose || days >= 30) {
+      activeOppIdsAtRisk.add(opp.id);
+      await notifyOnce(client, userId, {
+        type: "clients",
+        title: "High-value deal at risk",
+        body: `${opp.title} (${val} ${opp.currency ?? "MAD"}) is stalled or past its close date.`,
+        entityType: "opportunity",
+        entityId: opp.id,
+        severity: "important",
+        dedupeKey: `growth:deal-risk:${opp.id}`,
+        cooldownHours: 72,
+      });
+    }
+  }
+
+  const activeOverdueProposalIds = new Set<string>();
+  for (const prop of proposalsRes.data ?? []) {
+    if (prop.valid_until && prop.valid_until <= today) {
+      activeOverdueProposalIds.add(prop.id);
+      await notifyOnce(client, userId, {
+        type: "finance",
+        title: "Proposal follow-up overdue",
+        body: `${prop.title} reached validity deadline without a confirmed client decision.`,
+        entityType: "proposal",
+        entityId: prop.id,
+        severity: "important",
+        dedupeKey: `growth:proposal-followup:${prop.id}`,
+        cooldownHours: 72,
+      });
+    }
+  }
+
+  const activeOverdueLeadIds = new Set<string>();
+  for (const lead of leadsRes.data ?? []) {
+    if (lead.next_follow_up_at && lead.next_follow_up_at.slice(0, 10) < today && !["lost", "unqualified", "converted"].includes(lead.status)) {
+      activeOverdueLeadIds.add(lead.id);
+      await notifyOnce(client, userId, {
+        type: "clients",
+        title: "Lead follow-up overdue",
+        body: `${lead.name} follow-up was scheduled for ${lead.next_follow_up_at.slice(0, 10)}.`,
+        entityType: "lead",
+        entityId: lead.id,
+        severity: "attention",
+        dedupeKey: `growth:lead-followup:${lead.id}`,
+        cooldownHours: 72,
+      });
+    }
+  }
+
+  for (const exp of experimentsRes.data ?? []) {
+    await notifyOnce(client, userId, {
+      type: "automations",
+      title: "Sales experiment ending",
+      body: `${exp.name} reached its end date. Record results and learnings.`,
+      entityType: "growth_experiment",
+      entityId: exp.id,
+      severity: "attention",
+      dedupeKey: `growth:experiment-ending:${exp.id}`,
+      cooldownHours: 72,
+    });
+  }
+
+  for (const run of playbooksRes.data ?? []) {
+    const states = (run.step_states as Array<Record<string, unknown>>) ?? [];
+    const step = states[run.current_step];
+    if (step && step.status === "active") {
+      await notifyOnce(client, userId, {
+        type: "tasks",
+        title: "Playbook step pending",
+        body: `Step ${run.current_step + 1}: ${step.title ?? "Action required"}`,
+        entityType: "playbook_run",
+        entityId: run.id,
+        severity: "attention",
+        dedupeKey: `growth:playbook-step:${run.id}:${run.current_step}`,
+        cooldownHours: 48,
+      });
+    }
+  }
+
+  // Clear resolved notifications
+  for (const opp of oppsRes.data ?? []) {
+    if (!activeOppIdsWithNoAction.has(opp.id)) {
+      await resolveNotifications(client, userId, `growth:no-next-action:${opp.id}`);
+    }
+    if (!activeOppIdsAtRisk.has(opp.id)) {
+      await resolveNotifications(client, userId, `growth:deal-risk:${opp.id}`);
+    }
+  }
+  for (const prop of proposalsRes.data ?? []) {
+    if (!activeOverdueProposalIds.has(prop.id)) {
+      await resolveNotifications(client, userId, `growth:proposal-followup:${prop.id}`);
+    }
+  }
+  for (const lead of leadsRes.data ?? []) {
+    if (!activeOverdueLeadIds.has(lead.id)) {
+      await resolveNotifications(client, userId, `growth:lead-followup:${lead.id}`);
+    }
+  }
+}
