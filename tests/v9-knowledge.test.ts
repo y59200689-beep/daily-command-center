@@ -125,3 +125,108 @@ test("V9 mobile CSS stacks relations, decision panels, and entity selectors with
   assert.ok(css.includes(".knowledge-selector-search{grid-template-columns:1fr}"));
   assert.ok(css.includes(".knowledge-linked-row{align-items:flex-start;flex-direction:column}"));
 });
+
+test("V9 Watchlist UI supports CRUD, status changes, observation updates, and owner-scoped linking",async()=>{
+  const[watchPage,watchUi,apiRoute]=await Promise.all([
+    readFile(new URL("../src/app/(workspace)/knowledge/watch/page.tsx",import.meta.url),"utf8"),
+    readFile(new URL("../src/features/knowledge/watchlist.tsx",import.meta.url),"utf8"),
+    readFile(new URL("../src/app/api/knowledge/[resource]/route.ts",import.meta.url),"utf8")
+  ]);
+  assert.ok(watchPage.includes("<Watchlist"));
+  assert.ok(watchUi.includes("Watchlist."));
+  assert.ok(watchUi.includes("New watch item"));
+  assert.ok(watchUi.includes("Add update"));
+  assert.ok(watchUi.includes("Mark reviewed"));
+  assert.ok(watchUi.includes("competitor"));
+  assert.match(watchUi,/method: "POST"/);
+  assert.match(watchUi,/method: "PATCH"/);
+  assert.match(watchUi,/method: "DELETE"/);
+  assert.match(apiRoute,/watches: "watch_entities"/);
+  assert.match(apiRoute,/watch_updates: "watch_updates"/);
+  assert.match(apiRoute,/owned\(supabase,userId,"watch_entities",input.watch_id\)/);
+});
+
+test("V9 Knowledge Review surface covers topics due, stale sources, draft findings, open questions, and watch items",async()=>{
+  const[reviewPage,reviewUi]=await Promise.all([
+    readFile(new URL("../src/app/(workspace)/knowledge/review/page.tsx",import.meta.url),"utf8"),
+    readFile(new URL("../src/features/knowledge/knowledge-review.tsx",import.meta.url),"utf8")
+  ]);
+  assert.ok(reviewPage.includes("<KnowledgeReview"));
+  assert.ok(reviewUi.includes("Review."));
+  assert.ok(reviewUi.includes("Topics due for review"));
+  assert.ok(reviewUi.includes("Stale sources"));
+  assert.ok(reviewUi.includes("Draft findings"));
+  assert.ok(reviewUi.includes("Unanswered questions"));
+  assert.ok(reviewUi.includes("Watchlist due for check"));
+  assert.match(reviewUi,/method: "PATCH"/);
+});
+
+test("V9 knowledge notifications produce deterministic signals with stable dedupe keys and resolve updated records",async()=>{
+  const[producers,v4Notifs]=await Promise.all([
+    readFile(new URL("../src/lib/notification-producers.ts",import.meta.url),"utf8"),
+    readFile(new URL("../src/lib/v4-notifications.ts",import.meta.url),"utf8")
+  ]);
+  assert.ok(producers.includes("emitKnowledgeNotifications"));
+  assert.ok(producers.includes("await emitKnowledgeNotifications(client,userId,today);"));
+  assert.ok(producers.includes("knowledge:topic-review:"));
+  assert.ok(producers.includes("knowledge:source-stale:"));
+  assert.ok(producers.includes("knowledge:watch-due:"));
+  assert.ok(v4Notifs.includes('entityType === "research_topic"'));
+  assert.ok(v4Notifs.includes('entityType === "knowledge_source"'));
+  assert.ok(v4Notifs.includes('entityType === "watch_entity"'));
+});
+
+test("V9 global search and command palette expose knowledge entities and route directly to their surfaces",async()=>{
+  const[searchRoute,palette,shell]=await Promise.all([
+    readFile(new URL("../src/app/api/search/route.ts",import.meta.url),"utf8"),
+    readFile(new URL("../src/components/command-palette.tsx",import.meta.url),"utf8"),
+    readFile(new URL("../src/components/app-shell.tsx",import.meta.url),"utf8")
+  ]);
+  assert.ok(searchRoute.includes("research_topics"));
+  assert.ok(searchRoute.includes("knowledge_sources"));
+  assert.ok(searchRoute.includes("research_findings"));
+  assert.ok(searchRoute.includes("watch_entities"));
+  assert.ok(searchRoute.includes("knowledgeRows"));
+  assert.ok(palette.includes("Open Knowledge Review"));
+  assert.ok(palette.includes("/knowledge/watch"));
+  assert.ok(palette.includes("/knowledge/review"));
+  assert.ok(palette.includes("result.entity_type===\"research_topic\""));
+  assert.ok(shell.includes('["Watchlist", "/knowledge/watch"'));
+  assert.ok(shell.includes('["Review", "/knowledge/review"'));
+});
+
+test("V9 Today and Weekly Review include deterministic knowledge signals and rollups",async()=>{
+  const[todayRoute,weeklyRoute,weeklyUi]=await Promise.all([
+    readFile(new URL("../src/app/api/today/route.ts",import.meta.url),"utf8"),
+    readFile(new URL("../src/app/api/intelligence/review/weekly/route.ts",import.meta.url),"utf8"),
+    readFile(new URL("../src/features/intelligence/intelligence-pages.tsx",import.meta.url),"utf8")
+  ]);
+  assert.ok(todayRoute.includes("knowledgeSignals"));
+  assert.ok(todayRoute.includes("research_topics"));
+  assert.ok(todayRoute.includes("knowledge_sources"));
+  assert.ok(todayRoute.includes("watch_entities"));
+  assert.ok(weeklyRoute.includes("withKnowledgeReview"));
+  assert.ok(weeklyRoute.includes("activeTopics"));
+  assert.ok(weeklyRoute.includes("newFindings"));
+  assert.ok(weeklyRoute.includes("staleSources"));
+  assert.ok(weeklyUi.includes("review.knowledge"));
+  assert.ok(weeklyUi.includes("Active topics"));
+  assert.ok(weeklyUi.includes("New findings this week"));
+});
+
+test("V9 AI knowledge tools are confirmation-gated for mutations, read-scoped, and handle missing key gracefully",async()=>{
+  const[aiTools,assistantRoute]=await Promise.all([
+    readFile(new URL("../src/lib/ai-tools.ts",import.meta.url),"utf8"),
+    readFile(new URL("../src/app/api/assistant/route.ts",import.meta.url),"utf8")
+  ]);
+  assert.ok(aiTools.includes("search_knowledge_topics"));
+  assert.ok(aiTools.includes("get_knowledge_topic"));
+  assert.ok(aiTools.includes("search_knowledge_findings"));
+  assert.ok(aiTools.includes("get_knowledge_overview"));
+  assert.ok(aiTools.includes("create_research_topic"));
+  assert.ok(aiTools.includes("create_research_finding"));
+  assert.ok(aiTools.includes("create_research_question"));
+  assert.match(aiTools,/writeGuard\(input\.confirmed\)/);
+  assert.ok(assistantRoute.includes("The assistant is not configured."));
+});
+

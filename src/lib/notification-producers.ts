@@ -6,7 +6,7 @@ for(const event of events.data??[])await notifyOnce(client,userId,{type:"calenda
 for(const thread of threads.data??[]){const metadata=thread.metadata as Record<string,unknown>|null;if(!metadata?.handled_at)await notifyOnce(client,userId,{type:"clients",title:"Client reply needs attention",body:String(thread.subject),entityType:"client",severity:"important",dedupeKey:`reply:${thread.id}:${metadata?.latest_message_id??"latest"}`})}
 for(const followup of followups.data??[])await notifyOnce(client,userId,{type:"clients",title:"Follow-up due",body:String(followup.title),entityType:"followup",entityId:String(followup.id),severity:"important",dedupeKey:`followup:${followup.id}:${followup.due_at}`});
 for(const invoice of invoices.data??[])await notifyOnce(client,userId,{type:"finance",title:"Invoice overdue",body:`${invoice.invoice_number??"Invoice"} is overdue.`,entityType:"invoice",entityId:String(invoice.id),severity:"important",dedupeKey:`invoice:overdue:${invoice.id}`});for(const sub of subs.data??[])await notifyOnce(client,userId,{type:"finance",title:"Subscription renewal soon",body:String(sub.name),entityType:"subscription",entityId:String(sub.id),severity:"attention",dedupeKey:`subscription:${sub.id}:${sub.next_billing_date}`});
-for(const item of content.data??[]){if(item.approval_status==="pending"&&item.due_date&&item.due_date<today)await notifyOnce(client,userId,{type:"content",title:"Content approval overdue",body:String(item.title),entityType:"content",entityId:String(item.id),severity:"important",dedupeKey:`content:approval:${item.id}`});else if(item.due_date===today)await notifyOnce(client,userId,{type:"content",title:"Content deadline today",body:String(item.title),entityType:"content",entityId:String(item.id),severity:"attention",dedupeKey:`content:deadline:${item.id}:${item.due_date}`})}for(const decision of decisions.data??[])await notifyOnce(client,userId,{type:"decisions",title:"Decision review due",body:String(decision.title),entityType:"decision",entityId:String(decision.id),severity:"attention",dedupeKey:`decision:${decision.id}:${decision.review_date}`});for(const target of fitness.data??[])await notifyOnce(client,userId,{type:"fitness",title:"Weekly fitness target needs attention",body:String(target.activity_type),severity:"attention",dedupeKey:`fitness:${target.id}:${today.slice(0,7)}`});for(const item of integrations.data??[])await notifyOnce(client,userId,{type:"integrations",title:"Reconnect required",body:`${item.provider} needs attention.`,entityType:"integration",entityId:String(item.id),severity:"important",dedupeKey:`integration:${item.id}:${item.status}`});for(const item of automations.data??[])await notifyOnce(client,userId,{type:"automations",title:"Automation failed",body:String(item.name),entityType:"automation",entityId:String(item.id),severity:"important",dedupeKey:`automation:${item.id}:${item.last_status}`});for(const conflict of conflicts.data??[])await notifyOnce(client,userId,{type:"calendar",title:"Calendar conflict needs review",body:"A Calendar event changed and needs your decision.",entityType:"calendar_event",entityId:String(conflict.calendar_event_id),severity:"important",dedupeKey:`calendar-conflict:${conflict.calendar_event_id}:${conflict.conflict_type}`});await emitFounderOperationalHooks(client,userId,today);await emitLifeNotifications(client,userId,today);
+for(const item of content.data??[]){if(item.approval_status==="pending"&&item.due_date&&item.due_date<today)await notifyOnce(client,userId,{type:"content",title:"Content approval overdue",body:String(item.title),entityType:"content",entityId:String(item.id),severity:"important",dedupeKey:`content:approval:${item.id}`});else if(item.due_date===today)await notifyOnce(client,userId,{type:"content",title:"Content deadline today",body:String(item.title),entityType:"content",entityId:String(item.id),severity:"attention",dedupeKey:`content:deadline:${item.id}:${item.due_date}`})}for(const decision of decisions.data??[])await notifyOnce(client,userId,{type:"decisions",title:"Decision review due",body:String(decision.title),entityType:"decision",entityId:String(decision.id),severity:"attention",dedupeKey:`decision:${decision.id}:${decision.review_date}`});for(const target of fitness.data??[])await notifyOnce(client,userId,{type:"fitness",title:"Weekly fitness target needs attention",body:String(target.activity_type),severity:"attention",dedupeKey:`fitness:${target.id}:${today.slice(0,7)}`});for(const item of integrations.data??[])await notifyOnce(client,userId,{type:"integrations",title:"Reconnect required",body:`${item.provider} needs attention.`,entityType:"integration",entityId:String(item.id),severity:"important",dedupeKey:`integration:${item.id}:${item.status}`});for(const item of automations.data??[])await notifyOnce(client,userId,{type:"automations",title:"Automation failed",body:String(item.name),entityType:"automation",entityId:String(item.id),severity:"important",dedupeKey:`automation:${item.id}:${item.last_status}`});for(const conflict of conflicts.data??[])await notifyOnce(client,userId,{type:"calendar",title:"Calendar conflict needs review",body:"A Calendar event changed and needs your decision.",entityType:"calendar_event",entityId:String(conflict.calendar_event_id),severity:"important",dedupeKey:`calendar-conflict:${conflict.calendar_event_id}:${conflict.conflict_type}`});await emitFounderOperationalHooks(client,userId,today);await emitLifeNotifications(client,userId,today);await emitKnowledgeNotifications(client,userId,today);
 }
 
 export async function emitLifeNotifications(client: SupabaseClient, userId: string, today = new Date().toISOString().slice(0, 10)) {
@@ -73,3 +73,65 @@ export async function emitFounderOperationalHooks(client: SupabaseClient, userId
   const current = currentOrders.data ?? []; const previous = previousOrders.data ?? [];
   if (current.length >= 10 && cancellationRate(current) >= 0.25 && cancellationRate(current) >= cancellationRate(previous) + 0.15) await notifyOnce(client, userId, { type: "automations", title: "Commerce cancellation rate changed", body: "Recent confirmed commerce data shows a meaningful cancellation increase.", severity: "important", dedupeKey: `founder:commerce-anomaly:${today}`, cooldownHours: 168 });
 }
+
+export async function emitKnowledgeNotifications(client: SupabaseClient, userId: string, today = new Date().toISOString().slice(0, 10)) {
+  const [topics, sources, watches] = await Promise.all([
+    client.from("research_topics").select("id,title,next_review_at,status").eq("user_id", userId).neq("status", "archived").not("next_review_at", "is", null).lte("next_review_at", today),
+    client.from("knowledge_sources").select("id,title,freshness_expires_at").eq("user_id", userId).not("freshness_expires_at", "is", null).lt("freshness_expires_at", today),
+    client.from("watch_entities").select("id,name,next_check_at,status").eq("user_id", userId).eq("status", "active").not("next_check_at", "is", null).lte("next_check_at", today),
+  ]);
+  const failed = [topics, sources, watches].find((result) => result.error);
+  if (failed?.error) throw failed.error;
+
+  for (const topic of topics.data ?? []) {
+    await notifyOnce(client, userId, {
+      type: "decisions",
+      title: "Research topic review due",
+      body: `${topic.title} is scheduled for review.`,
+      entityType: "research_topic",
+      entityId: topic.id,
+      severity: "attention",
+      dedupeKey: `knowledge:topic-review:${topic.id}:${topic.next_review_at}`,
+      cooldownHours: 72,
+    });
+  }
+
+  for (const source of sources.data ?? []) {
+    await notifyOnce(client, userId, {
+      type: "decisions",
+      title: "Knowledge source needs review",
+      body: `${source.title} freshness has expired.`,
+      entityType: "knowledge_source",
+      entityId: source.id,
+      severity: "attention",
+      dedupeKey: `knowledge:source-stale:${source.id}:${source.freshness_expires_at}`,
+      cooldownHours: 72,
+    });
+  }
+
+  for (const watch of watches.data ?? []) {
+    await notifyOnce(client, userId, {
+      type: "automations",
+      title: "Watchlist item review due",
+      body: `${watch.name} is due for scheduled check.`,
+      entityType: "watch_entity",
+      entityId: watch.id,
+      severity: "attention",
+      dedupeKey: `knowledge:watch-due:${watch.id}:${watch.next_check_at}`,
+      cooldownHours: 72,
+    });
+  }
+
+  const [resolvedTopics, renewedSources, checkedWatches] = await Promise.all([
+    client.from("research_topics").select("id,next_review_at").eq("user_id", userId).or(`next_review_at.gt.${today},status.eq.archived`),
+    client.from("knowledge_sources").select("id,freshness_expires_at").eq("user_id", userId).gte("freshness_expires_at", today),
+    client.from("watch_entities").select("id,next_check_at").eq("user_id", userId).or(`next_check_at.gt.${today},status.neq.active`),
+  ]);
+  const resFailed = [resolvedTopics, renewedSources, checkedWatches].find((result) => result.error);
+  if (resFailed?.error) throw resFailed.error;
+
+  for (const t of resolvedTopics.data ?? []) await resolveNotifications(client, userId, `knowledge:topic-review:${t.id}:`);
+  for (const s of renewedSources.data ?? []) await resolveNotifications(client, userId, `knowledge:source-stale:${s.id}:`);
+  for (const w of checkedWatches.data ?? []) await resolveNotifications(client, userId, `knowledge:watch-due:${w.id}:`);
+}
+

@@ -67,11 +67,30 @@ async function withStrategyReview(supabase: Awaited<ReturnType<typeof requireUse
   ]);const failed=[commitments,milestones,gates,events].find(result=>result.error);if(failed?.error)throw failed.error;const rows=commitments.data??[];const hours=(events.data??[]).reduce((sum,row)=>sum+(Date.parse(row.ends_at)-Date.parse(row.starts_at))/3600000,0);return {...review,strategy:{planned:rows.filter(row=>["planned","committed","at_risk"].includes(row.status)).length,completed:rows.filter(row=>row.status==="completed").length,moved:rows.filter(row=>row.status==="planned"&&row.planning_period_id).length,dropped:rows.filter(row=>row.status==="dropped").length,milestonesReached:(milestones.data??[]).filter(row=>row.status==="reached").length,mainBlocker:gates.data?.[0]?.title??null,capacity:hours>12?"heavy":"balanced",topRisk:rows.find(row=>row.status==="at_risk")?.id??null}};
 }
 
+async function withKnowledgeReview(supabase: Awaited<ReturnType<typeof requireUser>>["supabase"], userId: string, review: Awaited<ReturnType<typeof withStrategyReview>>) {
+  const [topics, findings, sources, questions, watches] = await Promise.all([
+    supabase.from("research_topics").select("id,status").eq("user_id", userId),
+    supabase.from("research_findings").select("id,created_at").eq("user_id", userId),
+    supabase.from("knowledge_sources").select("id,freshness_expires_at").eq("user_id", userId),
+    supabase.from("research_questions").select("id,status").eq("user_id", userId),
+    supabase.from("watch_entities").select("id,status,next_check_at").eq("user_id", userId),
+  ]);
+  const failed = [topics, findings, sources, questions, watches].find(result => result.error);
+  if (failed?.error) throw failed.error;
+  const today = new Date().toISOString().slice(0, 10);
+  const activeTopics = (topics.data ?? []).filter(t => t.status === "active").length;
+  const newFindings = (findings.data ?? []).filter(f => f.created_at >= `${review.periodStart}T00:00:00Z`).length;
+  const staleSources = (sources.data ?? []).filter(s => s.freshness_expires_at && s.freshness_expires_at < today).length;
+  const openQuestions = (questions.data ?? []).filter(q => q.status === "open").length;
+  const watchesDue = (watches.data ?? []).filter(w => w.status === "active" && w.next_check_at && w.next_check_at <= today).length;
+  return { ...review, knowledge: { activeTopics, newFindings, staleSources, openQuestions, watchesDue } };
+}
+
 export async function GET() {
   try {
     const { supabase, userId } = await requireUser();
     const { snapshot, overview } = await getIntelligence(supabase, userId);
-    const review = await withStrategyReview(supabase, userId, await withLifeReview(supabase, userId, await withFounderReview(supabase, userId, await withBusinessReview(supabase, userId, buildWeeklyReview(snapshot, overview)))));
+    const review = await withKnowledgeReview(supabase, userId, await withStrategyReview(supabase, userId, await withLifeReview(supabase, userId, await withFounderReview(supabase, userId, await withBusinessReview(supabase, userId, buildWeeklyReview(snapshot, overview))))));
     const saved = await supabase.from("weekly_reviews").select("id,status,created_at,updated_at").eq("user_id", userId).eq("period_start", review.periodStart).maybeSingle();
     if (saved.error) throw saved.error;
     return NextResponse.json({ review, saved: saved.data }, { headers: { "Cache-Control": "private, no-store" } });
@@ -84,7 +103,7 @@ export async function POST() {
   try {
     const { supabase, userId } = await requireUser();
     const { snapshot, overview } = await getIntelligence(supabase, userId);
-    const review = await withStrategyReview(supabase, userId, await withLifeReview(supabase, userId, await withFounderReview(supabase, userId, await withBusinessReview(supabase, userId, buildWeeklyReview(snapshot, overview)))));
+    const review = await withKnowledgeReview(supabase, userId, await withStrategyReview(supabase, userId, await withLifeReview(supabase, userId, await withFounderReview(supabase, userId, await withBusinessReview(supabase, userId, buildWeeklyReview(snapshot, overview))))));
     const result = await supabase.from("weekly_reviews").upsert({ user_id: userId, period_start: review.periodStart, period_end: review.periodEnd, status: "accepted", summary: review } as never, { onConflict: "user_id,period_start" }).select("*").single();
     if (result.error) throw result.error;
     return NextResponse.json({ review: result.data }, { status: 201 });

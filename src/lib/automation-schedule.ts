@@ -20,11 +20,11 @@ function zonedTimeToDate(parts: ZonedParts, timezone: string) {
 export function nextAutomationRun(type: string, enabled: boolean, schedule: Record<string, unknown>, timezone = "Africa/Casablanca", now = new Date()) {
   if (!enabled) return "Disabled";
   if (["calendar_sync", "strava_sync", "github_sync"].includes(type)) return "Within 15 minutes";
-  if (["overdue_invoice_alert", "client_followup_reminder", "subscription_renewal_warning", "content_approval_reminder", "milestone_risk_check", "blocked_commitment_check"].includes(type)) return "Based on condition";
+  if (["overdue_invoice_alert", "client_followup_reminder", "subscription_renewal_warning", "content_approval_reminder", "milestone_risk_check", "blocked_commitment_check", "stale_source_check", "topic_review_reminder", "watch_check_reminder"].includes(type)) return "Based on condition";
   const time = String(schedule.time ?? "08:00");
   const [hour, minute] = time.split(":").map(Number);
   if (!Number.isInteger(hour) || !Number.isInteger(minute) || hour < 0 || hour > 23 || minute < 0 || minute > 59) return "Based on schedule";
-  const days = Array.isArray(schedule.days) ? schedule.days.map(Number) : type === "weekly_review" ? [Number(schedule.day ?? 0)] : [0, 1, 2, 3, 4, 5, 6];
+  const days = Array.isArray(schedule.days) ? schedule.days.map(Number) : ["weekly_review", "weekly_knowledge_review"].includes(type) ? [Number(schedule.day ?? 0)] : [0, 1, 2, 3, 4, 5, 6];
   if (!days.length) return "Based on schedule";
   const localNow = zonedParts(now, timezone);
   const localMidnight = new Date(Date.UTC(localNow.year, localNow.month - 1, localNow.day));
@@ -40,7 +40,7 @@ export function nextAutomationRun(type: string, enabled: boolean, schedule: Reco
 
 export function automationFields(type: string) {
   if (["morning_brief", "evening_review"].includes(type)) return ["time", "days"];
-  if (["weekly_review", "weekly_planning_reminder"].includes(type)) return ["time", "day"];
+  if (["weekly_review", "weekly_planning_reminder", "weekly_knowledge_review"].includes(type)) return ["time", "day"];
   if (["monthly_planning_reminder", "quarterly_planning_reminder"].includes(type)) return ["time", "day"];
   if (type === "overdue_invoice_alert") return ["minimum_overdue_days"];
   if (type === "client_followup_reminder") return ["days_without_contact"];

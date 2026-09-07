@@ -16,6 +16,11 @@ export function notificationRoute(type: string, entityType?: string | null, enti
   if (type === "automations") return "/automations";
   if (entityType === "invoice") return entityId ? `/finance/invoices/${entityId}` : "/finance";
   if (entityType === "calendar_event") return "/calendar";
+  if (entityType === "research_topic") return entityId ? `/knowledge/topics/${entityId}` : "/knowledge";
+  if (entityType === "knowledge_source") return entityId ? `/knowledge/sources/${entityId}` : "/knowledge";
+  if (entityType === "research_finding") return entityId ? `/knowledge/findings/${entityId}` : "/knowledge";
+  if (entityType === "watch_entity") return "/knowledge/watch";
+  if (type === "knowledge") return "/knowledge";
   const routes: Record<string, string> = { task: "/tasks", client: "/clients", content: "/content", decision: "/decisions", subscription: "/finance", followup: "/followups" };
   return routes[entityType ?? ""] ?? "/today";
 }

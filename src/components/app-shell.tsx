@@ -24,7 +24,7 @@ const groups = [
     ["Founder", "/founder", Icons.ChartNoAxesCombined], ["Business", "/business", Icons.ChartNoAxesCombined], ["Pipeline", "/pipeline", Icons.BriefcaseBusiness], ["Leads", "/leads", Icons.Users], ["Proposals", "/proposals", Icons.FileText], ["Services", "/services", Icons.CircleDollarSign],
   ] },
   { label: "Knowledge", items: [
-    ["Knowledge", "/knowledge", Icons.BookOpen], ["Ideas", "/ideas", Icons.Lightbulb], ["Decisions", "/decisions", Icons.MessageSquareText], ["Memory", "/memory", Icons.BookOpen], ["Prompts", "/prompts", Icons.Command], ["Automations", "/automations", Icons.Zap], ["Weekly review", "/review/weekly", Icons.ChartNoAxesCombined],
+    ["Knowledge", "/knowledge", Icons.BookOpen], ["Watchlist", "/knowledge/watch", Icons.Bell], ["Review", "/knowledge/review", Icons.Check], ["Ideas", "/ideas", Icons.Lightbulb], ["Decisions", "/decisions", Icons.MessageSquareText], ["Memory", "/memory", Icons.BookOpen], ["Prompts", "/prompts", Icons.Command], ["Automations", "/automations", Icons.Zap], ["Weekly review", "/review/weekly", Icons.ChartNoAxesCombined],
   ] },
   { label: "Personal", items: [
     ["Life", "/life", Icons.BookOpen], ["Travel", "/travel", Icons.CalendarDays], ["Documents", "/documents", Icons.FileText], ["Finance", "/finance", Icons.CircleDollarSign], ["Invoices", "/finance/invoices", Icons.ReceiptText], ["Fitness", "/fitness", Icons.Dumbbell],
