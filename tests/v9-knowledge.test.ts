@@ -17,3 +17,111 @@ test("V9 evidence and question controls retain mobile-safe semantic controls",as
 test("V9 collections and briefs reuse owner-scoped references without copying knowledge",async()=>{const[api,ui]=await Promise.all([readFile(new URL("../src/app/api/knowledge/[resource]/route.ts",import.meta.url),"utf8"),readFile(new URL("../src/features/knowledge/knowledge-library.tsx",import.meta.url),"utf8")]);for(const type of["topic","source","finding","note","file","decision","brief"])assert.ok(ui.includes(`\"${type}\"`));assert.match(api,/ownedType\(supabase,userId,input.item_type,input.item_id/);assert.match(api,/ownedType\(supabase,userId,input.knowledge_type,input.knowledge_id/);assert.ok(ui.includes("No references in this collection."));});
 test("V9 Topic and Question Notes use the canonical owner-scoped Note bridge with immediate refresh",async()=>{const[topic,notes]=await Promise.all([readFile(new URL("../src/features/knowledge/topic-detail.tsx",import.meta.url),"utf8"),readFile(new URL("../src/app/api/knowledge/notes/route.ts",import.meta.url),"utf8")]);for(const text of["Create Note","Link existing","Unlink","/notes/","Search Notes","targetType=\"topic\"","targetType=\"question\""])assert.ok(topic.includes(text));assert.match(topic,/await refresh\(\)/);assert.match(notes,/verifyTarget/);assert.match(notes,/eq\("user_id", userId\)/);});
 test("V9 relation modal supports every textual relation with owner-scoped target selection",async()=>{const[topic,api]=await Promise.all([readFile(new URL("../src/features/knowledge/topic-detail.tsx",import.meta.url),"utf8"),readFile(new URL("../src/app/api/knowledge/[resource]/route.ts",import.meta.url),"utf8")]);for(const type of["related","supports","contradicts","derived_from","supersedes","depends_on","impacts","about"])assert.ok(topic.includes(`\"${type}\"`));for(const target of["topic","source","finding","question","brief"])assert.ok(topic.includes(`\"${target}\"`));assert.match(api,/ownedType\(supabase,userId,input.from_type,input.from_id/);assert.match(api,/ownedType\(supabase,userId,input.to_type,input.to_id/);});
+
+test("V9 relation display preserves direction and renders all 8 textual verbs",async()=>{
+  const[links,css]=await Promise.all([readFile(new URL("../src/features/knowledge/knowledge-links.tsx",import.meta.url),"utf8"),readFile(new URL("../src/app/globals.css",import.meta.url),"utf8")]);
+  for(const verb of["Related to","Supports","Contradicts","Derived from","Supersedes","Depends on","Impacts","About"])assert.ok(links.includes(`\"${verb}\"`));
+  assert.ok(links.includes("Outgoing relations"));
+  assert.ok(links.includes("Incoming relations"));
+  assert.match(links,/incoming \? words\(otherType\) : \"This record\"/);
+  assert.match(links,/incoming \? \"This record\" : words\(otherType\)/);
+  assert.match(links,/detailRoute\(otherType, otherId\)/);
+  assert.ok(css.includes(".knowledge-relation-row"));
+  assert.ok(css.includes(".knowledge-relation-verb"));
+});
+
+test("V9 relation lifecycle supports update, remove, immediate refresh, and ownership validation",async()=>{
+  const[links,apiPost,apiPatch]=await Promise.all([
+    readFile(new URL("../src/features/knowledge/knowledge-links.tsx",import.meta.url),"utf8"),
+    readFile(new URL("../src/app/api/knowledge/[resource]/route.ts",import.meta.url),"utf8"),
+    readFile(new URL("../src/app/api/knowledge/[resource]/[id]/route.ts",import.meta.url),"utf8")
+  ]);
+  assert.match(links,/method: editing \? \"PATCH\" : \"POST\"/);
+  assert.match(links,/method: \"DELETE\"/);
+  assert.match(links,/await load\(\)/);
+  assert.match(apiPost,/ownedType\(supabase,userId,input.from_type,input.from_id,knowledgeTables\)/);
+  assert.match(apiPost,/ownedType\(supabase,userId,input.to_type,input.to_id/);
+  assert.match(apiPatch,/eq\(\"id\",id\)\.eq\(\"user_id\",userId\)/);
+});
+
+test("V9 relation and entity link controls are mounted on Topic, Source, Finding, Question, and Brief",async()=>{
+  const[topic,detail,library]=await Promise.all([
+    readFile(new URL("../src/features/knowledge/topic-detail.tsx",import.meta.url),"utf8"),
+    readFile(new URL("../src/features/knowledge/knowledge-detail.tsx",import.meta.url),"utf8"),
+    readFile(new URL("../src/features/knowledge/knowledge-library.tsx",import.meta.url),"utf8")
+  ]);
+  assert.ok(topic.includes('originType="topic"'));
+  assert.ok(topic.includes('originType="question"'));
+  assert.ok(detail.includes('originType="source"'));
+  assert.ok(detail.includes('originType="finding"'));
+  assert.ok(library.includes('originType="brief"'));
+  assert.ok(topic.includes('<KnowledgeEntityLinksPanel originType="topic"'));
+  assert.ok(detail.includes('<KnowledgeEntityLinksPanel originType="source"'));
+  assert.ok(detail.includes('<KnowledgeEntityLinksPanel originType="finding"'));
+  assert.ok(library.includes('<KnowledgeEntityLinksPanel originType="brief"'));
+});
+
+test("V9 decision research panel aggregates owner-scoped topics, findings, evidence, questions, and briefs with unlink support",async()=>{
+  const[api,panel]=await Promise.all([
+    readFile(new URL("../src/app/api/knowledge/decisions/[id]/route.ts",import.meta.url),"utf8"),
+    readFile(new URL("../src/features/knowledge/decision-research-panel.tsx",import.meta.url),"utf8")
+  ]);
+  for(const table of["research_topics","research_findings","research_questions","research_briefs","finding_evidence"]){
+    assert.ok(api.includes(table));
+    assert.match(api,/eq\("user_id", userId\)/);
+  }
+  for(const group of["Linked topics","Key findings","Supporting evidence","Contradictory evidence","Open questions","Research briefs"]){
+    assert.ok(panel.includes(group));
+  }
+  assert.ok(panel.includes("No research linked yet."));
+  assert.ok(panel.includes("Link research"));
+  assert.match(panel,/method: "DELETE"/);
+  assert.match(panel,/await load\(\)/);
+});
+
+test("V9 decision readiness states and deterministic reasons remain un-opinionated and rule-based",()=>{
+  assert.equal(decisionReadiness({findings:2,supporting:2,contradicting:0,openQuestions:0}),"ready_to_decide");
+  assert.equal(decisionReadiness({findings:0,supporting:0,contradicting:0,openQuestions:0}),"needs_evidence");
+  assert.equal(decisionReadiness({findings:2,supporting:1,contradicting:1,openQuestions:0}),"contradictory_evidence");
+  assert.equal(decisionReadiness({findings:2,supporting:2,contradicting:0,openQuestions:1}),"open_questions_remain");
+});
+
+test("V9 entity-link selector supports all 15 entity types with owner isolation and human labels",async()=>{
+  const[optionsRoute,linksPanel,apiPost]=await Promise.all([
+    readFile(new URL("../src/app/api/knowledge/entity-options/route.ts",import.meta.url),"utf8"),
+    readFile(new URL("../src/features/knowledge/knowledge-links.tsx",import.meta.url),"utf8"),
+    readFile(new URL("../src/app/api/knowledge/[resource]/route.ts",import.meta.url),"utf8")
+  ]);
+  for(const type of["project","client","lead","opportunity","proposal","campaign","content","goal","decision","roadmap","product","supplier","trip","commitment","milestone"]){
+    assert.ok(optionsRoute.includes(`\"${type}\"`));
+    assert.ok(linksPanel.includes(`\"${type}\"`));
+  }
+  assert.match(optionsRoute,/eq\("user_id", userId\)/);
+  assert.match(optionsRoute,/ilike/);
+  assert.match(apiPost,/ownedType\(supabase,userId,input.entity_type,input.entity_id,entityTables\)/);
+  assert.match(linksPanel,/method: "DELETE"/);
+  assert.match(linksPanel,/await load\(\)/);
+});
+
+test("V9 Knowledge Home and navigation routes link directly to target objects and library entries",async()=>{
+  const[homeApi,homeUi,topicUi]=await Promise.all([
+    readFile(new URL("../src/app/api/knowledge/route.ts",import.meta.url),"utf8"),
+    readFile(new URL("../src/features/knowledge/knowledge-home.tsx",import.meta.url),"utf8"),
+    readFile(new URL("../src/features/knowledge/topic-detail.tsx",import.meta.url),"utf8")
+  ]);
+  assert.match(homeApi,/route: `\/knowledge\/topics\/\${item\.topic_id}#question-\${item\.id}`/);
+  assert.match(homeApi,/route: `\/knowledge\/sources\/\${item\.id}`/);
+  assert.match(homeApi,/route: `\/knowledge\/findings\/\${item\.id}`/);
+  assert.match(homeApi,/route: `\/knowledge\/topics\/\${item\.id}`/);
+  assert.ok(homeUi.includes('href="/knowledge/collections"'));
+  assert.ok(homeUi.includes('href="/knowledge/briefs"'));
+  assert.ok(topicUi.includes('window.location.hash.startsWith("#question-")'));
+});
+
+test("V9 mobile CSS stacks relations, decision panels, and entity selectors without horizontal overflow",async()=>{
+  const css=await readFile(new URL("../src/app/globals.css",import.meta.url),"utf8");
+  assert.ok(css.includes(".knowledge-relation-row{grid-template-columns:1fr;gap:8px}"));
+  assert.ok(css.includes(".knowledge-decision-grid{grid-template-columns:1fr}"));
+  assert.ok(css.includes(".knowledge-selector-search{grid-template-columns:1fr}"));
+  assert.ok(css.includes(".knowledge-linked-row{align-items:flex-start;flex-direction:column}"));
+});

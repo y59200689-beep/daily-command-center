@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
+import { KnowledgeEntityLinksPanel, KnowledgeRelationsPanel } from "@/features/knowledge/knowledge-links";
 import { sourceFreshness } from "@/lib/knowledge";
 import { useDeferredEffect } from "@/lib/use-deferred-effect";
 
@@ -51,6 +52,8 @@ export function KnowledgeDetail({ kind, id }: { kind: "sources" | "findings"; id
     <p className="dataset-note">{groups[0][1].length} supporting source{groups[0][1].length === 1 ? "" : "s"} · {groups[1][1].length} contradicting source{groups[1][1].length === 1 ? "" : "s"}</p>
     {groups.map(([title, rows]) => <EvidenceGroup key={title} title={title} rows={rows} sources={sources} onEdit={(row) => { setEditingEvidence(row); setEvidenceOpen(true); }} onRemove={async (evidenceId) => { const response = await fetch(`/api/knowledge/evidence/${evidenceId}`, { method: "DELETE" }); if (!response.ok) setError("Evidence could not be removed."); else await load(); }} />)}
     <KnowledgeNotesPanel targetType="finding" targetId={id} notes={notes} onChanged={load} />
+    <KnowledgeRelationsPanel originType="finding" originId={id} />
+    <KnowledgeEntityLinksPanel originType="finding" originId={id} />
     {editOpen ? <FindingEdit item={item} onClose={() => setEditOpen(false)} onSave={async (values) => { if (await patch(values)) setEditOpen(false); }} /> : null}
     {evidenceOpen ? <EvidenceForm sources={sources} initial={editingEvidence} onClose={() => setEvidenceOpen(false)} onSave={async (sourceId, relation) => { const response = await fetch(editingEvidence ? `/api/knowledge/evidence/${editingEvidence.id}` : "/api/knowledge/evidence", { method: editingEvidence ? "PATCH" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(editingEvidence ? { relation_type: relation } : { finding_id: id, source_id: sourceId, relation_type: relation }) }); if (!response.ok) { setError("Evidence could not be saved."); return; } setEvidenceOpen(false); await load(); }} /> : null}
     {error ? <p role="alert" className="field-error">{error}</p> : null}
@@ -74,7 +77,7 @@ function FindingEdit({ item, onClose, onSave }: { item: Row; onClose: () => void
 
 function SourceDetail({ item, notes, error, editOpen, onEdit, onClose, onRefresh, onSave, onReload }: { item: Row; notes: Row[]; error: string; editOpen: boolean; onEdit: () => void; onClose: () => void; onRefresh: () => void; onSave: (values: Row) => Promise<void>; onReload: () => Promise<void> }) {
   const freshness = sourceFreshness(item.freshness_expires_at as string | null);
-  return <main className="domain-page knowledge-detail"><p className="eyebrow">Source · {label(item.source_type)}</p><h1>{String(item.title)}</h1><p className="dataset-note">{label(freshness)} · {String(item.reliability ?? "Unrated")}</p><div className="strategy-actions"><Button emphasis="outline" onClick={onEdit}>Edit</Button><Button onClick={onRefresh}>Mark reviewed</Button>{item.url ? <a className="button button--outline" href={String(item.url)} target="_blank" rel="noreferrer">Open source</a> : null}</div><section className="data-surface knowledge-section"><p className="eyebrow">Source details</p><p>Author: {String(item.author ?? "—")} · Publisher: {String(item.publisher ?? "—")}</p><p>{String(item.notes ?? "No source notes.")}</p></section><KnowledgeNotesPanel targetType="source" targetId={String(item.id)} notes={notes} onChanged={onReload} />{editOpen ? <SourceEdit item={item} onClose={onClose} onSave={onSave} /> : null}{error ? <p role="alert" className="field-error">{error}</p> : null}</main>;
+  return <main className="domain-page knowledge-detail"><p className="eyebrow">Source · {label(item.source_type)}</p><h1>{String(item.title)}</h1><p className="dataset-note">{label(freshness)} · {String(item.reliability ?? "Unrated")}</p><div className="strategy-actions"><Button emphasis="outline" onClick={onEdit}>Edit</Button><Button onClick={onRefresh}>Mark reviewed</Button>{item.url ? <a className="button button--outline" href={String(item.url)} target="_blank" rel="noreferrer">Open source</a> : null}</div><section className="data-surface knowledge-section"><p className="eyebrow">Source details</p><p>Author: {String(item.author ?? "—")} · Publisher: {String(item.publisher ?? "—")}</p><p>{String(item.notes ?? "No source notes.")}</p></section><KnowledgeNotesPanel targetType="source" targetId={String(item.id)} notes={notes} onChanged={onReload} /><KnowledgeRelationsPanel originType="source" originId={String(item.id)} /><KnowledgeEntityLinksPanel originType="source" originId={String(item.id)} />{editOpen ? <SourceEdit item={item} onClose={onClose} onSave={onSave} /> : null}{error ? <p role="alert" className="field-error">{error}</p> : null}</main>;
 }
 
 export function KnowledgeNotesPanel({ targetType, targetId, notes, onChanged }: { targetType: "topic" | "source" | "finding" | "question"; targetId: string; notes: Row[]; onChanged: () => Promise<void> }) {

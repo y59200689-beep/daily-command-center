@@ -7,6 +7,9 @@ import { Modal } from "@/components/ui/modal";
 import { KnowledgeEntityLinksPanel, KnowledgeRelationsPanel } from "@/features/knowledge/knowledge-links";
 import { useDeferredEffect } from "@/lib/use-deferred-effect";
 
+export const canonicalRelationTypes = ["related", "supports", "contradicts", "derived_from", "supersedes", "depends_on", "impacts", "about"] as const;
+export const canonicalRelationTargets = ["topic", "source", "finding", "question", "brief"] as const;
+
 type Row = Record<string, unknown> & { id: string };
 const words = (value: unknown) => String(value ?? "").replaceAll("_", " ");
 
@@ -18,7 +21,16 @@ export function TopicDetail({ id }: { id: string }) {
   const load = useCallback(async () => {
     const response = await fetch(`/api/knowledge/topics/${id}`, { cache: "no-store" });
     const body = await response.json();
-    if (response.ok) { setData(body); setError(""); } else setError(body.error ?? "Topic could not be loaded.");
+    if (response.ok) {
+      setData(body);
+      setError("");
+      if (typeof window !== "undefined" && window.location.hash.startsWith("#question-")) {
+        const qid = window.location.hash.replace("#question-", "");
+        const qs = (body.questions as Row[] | undefined) ?? [];
+        const match = qs.find((item) => item.id === qid);
+        if (match) setQuestionPanel(match);
+      }
+    } else setError(body.error ?? "Topic could not be loaded.");
   }, [id]);
   useDeferredEffect(useCallback(() => { void load(); }, [load]));
   if (!data) return <main className="domain-page"><p className="dataset-note">{error || "Loading topic…"}</p></main>;

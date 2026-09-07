@@ -16,8 +16,18 @@ const knowledgeResources: Record<KnowledgeType, string> = {
   question: "questions",
   brief: "briefs",
 };
-const relationTypes = ["related", "supports", "contradicts", "derived_from", "supersedes", "depends_on", "impacts", "about"] as const;
-const entityTypes = ["project", "client", "lead", "opportunity", "proposal", "campaign", "content", "goal", "decision", "roadmap", "product", "supplier", "trip", "commitment", "milestone"] as const;
+export const relationTypes = ["related", "supports", "contradicts", "derived_from", "supersedes", "depends_on", "impacts", "about"] as const;
+export const relationLabels: Record<(typeof relationTypes)[number], string> = {
+  related: "Related to",
+  supports: "Supports",
+  contradicts: "Contradicts",
+  derived_from: "Derived from",
+  supersedes: "Supersedes",
+  depends_on: "Depends on",
+  impacts: "Impacts",
+  about: "About",
+};
+export const entityTypes = ["project", "client", "lead", "opportunity", "proposal", "campaign", "content", "goal", "decision", "roadmap", "product", "supplier", "trip", "commitment", "milestone"] as const;
 
 const words = (value: unknown) => String(value ?? "").replaceAll("_", " ");
 const recordLabel = (record?: Row) => String(record?.title ?? record?.question ?? "Untitled knowledge");
@@ -96,7 +106,7 @@ export function KnowledgeRelationsPanel({ originType, originId, compact = false 
         {!editing ? <><label htmlFor={`relation-target-type-${originId}`}>Target type</label><select id={`relation-target-type-${originId}`} value={targetType} onChange={(event) => { setTargetType(event.target.value as KnowledgeType); setTargetId(""); }}>{(Object.keys(knowledgeResources) as KnowledgeType[]).map((type) => <option key={type} value={type}>{words(type)}</option>)}</select>
           <label htmlFor={`relation-search-${originId}`}>Search records</label><input id={`relation-search-${originId}`} value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search by title or status" />
           <label htmlFor={`relation-target-${originId}`}>Owned record</label><select id={`relation-target-${originId}`} required value={targetId} onChange={(event) => setTargetId(event.target.value)}><option value="">{candidates.length ? "Select a record" : "No records available"}</option>{candidates.map((record) => <option key={record.id} value={record.id}>{recordLabel(record)} · {words(record.status ?? record.source_type)}</option>)}</select></> : null}
-        <label htmlFor={`relation-type-${originId}`}>Relation type</label><select id={`relation-type-${originId}`} value={relationType} onChange={(event) => setRelationType(event.target.value as (typeof relationTypes)[number])}>{relationTypes.map((type) => <option key={type} value={type}>{words(type)}</option>)}</select>
+        <label htmlFor={`relation-type-${originId}`}>Relation type</label><select id={`relation-type-${originId}`} value={relationType} onChange={(event) => setRelationType(event.target.value as (typeof relationTypes)[number])}>{relationTypes.map((type) => <option key={type} value={type}>{relationLabels[type]}</option>)}</select>
         <div className="modal__actions"><Button emphasis="ghost" onClick={() => setOpen(false)}>Cancel</Button><Button intent="brand" type="submit" disabled={!editing && !targetId}>{editing ? "Save relation" : "Add relation"}</Button></div>
       </form>
     </Modal> : null}
@@ -108,11 +118,29 @@ function RelationList({ title, rows, currentLabel, incoming, recordMap, onEdit, 
     const otherType = String(incoming ? row.from_type : row.to_type) as KnowledgeType;
     const otherId = String(incoming ? row.from_id : row.to_id);
     const other = recordMap.get(`${otherType}:${otherId}`);
+    const verb = relationLabels[row.relation_type as (typeof relationTypes)[number]] ?? words(row.relation_type);
     return <article className="knowledge-relation-row" key={row.id}>
-      <div className="knowledge-relation-node"><small>{incoming ? words(otherType) : "This record"}</small><strong>{incoming ? recordLabel(other) : currentLabel}</strong></div>
-      <span className="knowledge-relation-verb">{words(row.relation_type)}</span>
-      <div className="knowledge-relation-node"><small>{incoming ? "This record" : words(otherType)}</small>{incoming ? <strong>{currentLabel}</strong> : <Link href={detailRoute(otherType, otherId)}>{recordLabel(other)}</Link>}</div>
-      <div className="knowledge-relation-actions"><Button emphasis="ghost" onClick={() => onEdit(row)}>Change</Button><Button emphasis="ghost" onClick={() => void onRemove(row.id)}>Remove</Button></div>
+      <div className="knowledge-relation-node">
+        <small>{incoming ? words(otherType) : "This record"}</small>
+        {incoming ? (
+          <Link href={detailRoute(otherType, otherId)}>{recordLabel(other)}</Link>
+        ) : (
+          <strong>{currentLabel}</strong>
+        )}
+      </div>
+      <span className="knowledge-relation-verb">{verb}</span>
+      <div className="knowledge-relation-node">
+        <small>{incoming ? "This record" : words(otherType)}</small>
+        {incoming ? (
+          <strong>{currentLabel}</strong>
+        ) : (
+          <Link href={detailRoute(otherType, otherId)}>{recordLabel(other)}</Link>
+        )}
+      </div>
+      <div className="knowledge-relation-actions">
+        <Button emphasis="ghost" aria-label={`Change ${verb} relation`} onClick={() => onEdit(row)}>Change</Button>
+        <Button emphasis="ghost" aria-label={`Remove ${verb} relation`} onClick={() => void onRemove(row.id)}>Remove</Button>
+      </div>
     </article>;
   })}</div> : <p className="dataset-note">No {title.toLowerCase()}.</p>}</div>;
 }

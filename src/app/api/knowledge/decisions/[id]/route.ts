@@ -13,21 +13,22 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
     if (decision.error) throw decision.error;
     if (!decision.data) return NextResponse.json({ error: "Decision is unavailable." }, { status: 404 });
 
-    const linkResult = await supabase.from("knowledge_entity_links").select("knowledge_type,knowledge_id").eq("entity_type", "decision").eq("entity_id", id).eq("user_id", userId);
+    const linkResult = await supabase.from("knowledge_entity_links").select("id,knowledge_type,knowledge_id").eq("entity_type", "decision").eq("entity_id", id).eq("user_id", userId);
     if (linkResult.error) throw linkResult.error;
     const links = linkResult.data ?? [];
+    const linkMap = new Map(links.map((link) => [`${link.knowledge_type}:${link.knowledge_id}`, link.id]));
     const ids = (type: string) => links.filter((link) => link.knowledge_type === type).map((link) => link.knowledge_id);
-    const ownedRows = async (table: string, selectedIds: string[]) => {
+    const ownedRows = async (table: string, selectedIds: string[], type?: string) => {
       if (!selectedIds.length) return [] as Row[];
       const result = await supabase.from(table).select("*").eq("user_id", userId).in("id", selectedIds);
       if (result.error) throw result.error;
-      return (result.data ?? []) as Row[];
+      return ((result.data ?? []) as Row[]).map((row) => ({ ...row, link_id: type ? linkMap.get(`${type}:${row.id}`) : undefined }));
     };
     const [topics, findings, questions, briefs] = await Promise.all([
-      ownedRows("research_topics", ids("topic")),
-      ownedRows("research_findings", ids("finding")),
-      ownedRows("research_questions", ids("question")),
-      ownedRows("research_briefs", ids("brief")),
+      ownedRows("research_topics", ids("topic"), "topic"),
+      ownedRows("research_findings", ids("finding"), "finding"),
+      ownedRows("research_questions", ids("question"), "question"),
+      ownedRows("research_briefs", ids("brief"), "brief"),
     ]);
     const evidenceResult = findings.length
       ? await supabase.from("finding_evidence").select("*").eq("user_id", userId).in("finding_id", findings.map((finding) => finding.id))
