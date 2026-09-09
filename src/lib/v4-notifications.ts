@@ -6,12 +6,19 @@ export type NotificationSeverity = "info" | "attention" | "important" | "critica
 const level: Record<NotificationSeverity, number> = { info: 0, attention: 1, important: 2, critical: 3 };
 
 export function notificationRoute(type: string, entityType?: string | null, entityId?: string | null) {
+  if(entityType?.startsWith('financial_')){const views:Record<string,string>={financial_accounts:'accounts',financial_cashflow:'cashflow',financial_collections:'collections',financial_promises:'promises',financial_obligations:'obligations',financial_budgets:'budgets',financial_investments:'investments',financial_subscriptions:'subscriptions'};return views[entityType]?'/financial-control/'+views[entityType]:'/financial-control';}
   if (["commitment", "milestone", "decision_gate"].includes(entityType ?? "")) return "/control-tower";
   if (entityType === "strategy_week_plan") return "/plan/week";
   if (entityType === "strategy_month_plan") return "/plan/month";
   if (entityType === "strategy_quarter_plan") return "/plan/quarter";
   if (entityType === "planning_period") return "/plan/week";
-  if (entityType === "dependency") return "/control-tower";
+  if (["action_plan", "action_proposal", "action_approval", "action_execution", "action_escalation", "action_template"].includes(entityType ?? "")) {
+    if (entityType === "action_plan" && entityId) return `/chief-of-staff/plans/${entityId}`;
+    if (entityType === "action_approval" || entityType === "action_proposal") return `/chief-of-staff/approvals`;
+    if (entityType === "action_execution") return `/chief-of-staff/executions`;
+    if (entityType === "action_escalation") return `/chief-of-staff/escalations`;
+    return `/chief-of-staff`;
+  }
   if (type === "integrations") return "/settings/integrations";
   if (type === "automations") return "/automations";
   if (entityType === "invoice") return entityId ? `/finance/invoices/${entityId}` : "/finance";
@@ -20,8 +27,7 @@ export function notificationRoute(type: string, entityType?: string | null, enti
   if (entityType === "knowledge_source") return entityId ? `/knowledge/sources/${entityId}` : "/knowledge";
   if (entityType === "research_finding") return entityId ? `/knowledge/findings/${entityId}` : "/knowledge";
   if (entityType === "watch_entity") return "/knowledge/watch";
-  if (type === "knowledge") return "/knowledge";
-  const routes: Record<string, string> = { task: "/tasks", client: "/clients", content: "/content", decision: "/decisions", subscription: "/finance", followup: "/followups" };
+  const routes: Record<string, string> = { task: "/tasks", client: "/clients", content: "/content", decision: "/decisions", subscription: "/finance", followup: "/followups", executive_cluster: "/executive", executive_change: "/executive" };
   return routes[entityType ?? ""] ?? "/today";
 }
 export function preferenceAllows(enabled: boolean | null | undefined, minimum: string | null | undefined, severity: NotificationSeverity) {

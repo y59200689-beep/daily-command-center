@@ -218,10 +218,10 @@ export async function GET() {
   try {
     const { supabase, userId } = await requireUser();
     const { snapshot, overview } = await getIntelligence(supabase, userId);
-    const review = await withSuccessReview(supabase, userId, await withTeamReview(supabase, userId, await withOperationsReview(supabase, userId, await withGrowthReview(supabase, userId, await withKnowledgeReview(supabase, userId, await withStrategyReview(supabase, userId, await withLifeReview(supabase, userId, await withFounderReview(supabase, userId, await withBusinessReview(supabase, userId, buildWeeklyReview(snapshot, overview))))))))));
+    const review = await withChiefOfStaffReview(supabase, userId, await withCommerceReview(supabase, userId, await withSuccessReview(supabase, userId, await withTeamReview(supabase, userId, await withOperationsReview(supabase, userId, await withGrowthReview(supabase, userId, await withKnowledgeReview(supabase, userId, await withStrategyReview(supabase, userId, await withLifeReview(supabase, userId, await withFounderReview(supabase, userId, await withBusinessReview(supabase, userId, buildWeeklyReview(snapshot, overview))))))))))));
     const saved = await supabase.from("weekly_reviews").select("id,status,created_at,updated_at").eq("user_id", userId).eq("period_start", review.periodStart).maybeSingle();
     if (saved.error) throw saved.error;
-    return NextResponse.json({ review, saved: saved.data }, { headers: { "Cache-Control": "private, no-store" } });
+    return NextResponse.json({ review: {...review,financial:await optionalFinancialOverview(supabase,userId)}, saved: saved.data }, { headers: { "Cache-Control": "private, no-store" } });
   } catch (error) {
     return apiError(error, "Weekly review could not be prepared.");
   }
@@ -231,12 +231,72 @@ export async function POST() {
   try {
     const { supabase, userId } = await requireUser();
     const { snapshot, overview } = await getIntelligence(supabase, userId);
-    const review = await withSuccessReview(supabase, userId, await withTeamReview(supabase, userId, await withOperationsReview(supabase, userId, await withGrowthReview(supabase, userId, await withKnowledgeReview(supabase, userId, await withStrategyReview(supabase, userId, await withLifeReview(supabase, userId, await withFounderReview(supabase, userId, await withBusinessReview(supabase, userId, buildWeeklyReview(snapshot, overview))))))))));
+    const review = await withChiefOfStaffReview(supabase, userId, await withCommerceReview(supabase, userId, await withSuccessReview(supabase, userId, await withTeamReview(supabase, userId, await withOperationsReview(supabase, userId, await withGrowthReview(supabase, userId, await withKnowledgeReview(supabase, userId, await withStrategyReview(supabase, userId, await withLifeReview(supabase, userId, await withFounderReview(supabase, userId, await withBusinessReview(supabase, userId, buildWeeklyReview(snapshot, overview))))))))))));
     const periodStart = review.periodStart;
     const { data, error } = await supabase.from("weekly_reviews").upsert({ user_id: userId, period_start: periodStart, status: "completed", updated_at: new Date().toISOString() }, { onConflict: "user_id,period_start" }).select("id,status,created_at,updated_at").single();
     if (error) throw error;
-    return NextResponse.json({ review, saved: data });
+    return NextResponse.json({ review: {...review,financial:await optionalFinancialOverview(supabase,userId)}, saved: data });
   } catch (error) {
     return apiError(error, "Weekly review could not be completed.");
+  }
+}
+import {optionalFinancialOverview} from '@/lib/financial-integration';
+import { getCommerceContext, loadFullCommerceState } from '@/lib/commerce-server';
+
+async function withCommerceReview<T extends object>(supabase: Awaited<ReturnType<typeof requireUser>>["supabase"], userId: string, review: T): Promise<T & { commerce?: Record<string, unknown> }> {
+  try {
+    const ctx = await getCommerceContext();
+    if (!ctx.isConfigured || !ctx.companyId) return review;
+    const state = await loadFullCommerceState(supabase, userId, ctx.companyId);
+    return {
+      ...review,
+      commerce: {
+        productsCount: state.products.length,
+        suppliersCount: state.suppliers.length,
+        reorderNowCount: state.products.filter(p => p.reorder.state === "reorder_now").length,
+        reviewSoonCount: state.products.filter(p => p.reorder.state === "review_soon").length,
+        slowStockCount: state.slowStock.length,
+        lateOrdersCount: state.supplierOrders.filter(o => o.health.state === "late").length,
+        openDiscrepanciesCount: state.discrepancies.filter((d: Record<string, unknown>) => d.status === "investigating" || d.status === "verified").length,
+        missingCostCount: state.missingCostCount,
+        currencyBuckets: state.currencyBuckets,
+        topRisks: state.activeRisks.slice(0, 5),
+        nextMove: state.nextMove,
+      },
+    };
+  } catch {
+    return review; // commerce data is supplemental; fail gracefully
+  }
+}
+
+async function withChiefOfStaffReview<T extends object>(
+  supabase: Awaited<ReturnType<typeof requireUser>>["supabase"],
+  userId: string,
+  review: T
+): Promise<T & { chiefOfStaff?: Record<string, unknown> }> {
+  try {
+    const [executions, approvals, plans] = await Promise.all([
+      supabase.from("action_executions").select("id, status, execution_mode, started_at").eq("user_id", userId).limit(50),
+      supabase.from("approval_items").select("id, status, risk_level").eq("user_id", userId).limit(50),
+      supabase.from("action_plans").select("id, status").eq("user_id", userId).limit(20),
+    ]);
+
+    const execs = executions.data ?? [];
+    const apps = approvals.data ?? [];
+    const pls = plans.data ?? [];
+
+    return {
+      ...review,
+      chiefOfStaff: {
+        totalExecutions: execs.length,
+        successfulExecutions: execs.filter(e => e.status === "succeeded").length,
+        failedExecutions: execs.filter(e => e.status === "failed").length,
+        pendingApprovals: apps.filter(a => a.status === "pending").length,
+        totalPlans: pls.length,
+        activePlans: pls.filter(p => p.status === "executing" || p.status === "ready").length,
+      },
+    };
+  } catch {
+    return review;
   }
 }

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireUser } from "@/lib/supabase/server";
+import {financialSearch} from '@/lib/financial-integration';
 
 export async function GET(request: Request) {
   try {
@@ -28,7 +29,7 @@ export async function GET(request: Request) {
     ]);
     const failed = [workspace, products, suppliers, orders, roadmap, incidents, support, githubWork, marketing, trips, segments, reservations, documents, visas, renewals, admin, dates, routines].find((result) => result.error);
     if (failed?.error) throw failed.error;
-    const [planningPeriods, commitments, milestones, gates, scenarios, kTopics, kSources, kFindings, kBriefs, kCollections, kWatches, gPlaybooks, gExperiments, gTargets, opSops, opProcesses, opRuns, opIncidents, opRunbooks, opSystems, opImprovements, tPeople, tRoles, tResps, tDels, tCommits, tEscs, csOutcomes, csRenewals, csRisks, csIssues, csCommitments, csCheckIns, csPlans] = await Promise.all([
+    const [planningPeriods, commitments, milestones, gates, scenarios, kTopics, kSources, kFindings, kBriefs, kCollections, kWatches, gPlaybooks, gExperiments, gTargets, opSops, opProcesses, opRuns, opIncidents, opRunbooks, opSystems, opImprovements, tPeople, tRoles, tResps, tDels, tCommits, tEscs, csOutcomes, csRenewals, csRisks, csIssues, csCommitments, csCheckIns, csPlans, cDiscrepancies, cAudits, cAdjustments] = await Promise.all([
       supabase.from("planning_periods").select("id,title,status").eq("user_id", userId).ilike("title", `%${query.replaceAll("%", "\\%")}%`).limit(8),
       supabase.from("strategic_commitments").select("id,title,status").eq("user_id", userId).ilike("title", `%${query.replaceAll("%", "\\%")}%`).limit(8),
       supabase.from("strategic_milestones").select("id,title,status").eq("user_id", userId).ilike("title", `%${query.replaceAll("%", "\\%")}%`).limit(8),
@@ -63,8 +64,12 @@ export async function GET(request: Request) {
       supabase.from("client_commitments").select("id,client_id,statement,status").eq("user_id", userId).ilike("statement", `%${query.replaceAll("%", "\\%")}%`).limit(8),
       supabase.from("client_check_ins").select("id,client_id,purpose,status").eq("user_id", userId).ilike("purpose", `%${query.replaceAll("%", "\\%")}%`).limit(8),
       supabase.from("client_success_plans").select("id,client_id,title,period").eq("user_id", userId).ilike("title", `%${query.replaceAll("%", "\\%")}%`).limit(8),
+      // V14 Commerce
+      supabase.from("inventory_discrepancies").select("id,product_id,discrepancy_type,status").eq("user_id", userId).ilike("discrepancy_type", `%${query.replaceAll("%", "\\%")}%`).limit(6),
+      supabase.from("inventory_audits").select("id,scope,status").eq("user_id", userId).ilike("scope", `%${query.replaceAll("%", "\\%")}%`).limit(6),
+      supabase.from("inventory_adjustments").select("id,product_id,reason").eq("user_id", userId).ilike("reason", `%${query.replaceAll("%", "\\%")}%`).limit(6),
     ]);
-    const strategyFailure = [planningPeriods, commitments, milestones, gates, scenarios, kTopics, kSources, kFindings, kBriefs, kCollections, kWatches, gPlaybooks, gExperiments, gTargets, tPeople, tRoles, tResps, tDels, tCommits, tEscs, csOutcomes, csRenewals, csRisks, csIssues, csCommitments, csCheckIns, csPlans].find((result) => result.error);
+    const strategyFailure = [planningPeriods, commitments, milestones, gates, scenarios, kTopics, kSources, kFindings, kBriefs, kCollections, kWatches, gPlaybooks, gExperiments, gTargets, tPeople, tRoles, tResps, tDels, tCommits, tEscs, csOutcomes, csRenewals, csRisks, csIssues, csCommitments, csCheckIns, csPlans, cDiscrepancies, cAudits, cAdjustments].find((result) => result.error);
     if (strategyFailure?.error) throw strategyFailure.error;
     const teamRows = [
       ...(tPeople.data ?? []).map((row) => ({ entity_type: "team_person", entity_id: row.id, title: row.name, snippet: row.role_title ?? "Person" })),
@@ -131,6 +136,12 @@ export async function GET(request: Request) {
       ...(csCheckIns.data ?? []).map((row) => ({ entity_type: "client_check_in", entity_id: row.id, client_id: row.client_id, title: row.purpose, snippet: `Check-in · ${row.status}` })),
       ...(csPlans.data ?? []).map((row) => ({ entity_type: "client_success_plan", entity_id: row.id, client_id: row.client_id, title: row.title, snippet: `Success Plan · ${row.period}` })),
     ];
-    return NextResponse.json({ data: [...(workspace.data ?? []), ...knowledgeRows, ...founderRows, ...strategyRows, ...growthRows, ...operationsRows, ...teamRows, ...successRows].slice(0, 30) });
+    const financialRows=await financialSearch(supabase,userId,query);
+    const commerceRows = [
+      ...(cDiscrepancies.data ?? []).map((row) => ({ entity_type: "inventory_discrepancy", entity_id: row.id, title: `Discrepancy · ${row.discrepancy_type}`, snippet: row.status })),
+      ...(cAudits.data ?? []).map((row) => ({ entity_type: "inventory_audit", entity_id: row.id, title: `Audit · ${row.scope}`, snippet: row.status })),
+      ...(cAdjustments.data ?? []).map((row) => ({ entity_type: "inventory_adjustment", entity_id: row.id, title: `Adjustment · ${row.reason}`, snippet: row.product_id })),
+    ];
+    return NextResponse.json({ data: [...financialRows,...(workspace.data ?? []), ...knowledgeRows, ...founderRows, ...strategyRows, ...growthRows, ...operationsRows, ...teamRows, ...successRows, ...commerceRows].slice(0, 30) });
   } catch (error) { return NextResponse.json({ error: error instanceof Error && error.message === "AUTH_REQUIRED" ? "Authentication required." : "Search is unavailable." }, { status: error instanceof Error && error.message === "AUTH_REQUIRED" ? 401 : 500 }); }
 }

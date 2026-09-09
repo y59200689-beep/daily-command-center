@@ -5,6 +5,8 @@ import { requireUser } from "@/lib/supabase/server";
 import { adaptiveModules } from "@/lib/intelligence/overview";
 import { getIntelligence } from "@/lib/intelligence/server";
 import { calendarConflictDisplayType, nearTermCalendarConflict } from "@/lib/calendar-conflicts";
+import {optionalFinancialOverview} from '@/lib/financial-integration';
+import { getCommerceContext, loadFullCommerceState } from '@/lib/commerce-server';
 
 export async function GET(){try{const{supabase,userId}=await requireUser();const profile=await supabase.from("profiles").select("display_name,timezone").eq("id",userId).maybeSingle();if(profile.error)throw profile.error;const timezone=profile.data?.timezone??"UTC";const today=dateInTimezone(new Date(),timezone);const {start,end}=dayBounds(today,timezone);
  const [plan,inbox,events,waiting,overdue,projects,followups,notes,intelligenceResult,replyThreads,integrationHealth,calendarConflicts,opportunities,proposals,scopeChanges,lifeDocuments,lifeRenewals,lifeAdmin,lifeTrips]=await Promise.all([
@@ -32,7 +34,10 @@ export async function GET(){try{const{supabase,userId}=await requireUser();const
  const nextEvent=(events.data??[]).find((event)=>new Date(event.ends_at)>=new Date())??null;
  const summary=buildSummary({priorities,inbox:inbox.count??0,waiting:waiting.count??waiting.data?.length??0,overdue:overdue.count??0,nextEvent,followups:followups.data??[]});
  const intelligence=intelligenceResult.overview;
- const insights=intelligence.attentionQueue.map((item)=>({id:item.key,severity:item.priority>=80?"critical":item.priority>=60?"high":item.priority>=35?"medium":"low",title:item.label,message:item.reason,action_label:"Act",action_route:item.route}));
+ const financial=await optionalFinancialOverview(supabase,userId);
+ const financialSignals=(financial?.risks??[]).filter(r=>r.score>=80).slice(0,2);
+ const existing=intelligence.attentionQueue.filter(item=>!financialSignals.some(r=>r.route===item.route));
+ const insights=[...existing.map(item=>({id:item.key,score:item.priority,severity:item.priority>=80?'critical':item.priority>=60?'high':'medium',title:item.label,message:item.reason,action_label:'Act',action_route:item.route})),...financialSignals.map(r=>({id:r.key,score:r.score,severity:r.severity==='critical'?'critical':'high',title:r.title,message:r.evidence,action_label:r.action,action_route:r.route}))].sort((a,b)=>b.score-a.score||a.id.localeCompare(b.id)).slice(0,8);
  const externalSignals=[...(replyThreads.data??[]).map((thread)=>({kind:"email",title:`Reply may be needed: ${thread.subject}`,route:"/communication",occurredAt:thread.last_message_at})),...(integrationHealth.data??[]).map((connection)=>({kind:"integration",title:`${connection.provider} connection needs attention`,route:"/settings/integrations",occurredAt:null}))];
  const nearTermConflict=nearTermCalendarConflict((calendarConflicts.data??[]).map((state)=>({...state,local_event:state.calendar_events as unknown as Record<string,unknown>})),new Date());
  const calendarConflict=nearTermConflict?{id:nearTermConflict.id,title:String(nearTermConflict.local_event?.title??"Calendar event"),conflictType:calendarConflictDisplayType(String(nearTermConflict.conflict_type),Boolean(nearTermConflict.local_delete_intent)),startsAt:nearTermConflict.local_event?.starts_at,route:`/calendar?conflict=${nearTermConflict.id}`}:null;
@@ -56,7 +61,80 @@ export async function GET(){try{const{supabase,userId}=await requireUser();const
     ...(csCommitments.data ?? []).map(c => ({ id: `cs-commit:${c.id}`, title: "Client promise overdue", message: c.statement, route: `/success/clients/${c.client_id}`, priority: 90 })),
     ...(csRenewals.data ?? []).filter(ren => ren.preparation_state === "not_started").map(ren => ({ id: `cs-renewal:${ren.id}`, title: "Client renewal approaching", message: `Renewal due ${ren.renewal_date} has no prep started.`, route: `/success/clients/${ren.client_id}`, priority: 85 })),
   ].sort((a, b) => b.priority - a.priority).slice(0, 2);
-  return NextResponse.json({date:today,profile:profile.data,priorities,inboxCount:inbox.count??0,events:events.data??[],nextEvent,waiting:waiting.data??[],waitingCount:waiting.count??0,overdueCount:overdue.count??0,projects:projects.data??[],followups:followups.data??[],notes:notes.data??[],insights,summary,intelligence,externalSignals,calendarConflict,businessSignals,founderSignals,lifeSignals,strategicSignals,knowledgeSignals,growthSignals,operationsSignals,teamSignals,customerSuccessSignals,modules:adaptiveModules(intelligence)});
+  // Commerce signals — max 2 highest-priority (critical stockout, late PO)
+  let commerceSignals: {id:string;title:string;message:string;route:string;priority:number}[] = [];
+  try {
+    const commerceCtx = await getCommerceContext();
+    if (commerceCtx.isConfigured && commerceCtx.companyId) {
+      const state = await loadFullCommerceState(commerceCtx.supabase, commerceCtx.userId!, commerceCtx.companyId);
+      commerceSignals = [
+        ...state.products.filter(p => p.stockout.state === "critical").slice(0, 2).map(p => ({ id: `commerce-stockout:${p.id}`, title: "Critical stockout risk", message: `${p.name} may run out of stock${p.stockout.runoutDate ? ` by ${p.stockout.runoutDate.slice(0,10)}` : ""}.`, route: "/commerce/inventory", priority: 100 })),
+        ...state.supplierOrders.filter(o => o.health.state === "late").slice(0, 2).map(o => ({ id: `commerce-late-po:${o.id}`, title: "Supplier order is late", message: `PO ${o.reference || o.id} is overdue by ${o.health.daysOverdue ?? 0} day(s).`, route: "/commerce/purchasing", priority: 90 })),
+      ].sort((a, b) => b.priority - a.priority).slice(0, 2);
+    }
+  } catch { /* commerce signals are optional; fail gracefully */ }
+  // Chief of Staff signals — max 1 highest-priority (e.g. pending approval or failed execution)
+  let chiefOfStaffSignal: {id:string;title:string;message:string;route:string;priority:number} | null = null;
+  try {
+    const { data: pendingApprovals } = await supabase
+      .from("approval_items")
+      .select("id, title, risk_level")
+      .eq("user_id", userId)
+      .eq("status", "pending")
+      .order("created_at", { ascending: false })
+      .limit(1);
+
+    if (pendingApprovals && pendingApprovals.length > 0) {
+      chiefOfStaffSignal = {
+        id: `chief-approval:${pendingApprovals[0].id}`,
+        title: "Action approval required",
+        message: `${pendingApprovals[0].title} is waiting for your verification.`,
+        route: "/chief-of-staff/approvals",
+        priority: 95,
+      };
+    } else {
+      const { data: failedExecutions } = await supabase
+        .from("action_executions")
+        .select("id, title, error_message")
+        .eq("user_id", userId)
+        .eq("status", "failed")
+        .order("created_at", { ascending: false })
+        .limit(1);
+
+      if (failedExecutions && failedExecutions.length > 0) {
+        chiefOfStaffSignal = {
+          id: `chief-failed:${failedExecutions[0].id}`,
+          title: "Action execution failed",
+          message: failedExecutions[0].error_message || `${failedExecutions[0].title} failed and needs review.`,
+          route: "/chief-of-staff/executions",
+          priority: 90,
+        };
+      }
+    }
+  } catch { /* chief of staff signal optional; fail gracefully */ }
+  // V18 Operating Learning signal — max 1 (only shown if actionable, e.g. review needed)
+  let learningSignal: { id: string; title: string; message: string; route: string; priority: number } | null = null;
+  try {
+    const { data: lessonsDue } = await supabase
+      .from("operating_lessons")
+      .select("id, title, status, domain, review_at")
+      .eq("user_id", userId)
+      .eq("scope", "business")
+      .in("status", ["needs_review", "proposed"])
+      .order("created_at", { ascending: false })
+      .limit(1);
+
+    if (lessonsDue && lessonsDue.length > 0) {
+      learningSignal = {
+        id: `learning-review:${lessonsDue[0].id}`,
+        title: "Operating lesson needs review",
+        message: `${lessonsDue[0].title} (${lessonsDue[0].domain}) requires verification.`,
+        route: `/learning/lessons/${lessonsDue[0].id}`,
+        priority: 85,
+      };
+    }
+  } catch { /* learning signal optional; fail gracefully */ }
+  return NextResponse.json({date:today,profile:profile.data,priorities,inboxCount:inbox.count??0,events:events.data??[],nextEvent,waiting:waiting.data??[],waitingCount:waiting.count??0,overdueCount:overdue.count??0,projects:projects.data??[],followups:followups.data??[],notes:notes.data??[],insights,summary,intelligence,externalSignals,calendarConflict,businessSignals,founderSignals,lifeSignals,strategicSignals,knowledgeSignals,growthSignals,operationsSignals,teamSignals,customerSuccessSignals,commerceSignals,chiefOfStaffSignal,learningSignal,modules:adaptiveModules(intelligence)});
 }catch(error){return apiError(error,"Today could not be loaded.")}}
 
 const prioritySchema=z.object({taskId:z.uuid(),position:z.number().int().min(1).max(3)});

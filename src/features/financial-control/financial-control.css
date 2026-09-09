@@ -1,0 +1,33 @@
+.financial-page { min-width: 0; }
+.financial-page section { margin-block: 2rem; }
+.financial-page h2 { margin-block: 0 1rem; }
+.financial-nav, .financial-actions { display:flex; flex-wrap:wrap; gap:.5rem; align-items:center; }
+.financial-nav { padding-block:1rem; border-bottom:1px solid var(--line); }
+.financial-nav a, .financial-nav summary { padding:.65rem .75rem; min-height:44px; text-transform:capitalize; }
+.financial-nav [aria-current="page"] { font-weight:700; text-decoration:underline; text-underline-offset:6px; }
+.financial-nav details > div { display:flex; flex-wrap:wrap; gap:.25rem; }
+.financial-next { padding:1.5rem; background:var(--surface); border-left:3px solid var(--ink); }
+.financial-row { display:flex; flex-direction:column; align-items:flex-start; gap:.55rem; padding:1rem 0; border-bottom:1px solid var(--line); min-width:0; overflow-wrap:anywhere; }
+.financial-row small, .financial-basis, .financial-caution { color:var(--muted); }
+.financial-buckets { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:1rem; }
+.financial-buckets article { padding:1rem; border:1px solid var(--line); min-width:0; }
+.financial-metrics { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr)); gap:.75rem; }
+.financial-metrics div { min-width:0; padding-block:.4rem; }
+.financial-metrics dt { color:var(--muted); font-size:.85rem; }
+.financial-metrics dd { margin:0; font-variant-numeric:tabular-nums; overflow-wrap:anywhere; }
+.financial-buckets .financial-metrics { grid-template-columns:1fr; }
+.financial-form, .financial-form label, .financial-form fieldset { min-width:0; }
+.financial-form input, .financial-form select, .financial-form textarea { max-width:100%; min-width:0; box-sizing:border-box; }
+.financial-form select, .financial-form input:not([type="checkbox"]) { min-height:44px; width:100%; }
+.financial-form fieldset { border:1px solid var(--line); padding:1rem; }
+.financial-form legend { padding-inline:.4rem; }
+.financial-form .modal__actions { position:sticky; bottom:0; background:var(--surface); padding-block:1rem; }
+.financial-basis { border-top:1px solid var(--line); margin-top:2rem; padding-top:1rem; font-size:.85rem; }
+@media(max-width:600px) {
+ .financial-buckets { grid-template-columns:minmax(0,1fr); }
+ .financial-page .page-header { flex-direction:column; align-items:flex-start; }
+ .financial-page .detail-actions { flex-wrap:wrap; }
+ .financial-actions { width:100%; }
+ .financial-actions > * { min-height:44px; }
+ .financial-form fieldset { padding:.75rem; }
+}

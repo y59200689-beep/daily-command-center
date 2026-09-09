@@ -6,8 +6,9 @@ for(const event of events.data??[])await notifyOnce(client,userId,{type:"calenda
 for(const thread of threads.data??[]){const metadata=thread.metadata as Record<string,unknown>|null;if(!metadata?.handled_at)await notifyOnce(client,userId,{type:"clients",title:"Client reply needs attention",body:String(thread.subject),entityType:"client",severity:"important",dedupeKey:`reply:${thread.id}:${metadata?.latest_message_id??"latest"}`})}
 for(const followup of followups.data??[])await notifyOnce(client,userId,{type:"clients",title:"Follow-up due",body:String(followup.title),entityType:"followup",entityId:String(followup.id),severity:"important",dedupeKey:`followup:${followup.id}:${followup.due_at}`});
 for(const invoice of invoices.data??[])await notifyOnce(client,userId,{type:"finance",title:"Invoice overdue",body:`${invoice.invoice_number??"Invoice"} is overdue.`,entityType:"invoice",entityId:String(invoice.id),severity:"important",dedupeKey:`invoice:overdue:${invoice.id}`});for(const sub of subs.data??[])await notifyOnce(client,userId,{type:"finance",title:"Subscription renewal soon",body:String(sub.name),entityType:"subscription",entityId:String(sub.id),severity:"attention",dedupeKey:`subscription:${sub.id}:${sub.next_billing_date}`});
-for(const item of content.data??[]){if(item.approval_status==="pending"&&item.due_date&&item.due_date<today)await notifyOnce(client,userId,{type:"content",title:"Content approval overdue",body:String(item.title),entityType:"content",entityId:String(item.id),severity:"important",dedupeKey:`content:approval:${item.id}`});else if(item.due_date===today)await notifyOnce(client,userId,{type:"content",title:"Content deadline today",body:String(item.title),entityType:"content",entityId:String(item.id),severity:"attention",dedupeKey:`content:deadline:${item.id}:${item.due_date}`})}for(const decision of decisions.data??[])await notifyOnce(client,userId,{type:"decisions",title:"Decision review due",body:String(decision.title),entityType:"decision",entityId:String(decision.id),severity:"attention",dedupeKey:`decision:${decision.id}:${decision.review_date}`});for(const target of fitness.data??[])await notifyOnce(client,userId,{type:"fitness",title:"Weekly fitness target needs attention",body:String(target.activity_type),severity:"attention",dedupeKey:`fitness:${target.id}:${today.slice(0,7)}`});for(const item of integrations.data??[])await notifyOnce(client,userId,{type:"integrations",title:"Reconnect required",body:`${item.provider} needs attention.`,entityType:"integration",entityId:String(item.id),severity:"important",dedupeKey:`integration:${item.id}:${item.status}`});for(const item of automations.data??[])await notifyOnce(client,userId,{type:"automations",title:"Automation failed",body:String(item.name),entityType:"automation",entityId:String(item.id),severity:"important",dedupeKey:`automation:${item.id}:${item.last_status}`});for(const conflict of conflicts.data??[])await notifyOnce(client,userId,{type:"calendar",title:"Calendar conflict needs review",body:"A Calendar event changed and needs your decision.",entityType:"calendar_event",entityId:String(conflict.calendar_event_id),severity:"important",dedupeKey:`calendar-conflict:${conflict.calendar_event_id}:${conflict.conflict_type}`});await emitFounderOperationalHooks(client,userId,today);await emitLifeNotifications(client,userId,today);await emitKnowledgeNotifications(client,userId,today);await emitGrowthNotifications(client,userId,today);await emitOperationsNotifications(client,userId,today);await emitTeamNotifications(client,userId,today);await emitCustomerSuccessNotifications(client,userId,today);
+for(const item of content.data??[]){if(item.approval_status==="pending"&&item.due_date&&item.due_date<today)await notifyOnce(client,userId,{type:"content",title:"Content approval overdue",body:String(item.title),entityType:"content",entityId:String(item.id),severity:"important",dedupeKey:`content:approval:${item.id}`});else if(item.due_date===today)await notifyOnce(client,userId,{type:"content",title:"Content deadline today",body:String(item.title),entityType:"content",entityId:String(item.id),severity:"attention",dedupeKey:`content:deadline:${item.id}:${item.due_date}`})}for(const decision of decisions.data??[])await notifyOnce(client,userId,{type:"decisions",title:"Decision review due",body:String(decision.title),entityType:"decision",entityId:String(decision.id),severity:"attention",dedupeKey:`decision:${decision.id}:${decision.review_date}`});for(const target of fitness.data??[])await notifyOnce(client,userId,{type:"fitness",title:"Weekly fitness target needs attention",body:String(target.activity_type),severity:"attention",dedupeKey:`fitness:${target.id}:${today.slice(0,7)}`});for(const item of integrations.data??[])await notifyOnce(client,userId,{type:"integrations",title:"Reconnect required",body:`${item.provider} needs attention.`,entityType:"integration",entityId:String(item.id),severity:"important",dedupeKey:`integration:${item.id}:${item.status}`});for(const item of automations.data??[])await notifyOnce(client,userId,{type:"automations",title:"Automation failed",body:String(item.name),entityType:"automation",entityId:String(item.id),severity:"important",dedupeKey:`automation:${item.id}:${item.last_status}`});for(const conflict of conflicts.data??[])await notifyOnce(client,userId,{type:"calendar",title:"Calendar conflict needs review",body:"A Calendar event changed and needs your decision.",entityType:"calendar_event",entityId:String(conflict.calendar_event_id),severity:"important",dedupeKey:`calendar-conflict:${conflict.calendar_event_id}:${conflict.conflict_type}`});await emitFounderOperationalHooks(client,userId,today);await emitLifeNotifications(client,userId,today);await emitKnowledgeNotifications(client,userId,today);await emitGrowthNotifications(client,userId,today);await emitOperationsNotifications(client,userId,today);await emitTeamNotifications(client,userId,today);await emitCustomerSuccessNotifications(client,userId,today);await emitCommerceNotifications(client,userId,today);await emitExecutiveNotifications(client,userId,today);
 }
+
 
 export async function emitLifeNotifications(client: SupabaseClient, userId: string, today = new Date().toISOString().slice(0, 10)) {
   const week = new Date(Date.now() + 7 * 86_400_000).toISOString().slice(0, 10);
@@ -709,5 +710,157 @@ export async function emitCustomerSuccessNotifications(client: SupabaseClient, u
   }
   for (const issue of issues) {
     if (!activeIssueIds.has(issue.id)) await resolveNotifications(client, userId, `success:issue-critical:${issue.id}`);
+  }
+}
+
+export async function emitCommerceNotifications(client: SupabaseClient, userId: string, today = new Date().toISOString().slice(0, 10)) {
+  const company = await client.from("companies").select("id").eq("user_id", userId).eq("active", true).maybeSingle();
+  if (company.error || !company.data) return;
+  const companyId = company.data.id;
+
+  const [productsRes, snapshotsRes, supplierOrdersRes, discrepanciesRes] = await Promise.all([
+    client.from("product_catalog_refs").select("id, name, sku, unit_cost, currency").eq("user_id", userId).eq("company_id", companyId).eq("active", true),
+    client.from("inventory_snapshots").select("product_id, available_stock, captured_at").eq("user_id", userId).eq("company_id", companyId).order("captured_at", { ascending: false }).limit(200),
+    client.from("supplier_orders").select("id, reference, expected_at, status").eq("user_id", userId).eq("company_id", companyId).in("status", ["ordered", "partially_received"]),
+    client.from("inventory_discrepancies").select("id, product_id, discrepancy_units, cost_impact, currency, status").eq("user_id", userId).eq("company_id", companyId).eq("status", "investigating"),
+  ]);
+
+  if (productsRes.error || snapshotsRes.error || supplierOrdersRes.error || discrepanciesRes.error) return;
+
+  const latestStock = new Map<string, number>();
+  for (const s of snapshotsRes.data ?? []) {
+    if (!latestStock.has(s.product_id)) latestStock.set(s.product_id, Number(s.available_stock) || 0);
+  }
+
+  // 1. Critical out of stock
+  for (const p of productsRes.data ?? []) {
+    const stock = latestStock.get(p.id) ?? 0;
+    if (stock === 0) {
+      await notifyOnce(client, userId, {
+        type: "tasks",
+        title: "Critical Stockout: Out of Stock",
+        body: `${p.name} has 0 units available on hand. Immediate replenishment required.`,
+        entityType: "product",
+        entityId: p.id,
+        severity: "critical",
+        dedupeKey: `commerce:stockout:${p.id}`,
+        cooldownHours: 24,
+      });
+    }
+  }
+
+  // 2. Late supplier orders
+  const nowMs = new Date(today).getTime();
+  for (const po of supplierOrdersRes.data ?? []) {
+    if (po.expected_at) {
+      const expMs = new Date(po.expected_at).getTime();
+      if (!Number.isNaN(expMs) && nowMs > expMs) {
+        const days = Math.max(1, Math.floor((nowMs - expMs) / 86400000));
+        await notifyOnce(client, userId, {
+          type: "tasks",
+          title: "Late Supplier Purchase Order",
+          body: `${po.reference || "PO #" + po.id.slice(0, 8)} is ${days} days overdue.`,
+          entityType: "supplier_order",
+          entityId: po.id,
+          severity: "important",
+          dedupeKey: `commerce:late-po:${po.id}`,
+          cooldownHours: 24,
+        });
+      }
+    }
+  }
+
+  // 3. Open count discrepancies
+  for (const disc of discrepanciesRes.data ?? []) {
+    if (disc.discrepancy_units !== 0) {
+      await notifyOnce(client, userId, {
+        type: "tasks",
+        title: "Inventory Discrepancy Open",
+        body: `Count variance of ${disc.discrepancy_units} units requires investigation.`,
+        entityType: "inventory_discrepancy",
+        entityId: disc.id,
+        severity: "attention",
+        dedupeKey: `commerce:discrepancy:${disc.id}`,
+        cooldownHours: 48,
+      });
+    }
+  }
+}
+
+export async function emitExecutiveNotifications(
+  client: SupabaseClient,
+  userId: string,
+  today = new Date().toISOString().slice(0, 10)
+) {
+  // Critical overdue invoices signal
+  const invoicesRes = await client
+    .from("invoices")
+    .select("id,invoice_number,amount_remaining,total_amount,due_date,currency")
+    .eq("user_id", userId)
+    .is("deleted_at", null)
+    .in("status", ["sent", "partial"])
+    .lt("due_date", today)
+    .limit(10);
+
+  let totalOverdue = 0;
+  for (const inv of invoicesRes.data ?? []) {
+    const remaining = Number(inv.amount_remaining ?? inv.total_amount ?? 0);
+    if (remaining > 0) totalOverdue += remaining;
+  }
+
+  if (totalOverdue > 50000) {
+    await notifyOnce(client, userId, {
+      type: "finance",
+      title: "Executive Alert: High Overdue Receivables",
+      body: `${totalOverdue.toLocaleString()} MAD in overdue invoices. Immediate follow-up required.`,
+      entityType: "executive_signal",
+      severity: "important",
+      dedupeKey: `executive:overdue-receivables:${today}`,
+      cooldownHours: 24,
+    });
+  }
+
+  // Critical client risks
+  const csRisksRes = await client
+    .from("client_risks")
+    .select("id,description,severity")
+    .eq("user_id", userId)
+    .eq("severity", "critical")
+    .in("status", ["open", "mitigating"])
+    .limit(5);
+
+  for (const cr of csRisksRes.data ?? []) {
+    await notifyOnce(client, userId, {
+      type: "clients",
+      title: "Executive Alert: Critical Client Risk",
+      body: cr.description.slice(0, 80),
+      entityType: "executive_signal",
+      entityId: cr.id,
+      severity: "important",
+      dedupeKey: `executive:client-risk:${cr.id}:${today}`,
+      cooldownHours: 48,
+    });
+  }
+
+  // Team escalations
+  const teamEscsRes = await client
+    .from("team_escalations")
+    .select("id,reason,severity")
+    .eq("user_id", userId)
+    .eq("severity", "critical")
+    .in("status", ["open", "in_review"])
+    .limit(5);
+
+  for (const te of teamEscsRes.data ?? []) {
+    await notifyOnce(client, userId, {
+      type: "tasks",
+      title: "Executive Alert: Critical Team Escalation",
+      body: te.reason.slice(0, 80),
+      entityType: "executive_signal",
+      entityId: te.id,
+      severity: "important",
+      dedupeKey: `executive:team-escalation:${te.id}:${today}`,
+      cooldownHours: 24,
+    });
   }
 }

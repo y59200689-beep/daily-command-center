@@ -39,6 +39,9 @@ export function nextAutomationRun(type: string, enabled: boolean, schedule: Reco
 }
 
 export function automationFields(type: string) {
+  if (['daily_cash_review','receivables_review','collections_review','obligations_review','subscription_review','budget_review','cash_balance_freshness_review'].includes(type)) return ['time','days'];
+  if (type==='weekly_cashflow_review') return ['time','day'];
+  if (['monthly_finance_review','quarterly_finance_review'].includes(type)) return ['time'];
   if (["morning_brief", "evening_review", "daily_sales_attention", "daily_operations_review"].includes(type)) return ["time", "days"];
   if (["weekly_review", "weekly_planning_reminder", "weekly_knowledge_review", "weekly_growth_review", "weekly_operations_review"].includes(type)) return ["time", "day"];
 

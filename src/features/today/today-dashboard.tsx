@@ -64,6 +64,7 @@ type TodayData = {
   strategicSignals: Array<{ id: string; title: string; message: string; route: string }>;
   growthSignals?: Array<{ id: string; title: string; message: string; route: string }>;
   operationsSignals?: Array<{ id: string; title: string; message: string; route: string }>;
+  learningSignal?: { id: string; title: string; message: string; route: string } | null;
   intelligence: Intelligence;
   modules: string[];
 };
@@ -384,6 +385,21 @@ export function TodayDashboard() {
         <section className="brief-module" aria-label="Operations signals">
           <div className="section-heading section-heading--small"><div><p className="eyebrow">Operations</p><h2>Operational signals</h2></div><Link href="/operations">Open operations</Link></div>
           {data.operationsSignals.map((signal) => <Link className="brief-item" href={signal.route} key={signal.id}><strong>{signal.title}</strong><p>{signal.message}</p></Link>)}
+        </section>
+      ) : null}
+      {data.learningSignal ? (
+        <section className="brief-module" aria-label="Operating learning signal">
+          <div className="section-heading section-heading--small">
+            <div>
+              <p className="eyebrow">Learning</p>
+              <h2>Operating Memory</h2>
+            </div>
+            <Link href="/learning">Open learning</Link>
+          </div>
+          <Link className="brief-item" href={data.learningSignal.route} key={data.learningSignal.id}>
+            <strong>{data.learningSignal.title}</strong>
+            <p>{data.learningSignal.message}</p>
+          </Link>
         </section>
       ) : null}
       <Attention

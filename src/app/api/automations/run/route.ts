@@ -4,18 +4,21 @@ import { apiError } from "@/lib/api";
 import { syncGoogleCalendar } from "@/lib/integrations/google-calendar";
 import { syncProvider } from "@/lib/integrations/sync";
 import { emitStrategyNotifications } from "@/lib/strategy-notifications";
-import { emitGrowthNotifications, emitOperationsNotifications, emitTeamNotifications, emitCustomerSuccessNotifications } from "@/lib/notification-producers";
+import { emitGrowthNotifications, emitOperationsNotifications, emitTeamNotifications, emitCustomerSuccessNotifications, emitCommerceNotifications } from "@/lib/notification-producers";
 import { requireUser } from "@/lib/supabase/server";
 import { notifyOnce } from "@/lib/v4-notifications";
+import { financialAutomationTypes,runFinancialAutomation } from '@/lib/financial-notifications';
 
 const strategicTypes = new Set(["weekly_planning_reminder", "monthly_planning_reminder", "quarterly_planning_reminder", "milestone_risk_check", "blocked_commitment_check"]);
 const growthTypes = new Set(["daily_sales_attention", "weekly_growth_review", "proposal_followup_review", "lead_reactivation_review", "client_expansion_review", "pipeline_hygiene", "experiment_review"]);
 const operationsTypes = new Set(["daily_operations_review", "weekly_operations_review", "sop_review_check", "recurring_process_check", "blocked_runs_review", "quality_review", "process_health_review"]);
 const teamTypes = new Set(["daily_delegation_review", "weekly_team_review", "waiting_on_team_review", "waiting_on_me_review", "ownership_gap_review", "team_capacity_review", "team_handoff_review", "backup_coverage_review"]);
 const successTypes = new Set(["daily_client_success_review", "weekly_retention_review", "upcoming_renewal_check", "client_risk_audit", "unfulfilled_commitment_check", "stale_client_touchpoint_check", "critical_client_issue_alert", "client_waiting_state_review"]);
+const commerceTypes = new Set(["daily_inventory_review", "weekly_commerce_review", "replenishment_review", "supplier_order_review", "supplier_performance_review", "slow_stock_review", "cost_data_review", "inventory_audit_review"]);
 export async function POST(request: Request) { try {
   const input = z.object({ id: z.uuid() }).parse(await request.json()); const { supabase, userId } = await requireUser();
   const { data: automation, error } = await supabase.from("automations").select("*").eq("id", input.id).eq("user_id",userId).eq("enabled",true).maybeSingle(); if (error) throw error; if (!automation) return NextResponse.json({ error: "Automation is not enabled." }, { status: 404 });
+  if(financialAutomationTypes.some(type=>type===automation.type))return NextResponse.json(await runFinancialAutomation(supabase,userId,automation.id,'manual:'+new Date().toISOString().slice(0,16)));
   const { data: run, error: runError } = await supabase.from("automation_runs").insert({ user_id: userId, automation_id: automation.id }).select("*").single(); if (runError) throw runError;
   let affected = 0;
   try {
@@ -80,6 +83,20 @@ export async function POST(request: Request) { try {
         entityType: "client_risk",
         severity: "attention",
         dedupeKey: `success:automation:${automation.type}:${new Date().toISOString().slice(0, 10)}`,
+        cooldownHours: 24,
+      });
+    }
+    if (commerceTypes.has(String(automation.type))) {
+      await emitCommerceNotifications(supabase, userId);
+      const { count } = await supabase.from("product_catalog_refs").select("id", { count: "exact", head: true }).eq("user_id", userId);
+      affected = count ?? 0;
+      await notifyOnce(supabase, userId, {
+        type: "automations",
+        title: automation.name,
+        body: "Commerce review surfaced inventory, supplier, or purchasing items needing your attention.",
+        entityType: "product_catalog_ref",
+        severity: "attention",
+        dedupeKey: `commerce:automation:${automation.type}:${new Date().toISOString().slice(0, 10)}`,
         cooldownHours: 24,
       });
     }
