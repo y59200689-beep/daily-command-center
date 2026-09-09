@@ -104,11 +104,121 @@ async function withGrowthReview(supabase: Awaited<ReturnType<typeof requireUser>
   };
 }
 
+async function withOperationsReview(supabase: Awaited<ReturnType<typeof requireUser>>["supabase"], userId: string, review: Awaited<ReturnType<typeof withGrowthReview>>) {
+  const today = new Date().toISOString().slice(0, 10);
+  const [runsRes, incidentsRes, sopsRes, improvementsRes, recurringRes] = await Promise.all([
+    supabase.from("process_runs").select("id,status,completed_at,due_at").eq("user_id", userId),
+    supabase.from("quality_incidents").select("id,status,detected_at").eq("user_id", userId).gte("detected_at", `${review.periodStart}T00:00:00Z`),
+    supabase.from("operational_sops").select("id,next_review_at,status").eq("user_id", userId).neq("status", "archived"),
+    supabase.from("process_improvements").select("id,status").eq("user_id", userId).eq("status", "adopted"),
+    supabase.from("process_templates").select("id").eq("user_id", userId).eq("status", "active").not("default_frequency", "is", null),
+  ]);
+
+  const runs = (runsRes.data ?? []) as Array<{ id: string; status: string; completed_at?: string | null; due_at?: string | null }>;
+  const runsCompleted = runs.filter(r => r.status === "completed" && r.completed_at && r.completed_at >= `${review.periodStart}T00:00:00Z`).length;
+  const runsFailed = runs.filter(r => r.status === "failed" && r.completed_at && r.completed_at >= `${review.periodStart}T00:00:00Z`).length;
+  const blockedRuns = runs.filter(r => r.status === "blocked").length;
+  const runsOverdue = runs.filter(r => ["planned", "ready", "in_progress"].includes(r.status) && r.due_at && r.due_at.slice(0, 10) < today).length;
+
+  const incidents = (incidentsRes.data ?? []) as Array<{ id: string; status: string }>;
+  const qualityIncidents = incidents.filter(i => !["resolved", "archived"].includes(i.status)).length;
+
+  const sops = (sopsRes.data ?? []) as Array<{ id: string; next_review_at?: string | null }>;
+  const sopsNeedingReview = sops.filter(s => s.next_review_at && s.next_review_at <= today).length;
+
+  const recurringOperationsDue = (recurringRes.data ?? []).length;
+  const improvementsAdopted = (improvementsRes.data ?? []).length;
+  const processHealthConcerns = runsFailed + blockedRuns + qualityIncidents;
+
+  return {
+    ...review,
+    operations: {
+      runsCompleted,
+      runsFailed,
+      blockedRuns,
+      runsOverdue,
+      qualityIncidents,
+      sopsNeedingReview,
+      recurringOperationsDue,
+      improvementsAdopted,
+      processHealthConcerns,
+    },
+  };
+}
+
+async function withTeamReview(supabase: Awaited<ReturnType<typeof requireUser>>["supabase"], userId: string, review: Awaited<ReturnType<typeof withOperationsReview>>) {
+  const today = new Date().toISOString().slice(0, 10);
+  const [delsRes, respsRes, handoffsRes, peopleRes] = await Promise.all([
+    supabase.from("team_delegations").select("id,status,due_at,completed_at").eq("user_id", userId),
+    supabase.from("team_responsibilities").select("id,criticality,primary_owner_id,backup_owner_id").eq("user_id", userId).neq("status", "archived"),
+    supabase.from("operational_handoffs").select("id,accepted").eq("user_id", userId),
+    supabase.from("team_people").select("id").eq("user_id", userId).eq("status", "active"),
+  ]);
+
+  const dels = (delsRes.data ?? []) as Array<{ id: string; status: string; due_at?: string | null; completed_at?: string | null }>;
+  const openDelegations = dels.filter(d => !["completed", "cancelled"].includes(d.status)).length;
+  const completedDelegations = dels.filter(d => d.status === "completed" && d.completed_at && d.completed_at >= `${review.periodStart}T00:00:00Z`).length;
+  const overdueDelegations = dels.filter(d => !["completed", "cancelled"].includes(d.status) && d.due_at && d.due_at.slice(0, 10) < today).length;
+  const blockedDelegations = dels.filter(d => d.status === "blocked").length;
+  const waitingOnTeam = dels.filter(d => ["assigned", "acknowledged", "in_progress", "blocked"].includes(d.status)).length;
+  const waitingOnMe = dels.filter(d => d.status === "needs_review").length;
+
+  const resps = (respsRes.data ?? []) as Array<{ id: string; criticality: string; primary_owner_id?: string | null; backup_owner_id?: string | null }>;
+  const ownershipGaps = resps.filter(r => !r.primary_owner_id).length;
+  const backupGaps = resps.filter(r => (r.criticality === "critical" || r.criticality === "high") && (!r.backup_owner_id || r.backup_owner_id === r.primary_owner_id)).length;
+  const pendingHandoffs = (handoffsRes.data ?? []).filter(h => !h.accepted).length;
+
+  return {
+    ...review,
+    team: {
+      openDelegations,
+      completedDelegations,
+      overdueDelegations,
+      blockedDelegations,
+      waitingOnTeam,
+      waitingOnMe,
+      pendingHandoffs,
+      ownershipGaps,
+      backupGaps,
+      activePeople: (peopleRes.data ?? []).length,
+    },
+  };
+}
+
+async function withSuccessReview(supabase: Awaited<ReturnType<typeof requireUser>>["supabase"], userId: string, review: Awaited<ReturnType<typeof withTeamReview>>) {
+  const [clientsRes, renewalsRes, risksRes, issuesRes, commitmentsRes] = await Promise.all([
+    supabase.from("clients").select("id, status").eq("user_id", userId).is("deleted_at", null),
+    supabase.from("client_renewals").select("id, renewal_date, status, forecast_category, value, currency").eq("user_id", userId),
+    supabase.from("client_risks").select("id, severity, status").eq("user_id", userId).in("status", ["open", "mitigating"]),
+    supabase.from("client_issues").select("id, severity, status").eq("user_id", userId).not("status", "in", "(resolved,closed)"),
+    supabase.from("client_commitments").select("id, direction, status, due_at").eq("user_id", userId).eq("status", "open"),
+  ]);
+
+  const activeClients = (clientsRes.data ?? []).filter(c => c.status === "active").length;
+  const openRisks = (risksRes.data ?? []).length;
+  const criticalRisks = (risksRes.data ?? []).filter(r => r.severity === "critical").length;
+  const openIssues = (issuesRes.data ?? []).length;
+  const upcomingRenewals = (renewalsRes.data ?? []).filter(r => ["upcoming", "preparing"].includes(r.status)).length;
+  const openCommitments = (commitmentsRes.data ?? []).length;
+
+  return {
+    ...review,
+    success: {
+      activeClients,
+      openRisks,
+      criticalRisks,
+      openIssues,
+      upcomingRenewals,
+      openCommitments,
+    },
+  };
+}
+
 export async function GET() {
   try {
     const { supabase, userId } = await requireUser();
     const { snapshot, overview } = await getIntelligence(supabase, userId);
-    const review = await withGrowthReview(supabase, userId, await withKnowledgeReview(supabase, userId, await withStrategyReview(supabase, userId, await withLifeReview(supabase, userId, await withFounderReview(supabase, userId, await withBusinessReview(supabase, userId, buildWeeklyReview(snapshot, overview)))))));
+    const review = await withSuccessReview(supabase, userId, await withTeamReview(supabase, userId, await withOperationsReview(supabase, userId, await withGrowthReview(supabase, userId, await withKnowledgeReview(supabase, userId, await withStrategyReview(supabase, userId, await withLifeReview(supabase, userId, await withFounderReview(supabase, userId, await withBusinessReview(supabase, userId, buildWeeklyReview(snapshot, overview))))))))));
     const saved = await supabase.from("weekly_reviews").select("id,status,created_at,updated_at").eq("user_id", userId).eq("period_start", review.periodStart).maybeSingle();
     if (saved.error) throw saved.error;
     return NextResponse.json({ review, saved: saved.data }, { headers: { "Cache-Control": "private, no-store" } });
@@ -121,11 +231,12 @@ export async function POST() {
   try {
     const { supabase, userId } = await requireUser();
     const { snapshot, overview } = await getIntelligence(supabase, userId);
-    const review = await withGrowthReview(supabase, userId, await withKnowledgeReview(supabase, userId, await withStrategyReview(supabase, userId, await withLifeReview(supabase, userId, await withFounderReview(supabase, userId, await withBusinessReview(supabase, userId, buildWeeklyReview(snapshot, overview)))))));
-    const result = await supabase.from("weekly_reviews").upsert({ user_id: userId, period_start: review.periodStart, period_end: review.periodEnd, status: "accepted", summary: review } as never, { onConflict: "user_id,period_start" }).select("*").single();
-    if (result.error) throw result.error;
-    return NextResponse.json({ review: result.data }, { status: 201 });
+    const review = await withSuccessReview(supabase, userId, await withTeamReview(supabase, userId, await withOperationsReview(supabase, userId, await withGrowthReview(supabase, userId, await withKnowledgeReview(supabase, userId, await withStrategyReview(supabase, userId, await withLifeReview(supabase, userId, await withFounderReview(supabase, userId, await withBusinessReview(supabase, userId, buildWeeklyReview(snapshot, overview))))))))));
+    const periodStart = review.periodStart;
+    const { data, error } = await supabase.from("weekly_reviews").upsert({ user_id: userId, period_start: periodStart, status: "completed", updated_at: new Date().toISOString() }, { onConflict: "user_id,period_start" }).select("id,status,created_at,updated_at").single();
+    if (error) throw error;
+    return NextResponse.json({ review, saved: data });
   } catch (error) {
-    return apiError(error, "Weekly review could not be saved.");
+    return apiError(error, "Weekly review could not be completed.");
   }
 }

@@ -6,7 +6,7 @@ for(const event of events.data??[])await notifyOnce(client,userId,{type:"calenda
 for(const thread of threads.data??[]){const metadata=thread.metadata as Record<string,unknown>|null;if(!metadata?.handled_at)await notifyOnce(client,userId,{type:"clients",title:"Client reply needs attention",body:String(thread.subject),entityType:"client",severity:"important",dedupeKey:`reply:${thread.id}:${metadata?.latest_message_id??"latest"}`})}
 for(const followup of followups.data??[])await notifyOnce(client,userId,{type:"clients",title:"Follow-up due",body:String(followup.title),entityType:"followup",entityId:String(followup.id),severity:"important",dedupeKey:`followup:${followup.id}:${followup.due_at}`});
 for(const invoice of invoices.data??[])await notifyOnce(client,userId,{type:"finance",title:"Invoice overdue",body:`${invoice.invoice_number??"Invoice"} is overdue.`,entityType:"invoice",entityId:String(invoice.id),severity:"important",dedupeKey:`invoice:overdue:${invoice.id}`});for(const sub of subs.data??[])await notifyOnce(client,userId,{type:"finance",title:"Subscription renewal soon",body:String(sub.name),entityType:"subscription",entityId:String(sub.id),severity:"attention",dedupeKey:`subscription:${sub.id}:${sub.next_billing_date}`});
-for(const item of content.data??[]){if(item.approval_status==="pending"&&item.due_date&&item.due_date<today)await notifyOnce(client,userId,{type:"content",title:"Content approval overdue",body:String(item.title),entityType:"content",entityId:String(item.id),severity:"important",dedupeKey:`content:approval:${item.id}`});else if(item.due_date===today)await notifyOnce(client,userId,{type:"content",title:"Content deadline today",body:String(item.title),entityType:"content",entityId:String(item.id),severity:"attention",dedupeKey:`content:deadline:${item.id}:${item.due_date}`})}for(const decision of decisions.data??[])await notifyOnce(client,userId,{type:"decisions",title:"Decision review due",body:String(decision.title),entityType:"decision",entityId:String(decision.id),severity:"attention",dedupeKey:`decision:${decision.id}:${decision.review_date}`});for(const target of fitness.data??[])await notifyOnce(client,userId,{type:"fitness",title:"Weekly fitness target needs attention",body:String(target.activity_type),severity:"attention",dedupeKey:`fitness:${target.id}:${today.slice(0,7)}`});for(const item of integrations.data??[])await notifyOnce(client,userId,{type:"integrations",title:"Reconnect required",body:`${item.provider} needs attention.`,entityType:"integration",entityId:String(item.id),severity:"important",dedupeKey:`integration:${item.id}:${item.status}`});for(const item of automations.data??[])await notifyOnce(client,userId,{type:"automations",title:"Automation failed",body:String(item.name),entityType:"automation",entityId:String(item.id),severity:"important",dedupeKey:`automation:${item.id}:${item.last_status}`});for(const conflict of conflicts.data??[])await notifyOnce(client,userId,{type:"calendar",title:"Calendar conflict needs review",body:"A Calendar event changed and needs your decision.",entityType:"calendar_event",entityId:String(conflict.calendar_event_id),severity:"important",dedupeKey:`calendar-conflict:${conflict.calendar_event_id}:${conflict.conflict_type}`});await emitFounderOperationalHooks(client,userId,today);await emitLifeNotifications(client,userId,today);await emitKnowledgeNotifications(client,userId,today);await emitGrowthNotifications(client,userId,today);
+for(const item of content.data??[]){if(item.approval_status==="pending"&&item.due_date&&item.due_date<today)await notifyOnce(client,userId,{type:"content",title:"Content approval overdue",body:String(item.title),entityType:"content",entityId:String(item.id),severity:"important",dedupeKey:`content:approval:${item.id}`});else if(item.due_date===today)await notifyOnce(client,userId,{type:"content",title:"Content deadline today",body:String(item.title),entityType:"content",entityId:String(item.id),severity:"attention",dedupeKey:`content:deadline:${item.id}:${item.due_date}`})}for(const decision of decisions.data??[])await notifyOnce(client,userId,{type:"decisions",title:"Decision review due",body:String(decision.title),entityType:"decision",entityId:String(decision.id),severity:"attention",dedupeKey:`decision:${decision.id}:${decision.review_date}`});for(const target of fitness.data??[])await notifyOnce(client,userId,{type:"fitness",title:"Weekly fitness target needs attention",body:String(target.activity_type),severity:"attention",dedupeKey:`fitness:${target.id}:${today.slice(0,7)}`});for(const item of integrations.data??[])await notifyOnce(client,userId,{type:"integrations",title:"Reconnect required",body:`${item.provider} needs attention.`,entityType:"integration",entityId:String(item.id),severity:"important",dedupeKey:`integration:${item.id}:${item.status}`});for(const item of automations.data??[])await notifyOnce(client,userId,{type:"automations",title:"Automation failed",body:String(item.name),entityType:"automation",entityId:String(item.id),severity:"important",dedupeKey:`automation:${item.id}:${item.last_status}`});for(const conflict of conflicts.data??[])await notifyOnce(client,userId,{type:"calendar",title:"Calendar conflict needs review",body:"A Calendar event changed and needs your decision.",entityType:"calendar_event",entityId:String(conflict.calendar_event_id),severity:"important",dedupeKey:`calendar-conflict:${conflict.calendar_event_id}:${conflict.conflict_type}`});await emitFounderOperationalHooks(client,userId,today);await emitLifeNotifications(client,userId,today);await emitKnowledgeNotifications(client,userId,today);await emitGrowthNotifications(client,userId,today);await emitOperationsNotifications(client,userId,today);await emitTeamNotifications(client,userId,today);await emitCustomerSuccessNotifications(client,userId,today);
 }
 
 export async function emitLifeNotifications(client: SupabaseClient, userId: string, today = new Date().toISOString().slice(0, 10)) {
@@ -266,5 +266,448 @@ export async function emitGrowthNotifications(client: SupabaseClient, userId: st
     if (!activeOverdueLeadIds.has(lead.id)) {
       await resolveNotifications(client, userId, `growth:lead-followup:${lead.id}`);
     }
+  }
+}
+
+export async function emitOperationsNotifications(client: SupabaseClient, userId: string, today = new Date().toISOString().slice(0, 10)) {
+  const [runsRes, sopsRes, incidentsRes, executionsRes, processesRes, failuresRes, tasksRes, systemsRes] = await Promise.all([
+    client.from("process_runs").select("id,title,status,priority,due_at").eq("user_id", userId),
+    client.from("operational_sops").select("id,title,status,next_review_at,review_cadence,criticality").eq("user_id", userId).neq("status", "archived"),
+    client.from("quality_incidents").select("id,title,severity,status,corrective_task_id").eq("user_id", userId),
+    client.from("quality_executions").select("id,status,run_id,quality_checks(name,severity_if_failed)").eq("user_id", userId).eq("status", "fail"),
+    client.from("process_templates").select("id,name,default_frequency,status").eq("user_id", userId).eq("status", "active"),
+    client.from("process_failures").select("id,run_id,failure_type,process_runs(process_template_id)").eq("user_id", userId),
+    client.from("tasks").select("id,due_date,status").eq("user_id", userId).is("deleted_at", null),
+    client.from("operational_systems").select("id,name,status,criticality").eq("user_id", userId),
+  ]);
+
+  const failed = [runsRes, sopsRes, incidentsRes, executionsRes, processesRes, failuresRes, tasksRes, systemsRes].find(r => r.error);
+  if (failed?.error) return;
+
+  const runs = (runsRes.data ?? []) as Array<{ id: string; title: string; status: string; priority: string; due_at?: string | null }>;
+  const sops = (sopsRes.data ?? []) as Array<{ id: string; title: string; status: string; next_review_at?: string | null; review_cadence?: string | null; criticality: string }>;
+  const incidents = (incidentsRes.data ?? []) as Array<{ id: string; title: string; severity: string; status: string; corrective_task_id?: string | null }>;
+  const executions = (executionsRes.data ?? []) as unknown as Array<{ id: string; status: string; run_id: string; quality_checks?: { name: string; severity_if_failed?: string } | null }>;
+  const processes = (processesRes.data ?? []) as Array<{ id: string; name: string; default_frequency?: string | null; status: string }>;
+  const failures = (failuresRes.data ?? []) as Array<{ id: string; run_id: string; failure_type: string; process_runs?: { process_template_id?: string } | null }>;
+  const tasks = (tasksRes.data ?? []) as Array<{ id: string; due_date?: string | null; status: string }>;
+  const systems = (systemsRes.data ?? []) as Array<{ id: string; name: string; status: string; criticality: string }>;
+
+  const activeOverdueRunIds = new Set<string>();
+  const activeBlockedRunIds = new Set<string>();
+  const activeFailedRunIds = new Set<string>();
+
+  for (const run of runs) {
+    if (run.status === "failed") {
+      activeFailedRunIds.add(run.id);
+      await notifyOnce(client, userId, {
+        type: "automations",
+        title: "Process run failed",
+        body: `Run "${run.title}" encountered a failure.`,
+        entityType: "process_run",
+        entityId: run.id,
+        severity: run.priority === "critical" ? "critical" : "important",
+        dedupeKey: `operations:run-failed:${run.id}`,
+        cooldownHours: 24,
+      });
+    } else if (run.status === "blocked") {
+      activeBlockedRunIds.add(run.id);
+      await notifyOnce(client, userId, {
+        type: "automations",
+        title: "Process run blocked",
+        body: `Run "${run.title}" is currently blocked.`,
+        entityType: "process_run",
+        entityId: run.id,
+        severity: run.priority === "critical" ? "critical" : "important",
+        dedupeKey: `operations:run-blocked:${run.id}`,
+        cooldownHours: 24,
+      });
+    } else if (["planned", "ready", "in_progress"].includes(run.status) && run.due_at && run.due_at.slice(0, 10) < today) {
+      activeOverdueRunIds.add(run.id);
+      await notifyOnce(client, userId, {
+        type: "tasks",
+        title: "Process run overdue",
+        body: `Run "${run.title}" was due on ${run.due_at.slice(0, 10)}.`,
+        entityType: "process_run",
+        entityId: run.id,
+        severity: run.priority === "critical" ? "critical" : "important",
+        dedupeKey: `operations:run-overdue:${run.id}`,
+        cooldownHours: 24,
+      });
+    }
+  }
+
+  for (const exec of executions) {
+    const qc = exec.quality_checks;
+    if (qc?.severity_if_failed === "critical" || qc?.severity_if_failed === "high") {
+      await notifyOnce(client, userId, {
+        type: "automations",
+        title: "Critical quality check failed",
+        body: `Quality check "${qc.name}" failed verification.`,
+        entityType: "quality_execution",
+        entityId: exec.id,
+        severity: "critical",
+        dedupeKey: `operations:quality-failed:${exec.id}`,
+        cooldownHours: 24,
+      });
+    }
+  }
+
+  const activeIncidentIds = new Set<string>();
+  for (const inc of incidents) {
+    if (!["resolved", "archived"].includes(inc.status)) {
+      activeIncidentIds.add(inc.id);
+      await notifyOnce(client, userId, {
+        type: "automations",
+        title: "Quality incident open",
+        body: `Incident "${inc.title}" is ${inc.status}.`,
+        entityType: "quality_incident",
+        entityId: inc.id,
+        severity: inc.severity === "critical" ? "critical" : "important",
+        dedupeKey: `operations:incident:${inc.id}`,
+        cooldownHours: 24,
+      });
+
+      if (inc.corrective_task_id) {
+        const linkedTask = tasks.find(t => t.id === inc.corrective_task_id);
+        if (linkedTask && linkedTask.status !== "completed" && linkedTask.due_date && linkedTask.due_date < today) {
+          await notifyOnce(client, userId, {
+            type: "tasks",
+            title: "Corrective action overdue",
+            body: `Corrective task for incident "${inc.title}" is overdue.`,
+            entityType: "task",
+            entityId: linkedTask.id,
+            severity: "important",
+            dedupeKey: `operations:corrective-action:${inc.id}:${linkedTask.id}`,
+            cooldownHours: 24,
+          });
+        }
+      }
+    }
+  }
+
+  const activeSopReviewIds = new Set<string>();
+  for (const sop of sops) {
+    if (sop.next_review_at && sop.next_review_at <= today && sop.review_cadence !== "none") {
+      activeSopReviewIds.add(sop.id);
+      await notifyOnce(client, userId, {
+        type: "automations",
+        title: "SOP review due",
+        body: `SOP "${sop.title}" is due for scheduled review.`,
+        entityType: "operational_sop",
+        entityId: sop.id,
+        severity: sop.criticality === "critical" ? "critical" : "attention",
+        dedupeKey: `operations:sop-review:${sop.id}`,
+        cooldownHours: 72,
+      });
+    }
+  }
+
+  const processFailureCounts = new Map<string, number>();
+  for (const f of failures) {
+    const pId = f.process_runs?.process_template_id;
+    if (pId) {
+      processFailureCounts.set(pId, (processFailureCounts.get(pId) ?? 0) + 1);
+    }
+  }
+  for (const [pId, count] of processFailureCounts.entries()) {
+    if (count >= 3) {
+      const proc = processes.find(p => p.id === pId);
+      await notifyOnce(client, userId, {
+        type: "automations",
+        title: "Process repeatedly failing",
+        body: `Process "${proc?.name ?? "Template"}" has failed ${count} times recently.`,
+        entityType: "process_template",
+        entityId: pId,
+        severity: "important",
+        dedupeKey: `operations:repeated-failure:${pId}`,
+        cooldownHours: 72,
+      });
+    }
+  }
+
+  for (const sys of systems) {
+    if (sys.criticality === "critical" && (sys.status === "unavailable" || sys.status === "degraded")) {
+      await notifyOnce(client, userId, {
+        type: "automations",
+        title: "Critical system unavailable",
+        body: `System "${sys.name}" is marked as ${sys.status}.`,
+        entityType: "operational_system",
+        entityId: sys.id,
+        severity: "critical",
+        dedupeKey: `operations:system:${sys.id}`,
+        cooldownHours: 24,
+      });
+    } else {
+      await resolveNotifications(client, userId, `operations:system:${sys.id}`);
+    }
+  }
+
+  for (const run of runs) {
+    if (!activeFailedRunIds.has(run.id)) await resolveNotifications(client, userId, `operations:run-failed:${run.id}`);
+    if (!activeBlockedRunIds.has(run.id)) await resolveNotifications(client, userId, `operations:run-blocked:${run.id}`);
+    if (!activeOverdueRunIds.has(run.id)) await resolveNotifications(client, userId, `operations:run-overdue:${run.id}`);
+  }
+  for (const inc of incidents) {
+    if (!activeIncidentIds.has(inc.id)) {
+      await resolveNotifications(client, userId, `operations:incident:${inc.id}`);
+      if (inc.corrective_task_id) {
+        await resolveNotifications(client, userId, `operations:corrective-action:${inc.id}:${inc.corrective_task_id}`);
+      }
+    }
+  }
+  for (const sop of sops) {
+    if (!activeSopReviewIds.has(sop.id)) await resolveNotifications(client, userId, `operations:sop-review:${sop.id}`);
+  }
+}
+
+export async function emitTeamNotifications(client: SupabaseClient, userId: string, today = new Date().toISOString().slice(0, 10)) {
+  const [delsRes, respsRes, escsRes, handoffsRes] = await Promise.all([
+    client.from("team_delegations").select("id,title,priority,status,due_at,review_at,blocked_reason").eq("user_id", userId),
+    client.from("team_responsibilities").select("id,name,criticality,status,primary_owner_id,backup_owner_id").eq("user_id", userId).neq("status", "archived"),
+    client.from("team_escalations").select("id,reason,severity,status").eq("user_id", userId),
+    client.from("operational_handoffs").select("id,accepted,expected_handoff_time,handoff_description").eq("user_id", userId),
+  ]);
+
+  const delegations = delsRes.data ?? [];
+  const responsibilities = respsRes.data ?? [];
+  const escalations = escsRes.data ?? [];
+  const handoffs = handoffsRes.data ?? [];
+
+  const activeOverdueDelIds = new Set<string>();
+  const activeBlockedDelIds = new Set<string>();
+  const activeReviewDueDelIds = new Set<string>();
+  const activeOwnerGapIds = new Set<string>();
+  const activeBackupGapIds = new Set<string>();
+  const activeEscalationIds = new Set<string>();
+  const activeHandoffOverdueIds = new Set<string>();
+
+  // 1. Delegations
+  for (const d of delegations) {
+    const isCompleted = ["completed", "cancelled"].includes(d.status);
+
+    if (!isCompleted && d.due_at && d.due_at.slice(0, 10) < today) {
+      activeOverdueDelIds.add(d.id);
+      await notifyOnce(client, userId, {
+        type: "tasks",
+        title: "Delegation overdue",
+        body: `Delegated outcome "${d.title}" missed target due date (${d.due_at.slice(0, 10)}).`,
+        entityType: "team_delegation",
+        entityId: d.id,
+        severity: d.priority === "critical" ? "critical" : "important",
+        dedupeKey: `team:delegation-overdue:${d.id}`,
+        cooldownHours: 24,
+      });
+    }
+
+    if (!isCompleted && d.status === "blocked") {
+      activeBlockedDelIds.add(d.id);
+      await notifyOnce(client, userId, {
+        type: "tasks",
+        title: "Delegation blocked",
+        body: `Delegation "${d.title}" is blocked: ${d.blocked_reason || "needs unblocking"}.`,
+        entityType: "team_delegation",
+        entityId: d.id,
+        severity: "critical",
+        dedupeKey: `team:delegation-blocked:${d.id}`,
+        cooldownHours: 12,
+      });
+    }
+
+    if (!isCompleted && d.review_at && d.review_at.slice(0, 10) <= today) {
+      activeReviewDueDelIds.add(d.id);
+      await notifyOnce(client, userId, {
+        type: "tasks",
+        title: "Delegation review due",
+        body: `Scheduled review date reached for "${d.title}".`,
+        entityType: "team_delegation",
+        entityId: d.id,
+        severity: "attention",
+        dedupeKey: `team:delegation-review:${d.id}`,
+        cooldownHours: 24,
+      });
+    }
+  }
+
+  // 2. Responsibilities
+  for (const r of responsibilities) {
+    if (!r.primary_owner_id || r.status === "needs_owner") {
+      activeOwnerGapIds.add(r.id);
+      await notifyOnce(client, userId, {
+        type: "tasks",
+        title: "Responsibility has no primary owner",
+        body: `Area "${r.name}" is active without an accountable owner.`,
+        entityType: "team_responsibility",
+        entityId: r.id,
+        severity: r.criticality === "critical" ? "critical" : "important",
+        dedupeKey: `team:owner-gap:${r.id}`,
+        cooldownHours: 48,
+      });
+    }
+
+    if ((r.criticality === "critical" || r.criticality === "high") && (!r.backup_owner_id || r.backup_owner_id === r.primary_owner_id)) {
+      activeBackupGapIds.add(r.id);
+      await notifyOnce(client, userId, {
+        type: "tasks",
+        title: "Single-owner dependency",
+        body: `Critical area "${r.name}" has no backup owner.`,
+        entityType: "team_responsibility",
+        entityId: r.id,
+        severity: "attention",
+        dedupeKey: `team:backup-gap:${r.id}`,
+        cooldownHours: 72,
+      });
+    }
+  }
+
+  // 3. Escalations
+  for (const e of escalations) {
+    if (e.status === "open") {
+      activeEscalationIds.add(e.id);
+      await notifyOnce(client, userId, {
+        type: "automations",
+        title: "Team escalation open",
+        body: e.reason,
+        entityType: "team_escalation",
+        entityId: e.id,
+        severity: e.severity === "critical" ? "critical" : "important",
+        dedupeKey: `team:escalation:${e.id}`,
+        cooldownHours: 12,
+      });
+    }
+  }
+
+  // 4. Overdue Handoffs
+  for (const h of handoffs) {
+    if (!h.accepted && h.expected_handoff_time && h.expected_handoff_time < new Date().toISOString()) {
+      activeHandoffOverdueIds.add(h.id);
+      await notifyOnce(client, userId, {
+        type: "tasks",
+        title: "Operational handoff overdue",
+        body: `Handoff "${h.handoff_description || "transfer"}" is pending acceptance.`,
+        entityType: "operational_handoff",
+        entityId: h.id,
+        severity: "important",
+        dedupeKey: `team:handoff-overdue:${h.id}`,
+        cooldownHours: 24,
+      });
+    }
+  }
+
+  // Clear resolved notifications
+  for (const d of delegations) {
+    if (!activeOverdueDelIds.has(d.id)) await resolveNotifications(client, userId, `team:delegation-overdue:${d.id}`);
+    if (!activeBlockedDelIds.has(d.id)) await resolveNotifications(client, userId, `team:delegation-blocked:${d.id}`);
+    if (!activeReviewDueDelIds.has(d.id)) await resolveNotifications(client, userId, `team:delegation-review:${d.id}`);
+  }
+  for (const r of responsibilities) {
+    if (!activeOwnerGapIds.has(r.id)) await resolveNotifications(client, userId, `team:owner-gap:${r.id}`);
+    if (!activeBackupGapIds.has(r.id)) await resolveNotifications(client, userId, `team:backup-gap:${r.id}`);
+  }
+  for (const e of escalations) {
+    if (!activeEscalationIds.has(e.id)) await resolveNotifications(client, userId, `team:escalation:${e.id}`);
+  }
+  for (const h of handoffs) {
+    if (!activeHandoffOverdueIds.has(h.id)) await resolveNotifications(client, userId, `team:handoff-overdue:${h.id}`);
+  }
+}
+
+export async function emitCustomerSuccessNotifications(client: SupabaseClient, userId: string, today = new Date().toISOString().slice(0, 10)) {
+  const thirtyDaysOut = new Date(Date.now() + 30 * 86_400_000).toISOString().slice(0, 10);
+
+  const [risksRes, renewalsRes, commitmentsRes, issuesRes] = await Promise.all([
+    client.from("client_risks").select("id, client_id, risk_type, severity, description, status").eq("user_id", userId).in("status", ["open", "mitigating"]).in("severity", ["critical", "high"]),
+    client.from("client_renewals").select("id, client_id, renewal_date, status, preparation_state, forecast_category").eq("user_id", userId).in("status", ["upcoming", "preparing"]).lte("renewal_date", thirtyDaysOut),
+    client.from("client_commitments").select("id, client_id, direction, statement, due_at, status").eq("user_id", userId).eq("status", "open").eq("direction", "we_owe_client").lt("due_at", today),
+    client.from("client_issues").select("id, client_id, title, severity, status").eq("user_id", userId).in("status", ["open", "investigating", "waiting_on_us"]).eq("severity", "critical"),
+  ]);
+
+  const failure = [risksRes, renewalsRes, commitmentsRes, issuesRes].find((r) => r.error);
+  if (failure?.error) throw failure.error;
+
+  const risks = risksRes.data ?? [];
+  const renewals = renewalsRes.data ?? [];
+  const commitments = commitmentsRes.data ?? [];
+  const issues = issuesRes.data ?? [];
+
+  const activeRiskIds = new Set<string>();
+  const activeRenewalIds = new Set<string>();
+  const activeCommitmentIds = new Set<string>();
+  const activeIssueIds = new Set<string>();
+
+  // 1. Critical and high client risks
+  for (const r of risks) {
+    activeRiskIds.add(r.id);
+    await notifyOnce(client, userId, {
+      type: "clients",
+      title: `${r.severity === "critical" ? "Critical" : "High"} client risk`,
+      body: r.description,
+      entityType: "client_risk",
+      entityId: r.id,
+      severity: r.severity === "critical" ? "critical" : "important",
+      dedupeKey: `success:risk:${r.id}`,
+      cooldownHours: 24,
+    });
+  }
+
+  // 2. Upcoming renewals needing preparation
+  for (const ren of renewals) {
+    if (ren.preparation_state === "not_started") {
+      activeRenewalIds.add(ren.id);
+      await notifyOnce(client, userId, {
+        type: "clients",
+        title: "Client renewal approaching",
+        body: `Renewal due ${ren.renewal_date} has not started preparation.`,
+        entityType: "client_renewal",
+        entityId: ren.id,
+        severity: "important",
+        dedupeKey: `success:renewal:${ren.id}`,
+        cooldownHours: 72,
+      });
+    }
+  }
+
+  // 3. Overdue commitments owed to clients
+  for (const c of commitments) {
+    activeCommitmentIds.add(c.id);
+    await notifyOnce(client, userId, {
+      type: "tasks",
+      title: "Client commitment overdue",
+      body: `Overdue promise owed to client: ${c.statement}`,
+      entityType: "client_commitment",
+      entityId: c.id,
+      severity: "important",
+      dedupeKey: `success:commitment-overdue:${c.id}`,
+      cooldownHours: 24,
+    });
+  }
+
+  // 4. Critical client issues
+  for (const issue of issues) {
+    activeIssueIds.add(issue.id);
+    await notifyOnce(client, userId, {
+      type: "clients",
+      title: "Critical client issue open",
+      body: issue.title,
+      entityType: "client_issue",
+      entityId: issue.id,
+      severity: "critical",
+      dedupeKey: `success:issue-critical:${issue.id}`,
+      cooldownHours: 12,
+    });
+  }
+
+  // Clear resolved
+  for (const r of risks) {
+    if (!activeRiskIds.has(r.id)) await resolveNotifications(client, userId, `success:risk:${r.id}`);
+  }
+  for (const ren of renewals) {
+    if (!activeRenewalIds.has(ren.id)) await resolveNotifications(client, userId, `success:renewal:${ren.id}`);
+  }
+  for (const c of commitments) {
+    if (!activeCommitmentIds.has(c.id)) await resolveNotifications(client, userId, `success:commitment-overdue:${c.id}`);
+  }
+  for (const issue of issues) {
+    if (!activeIssueIds.has(issue.id)) await resolveNotifications(client, userId, `success:issue-critical:${issue.id}`);
   }
 }

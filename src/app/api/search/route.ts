@@ -28,7 +28,7 @@ export async function GET(request: Request) {
     ]);
     const failed = [workspace, products, suppliers, orders, roadmap, incidents, support, githubWork, marketing, trips, segments, reservations, documents, visas, renewals, admin, dates, routines].find((result) => result.error);
     if (failed?.error) throw failed.error;
-    const [planningPeriods, commitments, milestones, gates, scenarios, kTopics, kSources, kFindings, kBriefs, kCollections, kWatches, gPlaybooks, gExperiments, gTargets] = await Promise.all([
+    const [planningPeriods, commitments, milestones, gates, scenarios, kTopics, kSources, kFindings, kBriefs, kCollections, kWatches, gPlaybooks, gExperiments, gTargets, opSops, opProcesses, opRuns, opIncidents, opRunbooks, opSystems, opImprovements, tPeople, tRoles, tResps, tDels, tCommits, tEscs, csOutcomes, csRenewals, csRisks, csIssues, csCommitments, csCheckIns, csPlans] = await Promise.all([
       supabase.from("planning_periods").select("id,title,status").eq("user_id", userId).ilike("title", `%${query.replaceAll("%", "\\%")}%`).limit(8),
       supabase.from("strategic_commitments").select("id,title,status").eq("user_id", userId).ilike("title", `%${query.replaceAll("%", "\\%")}%`).limit(8),
       supabase.from("strategic_milestones").select("id,title,status").eq("user_id", userId).ilike("title", `%${query.replaceAll("%", "\\%")}%`).limit(8),
@@ -43,9 +43,46 @@ export async function GET(request: Request) {
       supabase.from("sales_playbooks").select("id,name,target_type").eq("user_id", userId).ilike("name", `%${query.replaceAll("%", "\\%")}%`).limit(8),
       supabase.from("growth_experiments").select("id,name,target_metric").eq("user_id", userId).ilike("name", `%${query.replaceAll("%", "\\%")}%`).limit(8),
       supabase.from("sales_targets").select("id,metric_type,target_value,currency,period").eq("user_id", userId).limit(8),
+      supabase.from("operational_sops").select("id,title,category").eq("user_id", userId).ilike("title", `%${query.replaceAll("%", "\\%")}%`).limit(8),
+      supabase.from("process_templates").select("id,name,category").eq("user_id", userId).ilike("name", `%${query.replaceAll("%", "\\%")}%`).limit(8),
+      supabase.from("process_runs").select("id,title,status").eq("user_id", userId).ilike("title", `%${query.replaceAll("%", "\\%")}%`).limit(8),
+      supabase.from("quality_incidents").select("id,title,severity").eq("user_id", userId).ilike("title", `%${query.replaceAll("%", "\\%")}%`).limit(8),
+      supabase.from("operational_runbooks").select("id,title,severity").eq("user_id", userId).ilike("title", `%${query.replaceAll("%", "\\%")}%`).limit(8),
+      supabase.from("operational_systems").select("id,name,purpose").eq("user_id", userId).ilike("name", `%${query.replaceAll("%", "\\%")}%`).limit(8),
+      supabase.from("process_improvements").select("id,title,status").eq("user_id", userId).ilike("title", `%${query.replaceAll("%", "\\%")}%`).limit(8),
+      supabase.from("team_people").select("id,name,role_title").eq("user_id", userId).ilike("name", `%${query.replaceAll("%", "\\%")}%`).limit(8),
+      supabase.from("team_roles").select("id,name,responsibility_summary").eq("user_id", userId).ilike("name", `%${query.replaceAll("%", "\\%")}%`).limit(8),
+      supabase.from("team_responsibilities").select("id,name,criticality").eq("user_id", userId).ilike("name", `%${query.replaceAll("%", "\\%")}%`).limit(8),
+      supabase.from("team_delegations").select("id,title,status").eq("user_id", userId).ilike("title", `%${query.replaceAll("%", "\\%")}%`).limit(8),
+      supabase.from("team_commitments").select("id,statement,status").eq("user_id", userId).ilike("statement", `%${query.replaceAll("%", "\\%")}%`).limit(8),
+      supabase.from("team_escalations").select("id,reason,severity").eq("user_id", userId).ilike("reason", `%${query.replaceAll("%", "\\%")}%`).limit(8),
+      supabase.from("client_outcomes").select("id,client_id,title,status").eq("user_id", userId).ilike("title", `%${query.replaceAll("%", "\\%")}%`).limit(8),
+      supabase.from("client_renewals").select("id,client_id,renewal_date,status").eq("user_id", userId).ilike("renewal_date", `%${query.replaceAll("%", "\\%")}%`).limit(8),
+      supabase.from("client_risks").select("id,client_id,description,severity").eq("user_id", userId).ilike("description", `%${query.replaceAll("%", "\\%")}%`).limit(8),
+      supabase.from("client_issues").select("id,client_id,title,severity").eq("user_id", userId).ilike("title", `%${query.replaceAll("%", "\\%")}%`).limit(8),
+      supabase.from("client_commitments").select("id,client_id,statement,status").eq("user_id", userId).ilike("statement", `%${query.replaceAll("%", "\\%")}%`).limit(8),
+      supabase.from("client_check_ins").select("id,client_id,purpose,status").eq("user_id", userId).ilike("purpose", `%${query.replaceAll("%", "\\%")}%`).limit(8),
+      supabase.from("client_success_plans").select("id,client_id,title,period").eq("user_id", userId).ilike("title", `%${query.replaceAll("%", "\\%")}%`).limit(8),
     ]);
-    const strategyFailure = [planningPeriods, commitments, milestones, gates, scenarios, kTopics, kSources, kFindings, kBriefs, kCollections, kWatches, gPlaybooks, gExperiments, gTargets].find((result) => result.error);
+    const strategyFailure = [planningPeriods, commitments, milestones, gates, scenarios, kTopics, kSources, kFindings, kBriefs, kCollections, kWatches, gPlaybooks, gExperiments, gTargets, tPeople, tRoles, tResps, tDels, tCommits, tEscs, csOutcomes, csRenewals, csRisks, csIssues, csCommitments, csCheckIns, csPlans].find((result) => result.error);
     if (strategyFailure?.error) throw strategyFailure.error;
+    const teamRows = [
+      ...(tPeople.data ?? []).map((row) => ({ entity_type: "team_person", entity_id: row.id, title: row.name, snippet: row.role_title ?? "Person" })),
+      ...(tRoles.data ?? []).map((row) => ({ entity_type: "team_role", entity_id: row.id, title: row.name, snippet: "Role" })),
+      ...(tResps.data ?? []).map((row) => ({ entity_type: "team_responsibility", entity_id: row.id, title: row.name, snippet: `Responsibility · ${row.criticality}` })),
+      ...(tDels.data ?? []).map((row) => ({ entity_type: "team_delegation", entity_id: row.id, title: row.title, snippet: `Delegation · ${row.status}` })),
+      ...(tCommits.data ?? []).map((row) => ({ entity_type: "team_commitment", entity_id: row.id, title: row.statement, snippet: `Commitment · ${row.status}` })),
+      ...(tEscs.data ?? []).map((row) => ({ entity_type: "team_escalation", entity_id: row.id, title: row.reason, snippet: `Escalation · ${row.severity}` })),
+    ];
+    const operationsRows = [
+      ...(opSops.data ?? []).map((row) => ({ entity_type: "operational_sop", entity_id: row.id, title: row.title, snippet: `SOP · ${row.category}` })),
+      ...(opProcesses.data ?? []).map((row) => ({ entity_type: "process_template", entity_id: row.id, title: row.name, snippet: `Process · ${row.category}` })),
+      ...(opRuns.data ?? []).map((row) => ({ entity_type: "process_run", entity_id: row.id, title: row.title, snippet: `Run · ${row.status}` })),
+      ...(opIncidents.data ?? []).map((row) => ({ entity_type: "quality_incident", entity_id: row.id, title: row.title, snippet: `Incident · ${row.severity}` })),
+      ...(opRunbooks.data ?? []).map((row) => ({ entity_type: "operational_runbook", entity_id: row.id, title: row.title, snippet: `Runbook · ${row.severity}` })),
+      ...(opSystems.data ?? []).map((row) => ({ entity_type: "operational_system", entity_id: row.id, title: row.name, snippet: `System · ${row.purpose}` })),
+      ...(opImprovements.data ?? []).map((row) => ({ entity_type: "process_improvement", entity_id: row.id, title: row.title, snippet: `Improvement · ${row.status}` })),
+    ];
     const growthRows = [
       ...(gPlaybooks.data ?? []).map((row) => ({ entity_type: "sales_playbook", entity_id: row.id, title: row.name, snippet: `${row.target_type} playbook` })),
       ...(gExperiments.data ?? []).map((row) => ({ entity_type: "growth_experiment", entity_id: row.id, title: row.name, snippet: `Experiment · ${row.target_metric}` })),
@@ -85,6 +122,15 @@ export async function GET(request: Request) {
       ...(dates.data ?? []).map((row) => ({ entity_type: "important_date", entity_id: row.id, title: row.title, snippet: row.date })),
       ...(routines.data ?? []).map((row) => ({ entity_type: "routine", entity_id: row.id, title: row.title, snippet: row.category ?? "Routine" })),
     ];
-    return NextResponse.json({ data: [...(workspace.data ?? []), ...knowledgeRows, ...founderRows, ...strategyRows, ...growthRows].slice(0, 30) });
+    const successRows = [
+      ...(csOutcomes.data ?? []).map((row) => ({ entity_type: "client_outcome", entity_id: row.id, client_id: row.client_id, title: row.title, snippet: `Outcome · ${row.status}` })),
+      ...(csRenewals.data ?? []).map((row) => ({ entity_type: "client_renewal", entity_id: row.id, client_id: row.client_id, title: `Renewal ${row.renewal_date}`, snippet: `Renewal · ${row.status}` })),
+      ...(csRisks.data ?? []).map((row) => ({ entity_type: "client_risk", entity_id: row.id, client_id: row.client_id, title: row.description, snippet: `Risk · ${row.severity}` })),
+      ...(csIssues.data ?? []).map((row) => ({ entity_type: "client_issue", entity_id: row.id, client_id: row.client_id, title: row.title, snippet: `Issue · ${row.severity}` })),
+      ...(csCommitments.data ?? []).map((row) => ({ entity_type: "client_commitment", entity_id: row.id, client_id: row.client_id, title: row.statement, snippet: `Commitment · ${row.status}` })),
+      ...(csCheckIns.data ?? []).map((row) => ({ entity_type: "client_check_in", entity_id: row.id, client_id: row.client_id, title: row.purpose, snippet: `Check-in · ${row.status}` })),
+      ...(csPlans.data ?? []).map((row) => ({ entity_type: "client_success_plan", entity_id: row.id, client_id: row.client_id, title: row.title, snippet: `Success Plan · ${row.period}` })),
+    ];
+    return NextResponse.json({ data: [...(workspace.data ?? []), ...knowledgeRows, ...founderRows, ...strategyRows, ...growthRows, ...operationsRows, ...teamRows, ...successRows].slice(0, 30) });
   } catch (error) { return NextResponse.json({ error: error instanceof Error && error.message === "AUTH_REQUIRED" ? "Authentication required." : "Search is unavailable." }, { status: error instanceof Error && error.message === "AUTH_REQUIRED" ? 401 : 500 }); }
 }
