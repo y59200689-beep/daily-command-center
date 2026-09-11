@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { apiError } from "@/lib/api";
+import { apiError, isMissingOptionalSchema } from "@/lib/api";
 import { capacityState } from "@/lib/strategy";
 import { rankDecisionGates, slippageSignals } from "@/lib/strategy-extended";
 import { requireUser } from "@/lib/supabase/server";
@@ -26,4 +26,7 @@ export async function GET(request: Request) { try {
   const meetingHours = (events.data ?? []).reduce((sum, row) => sum + (Date.parse(row.ends_at) - Date.parse(row.starts_at)) / 3600000, 0);
   const review = { type, commitments: { planned: open.length, completed: (commitments.data ?? []).filter((row) => row.status === "completed" && row.updated_at >= since).length, dropped: (commitments.data ?? []).filter((row) => row.status === "dropped" && row.updated_at >= since).length, carriedForward: open.filter((row) => row.updated_at < since).length }, milestones: { reached: (milestones.data ?? []).filter((row) => row.status === "reached" && row.updated_at >= since).length, missed: (milestones.data ?? []).filter((row) => row.status === "missed" && row.updated_at >= since).length }, capacity: capacityState({ commitments: open.length, deadlines: open.filter((row) => row.target_date && row.target_date <= today).length, meetingHours, availableHours: type === "month" ? 80 : 240 }), decisions: rankDecisionGates(gateRows, today).slice(0, 5), slippage: slippageSignals({ commitments: (commitments.data ?? []).map((row) => ({ id: row.id, title: row.title, status: row.status, targetDate: row.target_date, updatedAt: row.updated_at })), milestones: (milestones.data ?? []).map((row) => ({ id: row.id, title: row.title, status: row.status, milestoneDate: row.milestone_date, updatedAt: row.updated_at })), gates: gateRows, goals: goalRows }, today) };
   return NextResponse.json({ review }, { headers: { "Cache-Control": "private, no-store" } });
-} catch (error) { return apiError(error, "Strategic review could not be loaded."); } }
+} catch (error) {
+  if (isMissingOptionalSchema(error)) return NextResponse.json({ review: null, schemaStatus: "unavailable", schemaDependency: "V8 strategic planning schema" }, { headers: { "Cache-Control": "private, no-store" } });
+  return apiError(error, "Strategic review could not be loaded.");
+} }

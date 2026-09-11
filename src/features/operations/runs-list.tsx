@@ -18,6 +18,7 @@ export function RunsList() {
   const [runs, setRuns] = useState<RunRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [schemaUnavailable, setSchemaUnavailable] = useState(false);
   const [filterStatus, setFilterStatus] = useState<string>("all");
 
   const load = useCallback(async () => {
@@ -26,6 +27,7 @@ export function RunsList() {
       const res = await fetch("/api/operations/runs", { cache: "no-store" });
       const body = await res.json();
       if (res.ok) {
+        setSchemaUnavailable(body.schemaStatus === "unavailable");
         setRuns(body.runs || []);
       } else {
         setError(body.error || "Failed to load runs");
@@ -56,13 +58,18 @@ export function RunsList() {
         </div>
         <div className="operations-header-actions">
           <Link href="/operations"><Button emphasis="outline">Overview</Button></Link>
-          <Link href="/operations/processes"><Button intent="brand">Start from Process</Button></Link>
+          {!schemaUnavailable ? <Link href="/operations/processes"><Button intent="brand">Start from Process</Button></Link> : null}
         </div>
       </header>
 
       {error ? <p role="alert" className="field-error">{error}</p> : null}
 
-      {/* Filter Tabs */}
+      {schemaUnavailable ? (
+        <section className="data-surface empty-state">
+          <h2>Process Runs are unavailable</h2>
+          <p>This workspace is missing the optional V11 operations schema. Run history will be available after that dependency is installed.</p>
+        </section>
+      ) : <>{/* Filter Tabs */}
       <div className="strategy-filters">
         {["all", "In Progress", "Blocked", "Completed", "Failed"].map((st) => (
           <button
@@ -99,7 +106,7 @@ export function RunsList() {
             </div>
           ))
         )}
-      </div>
+      </div></>}
     </main>
   );
 }

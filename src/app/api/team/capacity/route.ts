@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { apiError } from "@/lib/api";
+import { apiError, isMissingOptionalSchema } from "@/lib/api";
 import { requireUser } from "@/lib/supabase/server";
 import { evaluatePersonCapacity, type TeamPerson } from "@/lib/team";
 
@@ -20,6 +20,8 @@ export async function GET() {
       supabase.from("team_entity_ownership").select("*").eq("user_id", userId),
       supabase.from("team_availability").select("*").eq("user_id", userId),
     ]);
+    const failed = [peopleRes, delegationsRes, commitmentsRes, ownershipLinksRes, availabilityRes].find((result) => result.error);
+    if (failed?.error) throw failed.error;
 
     const people = (peopleRes.data ?? []) as TeamPerson[];
     const delegations = delegationsRes.data ?? [];
@@ -70,6 +72,7 @@ export async function GET() {
       },
     });
   } catch (error) {
+    if (isMissingOptionalSchema(error)) return NextResponse.json({ capacityCards: [], summary: null, schemaStatus: "unavailable", schemaDependency: "V12 Team Coordination schema" });
     return apiError(error, "Team capacity could not be loaded.");
   }
 }

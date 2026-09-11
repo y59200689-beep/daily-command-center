@@ -25,6 +25,7 @@ export function SopDetail({ id }: SOPDetailProps) {
   const [sop, setSop] = useState<SOPData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [schemaUnavailable, setSchemaUnavailable] = useState(false);
   const [showVersionModal, setShowVersionModal] = useState(false);
   const [newVersionContent, setNewVersionContent] = useState("");
   const [changeSummary, setChangeSummary] = useState("");
@@ -34,6 +35,7 @@ export function SopDetail({ id }: SOPDetailProps) {
     try {
       const res = await fetch(`/api/operations/sops/${id}`, { cache: "no-store" });
       const body = await res.json();
+      if (body.schemaStatus === "unavailable") { setSchemaUnavailable(true); setSop(null); setError(""); return; }
       if (res.ok) {
         setSop(body.sop);
       } else {
@@ -102,6 +104,7 @@ export function SopDetail({ id }: SOPDetailProps) {
   }
 
   if (!sop) {
+    if (schemaUnavailable) return <main className="domain-page operations-page"><section className="data-surface empty-state"><h2>SOPs are not configured</h2><p>This detail is unavailable until the V11 operations schema is installed.</p><Link className="button button--outline" href="/operations/sops">Back to library</Link></section></main>;
     return (
       <main className="domain-page operations-page">
         <p className="field-error">{error || "SOP not found"}</p>

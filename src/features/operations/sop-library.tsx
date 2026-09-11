@@ -18,6 +18,7 @@ export function SopLibrary() {
   const [sops, setSops] = useState<SOPRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [schemaUnavailable, setSchemaUnavailable] = useState(false);
   const [filterCategory, setFilterCategory] = useState<string>("all");
   const [showModal, setShowModal] = useState(false);
   const [newTitle, setNewTitle] = useState("");
@@ -32,6 +33,7 @@ export function SopLibrary() {
       const res = await fetch("/api/operations/sops", { cache: "no-store" });
       const body = await res.json();
       if (res.ok) {
+        setSchemaUnavailable(body.schemaStatus === "unavailable");
         setSops(body.sops || []);
       } else {
         setError(body.error || "Failed to load SOPs");
@@ -95,13 +97,18 @@ export function SopLibrary() {
         </div>
         <div className="operations-header-actions">
           <Link href="/operations"><Button emphasis="outline">Overview</Button></Link>
-          <Button intent="brand" onClick={() => setShowModal(true)}>New SOP</Button>
+          {!schemaUnavailable ? <Button intent="brand" onClick={() => setShowModal(true)}>New SOP</Button> : null}
         </div>
       </header>
 
       {error ? <p role="alert" className="field-error">{error}</p> : null}
 
-      {/* Filter tabs */}
+      {schemaUnavailable ? (
+        <section className="data-surface empty-state">
+          <h2>SOP Library is unavailable</h2>
+          <p>This workspace is missing the optional V11 operations schema. Procedures will be available after that dependency is installed.</p>
+        </section>
+      ) : <>{/* Filter tabs */}
       <div className="strategy-filters">
         <button
           type="button"
@@ -143,7 +150,7 @@ export function SopLibrary() {
             </div>
           ))
         )}
-      </div>
+      </div></>}
 
       {showModal && (
         <div className="modal-backdrop" role="dialog" aria-modal="true">

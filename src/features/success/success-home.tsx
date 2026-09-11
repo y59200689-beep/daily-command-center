@@ -88,9 +88,9 @@ function forecastColor(fc: string) {
 
 function signalIcon(type: string) {
   if (type === "positive_feedback" || type === "praise" || type === "referral" || type === "renewal_intent")
-    return "✅";
-  if (type === "negative_feedback" || type === "complaint") return "⚠️";
-  return "💬";
+    return <Icons.Check size={16} aria-hidden="true" />;
+  if (type === "negative_feedback" || type === "complaint") return <Icons.AlertTriangle size={16} aria-hidden="true" />;
+  return <Icons.MessageSquareText size={16} aria-hidden="true" />;
 }
 
 export function SuccessHome() {
@@ -255,7 +255,7 @@ export function SuccessHome() {
             <Link href="/success/portfolio" style={{ fontSize: "0.75rem", color: "var(--color-primary)" }}>View all</Link>
           </div>
           {!data?.atRiskClients?.length ? (
-            <p style={{ fontSize: "0.8rem", color: "var(--text-secondary)", padding: "0.75rem 0" }}>No clients at risk. 🎉</p>
+            <p style={{ fontSize: "0.8rem", color: "var(--text-secondary)", padding: "0.75rem 0" }}>No clients at risk.</p>
           ) : (
             <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
               {data.atRiskClients.map((ac) => (

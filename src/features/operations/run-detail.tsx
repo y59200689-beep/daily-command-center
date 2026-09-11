@@ -26,6 +26,7 @@ export function RunDetail({ id }: RunDetailProps) {
   const [run, setRun] = useState<RunData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [schemaUnavailable, setSchemaUnavailable] = useState(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [showBlockerModal, setShowBlockerModal] = useState(false);
   const [blockerReason, setBlockerReason] = useState("");
@@ -37,6 +38,7 @@ export function RunDetail({ id }: RunDetailProps) {
     try {
       const res = await fetch(`/api/operations/runs/${id}`, { cache: "no-store" });
       const body = await res.json();
+      if (body.schemaStatus === "unavailable") { setSchemaUnavailable(true); setRun(null); setError(""); return; }
       if (res.ok) {
         setRun(body.run);
       } else {
@@ -178,6 +180,7 @@ export function RunDetail({ id }: RunDetailProps) {
   }
 
   if (!run) {
+    if (schemaUnavailable) return <main className="domain-page operations-page"><section className="data-surface empty-state"><h2>Process runs are not configured</h2><p>This detail is unavailable until the V11 operations schema is installed.</p><Link className="button button--outline" href="/operations/runs">Back to runs</Link></section></main>;
     return (
       <main className="domain-page operations-page">
         <p className="field-error">{error || "Run not found"}</p>

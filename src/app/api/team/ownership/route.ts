@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { apiError } from "@/lib/api";
+import { apiError, isMissingOptionalSchema } from "@/lib/api";
 import { requireUser } from "@/lib/supabase/server";
 import { validateForeignOwnership } from "@/lib/team";
 
@@ -34,6 +34,8 @@ export async function GET() {
       supabase.from("process_templates").select("id, name, category, status").eq("user_id", userId).limit(30),
       supabase.from("opportunities").select("id, title, stage").eq("user_id", userId).is("archived_at", null).limit(30),
     ]);
+    const failed = [peopleRes, responsibilitiesRes, ownershipLinksRes, projectsRes, clientsRes, sopsRes, processesRes, oppsRes].find((result) => result.error);
+    if (failed?.error) throw failed.error;
 
     const people = peopleRes.data ?? [];
     const peopleMap = new Map(people.map((p) => [p.id, p]));
@@ -149,6 +151,7 @@ export async function GET() {
       unownedCount: items.filter((i) => !i.primary_owner).length,
     });
   } catch (error) {
+    if (isMissingOptionalSchema(error)) return NextResponse.json({ items: [], totalTracked: 0, unownedCount: 0, schemaStatus: "unavailable", schemaDependency: "V12 Team Coordination schema" });
     return apiError(error, "Ownership map could not be loaded.");
   }
 }

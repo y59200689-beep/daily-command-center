@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Icons } from "@/components/icons";
+import { TeamSchemaUnavailable } from "./team-schema-unavailable";
 
 interface ReviewData {
   period: string;
@@ -37,6 +38,7 @@ export function TeamReview() {
   const [period, setPeriod] = useState<"week" | "month">("week");
   const [data, setData] = useState<ReviewData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [schemaUnavailable, setSchemaUnavailable] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -44,6 +46,7 @@ export function TeamReview() {
       .then((r) => (r.ok ? r.json() : null))
       .then((json) => {
         if (!active) return;
+        setSchemaUnavailable(json?.schemaStatus === "unavailable");
         if (json) setData(json);
         setLoading(false);
       })
@@ -54,6 +57,8 @@ export function TeamReview() {
       active = false;
     };
   }, [period]);
+
+  if (schemaUnavailable) return <TeamSchemaUnavailable title="Team Review" description="Retrospective and coordination review across team commitments and responsibilities." />;
 
   return (
     <div className="page-shell team-page">

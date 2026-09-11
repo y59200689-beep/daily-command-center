@@ -43,8 +43,9 @@ export async function GET() {
       supabase.from("growth_experiments").select("*").eq("user_id", userId).order("created_at", { ascending: false }).limit(10),
     ]);
 
-    const failure = [oppsRes, leadsRes, proposalsRes, clientsRes, projectsRes, servicesRes, proposalItemsRes, invoicesRes, paymentsRes, experimentsRes].find((r) => r.error);
+    const failure = [oppsRes, leadsRes, proposalsRes, clientsRes, projectsRes, servicesRes, proposalItemsRes, invoicesRes, paymentsRes].find((r) => r.error);
     if (failure?.error) throw failure.error;
+    if (experimentsRes.error && !isMissingOptionalRelation(experimentsRes.error)) throw experimentsRes.error;
 
     const opportunities = oppsRes.data ?? [];
     const leads = leadsRes.data ?? [];
@@ -127,4 +128,14 @@ export async function GET() {
   } catch (error) {
     return apiError(error, "Growth overview could not be loaded.");
   }
+}
+
+function isMissingOptionalRelation(error: unknown) {
+  return Boolean(
+    error &&
+      typeof error === "object" &&
+      "code" in error &&
+      ((error as { code?: unknown }).code === "PGRST205" ||
+        (error as { code?: unknown }).code === "42P01"),
+  );
 }

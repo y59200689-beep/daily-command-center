@@ -14,7 +14,9 @@ export async function GET(_: Request, context: Context) {
     const { supabase, userId } = await requireUser();
     const { overview } = await getIntelligence(supabase, userId);
     const intelligence = entityIntelligence(overview, entityType, id);
-    if (!intelligence.health) return NextResponse.json({ error: "Entity not found." }, { status: 404 });
+    // A valid entity can legitimately have no computed intelligence yet. Treat
+    // that as an empty UI state rather than a failed network request.
+    if (!intelligence.health) return NextResponse.json({ health: null, nextAction: null, risks: [] }, { headers: { "Cache-Control": "private, no-store" } });
     return NextResponse.json(intelligence, { headers: { "Cache-Control": "private, no-store" } });
   } catch (error) {
     return apiError(error, "Entity intelligence could not be prepared.");

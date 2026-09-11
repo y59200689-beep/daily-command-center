@@ -40,6 +40,9 @@ components:
   panel:
     radius: "0.875rem"
     border: "1px solid var(--line)"
+  search:
+    height: "2.5rem"
+    rounded: "0.5rem"
 ---
 
 ## Overview

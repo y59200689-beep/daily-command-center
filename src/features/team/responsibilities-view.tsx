@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState, useCallback } from "react";
 import { Icons } from "@/components/icons";
 import { Modal } from "@/components/ui/modal";
+import { TeamSchemaUnavailable } from "./team-schema-unavailable";
 
 interface Responsibility {
   id: string;
@@ -26,6 +27,7 @@ export function ResponsibilitiesView() {
   const [responsibilities, setResponsibilities] = useState<Responsibility[]>([]);
   const [people, setPeople] = useState<Person[]>([]);
   const [loading, setLoading] = useState(true);
+  const [schemaUnavailable, setSchemaUnavailable] = useState(false);
   const [criticalityFilter, setCriticalityFilter] = useState("all");
 
   const [createOpen, setCreateOpen] = useState(false);
@@ -47,6 +49,7 @@ export function ResponsibilitiesView() {
       fetch("/api/team/people").then((r) => (r.ok ? r.json() : null)),
     ])
       .then(([respJson, peopleJson]) => {
+        setSchemaUnavailable(respJson?.schemaStatus === "unavailable" || peopleJson?.schemaStatus === "unavailable");
         if (respJson?.data) setResponsibilities(respJson.data);
         if (peopleJson?.data) setPeople(peopleJson.data);
         setLoading(false);
@@ -57,6 +60,8 @@ export function ResponsibilitiesView() {
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  if (schemaUnavailable) return <TeamSchemaUnavailable title="Responsibility Areas" description="Ongoing organizational responsibilities and backup ownership coverage." />;
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();

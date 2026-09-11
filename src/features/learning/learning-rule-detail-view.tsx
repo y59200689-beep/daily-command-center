@@ -26,9 +26,9 @@ export function LearningRuleDetailView({ id }: RuleDetailProps) {
 
   useEffect(() => {
     fetch(`/api/learning/rules/${id}`)
-      .then((res) => res.json())
-      .then((data) => {
-        setRule(data);
+      .then(async (res) => ({ ok: res.ok, data: await res.json() }))
+      .then(({ ok, data }) => {
+        setRule(ok ? data : null);
         setLoading(false);
       })
       .catch((err) => {

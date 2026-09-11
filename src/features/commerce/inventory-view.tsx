@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Icons } from "@/components/icons";
+import { SearchInput } from "@/components/ui/search-input";
 import { StockoutBadge } from "./stockout-badge";
 import type { StockoutRiskState, OverstockRiskState } from "@/lib/commerce";
 
@@ -101,14 +102,14 @@ export function InventoryView() {
 
       {/* Filters and Search */}
       <div className="flex flex-col sm:flex-row items-center gap-3">
-        <div className="relative flex-1 w-full">
-          <Icons.Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <input
-            type="text"
+        <div className="flex-1 w-full">
+          <SearchInput
+            label="Search inventory"
+            containerClassName="search-control--full"
             placeholder="Search products by name, SKU, category, or brand..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+            onClear={() => setSearch("")}
           />
         </div>
         <div className="flex items-center gap-2 w-full sm:w-auto">

@@ -7,3 +7,9 @@ export function apiError(error: unknown, fallback = "The request could not be co
   const status = message === "AUTH_REQUIRED" ? 401 : 500;
   return NextResponse.json({ error: status === 500 ? fallback : "Authentication required." }, { status });
 }
+
+export function isMissingOptionalSchema(error: unknown) {
+  if (!error || typeof error !== "object") return false;
+  const candidate = error as { code?: unknown };
+  return candidate.code === "PGRST205" || candidate.code === "42P01";
+}

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { apiError } from "@/lib/api";
+import { apiError, isMissingOptionalSchema } from "@/lib/api";
 import { requireUser } from "@/lib/supabase/server";
 
 const blank = (value: unknown) => typeof value === "string" && !value.trim() ? null : value;
@@ -30,7 +30,12 @@ type Resource = keyof typeof resources;
 function isResource(value: string): value is Resource { return value in resources; }
 
 export async function GET(_: Request, context: { params: Promise<{ resource: string }> }) {
-  try { const resource = (await context.params).resource; if (!isResource(resource)) return NextResponse.json({ error: "Unknown life collection." }, { status: 404 }); const { supabase, userId } = await requireUser(); const config = resources[resource]; let query = supabase.from(config.table).select("*").eq("user_id", userId).order(config.order, { ascending: true }).limit(100); if (resource === "trips" || resource === "documents") query = query.is("archived_at", null); const { data, error } = await query; if (error) throw error; return NextResponse.json({ records: data ?? [] }, { headers: { "Cache-Control": "private, no-store" } }); } catch (error) { return apiError(error, "Life records could not be loaded."); }
+  try { const resource = (await context.params).resource; if (!isResource(resource)) return NextResponse.json({ error: "Unknown life collection." }, { status: 404 }); const { supabase, userId } = await requireUser(); const config = resources[resource]; let query = supabase.from(config.table).select("*").eq("user_id", userId).order(config.order, { ascending: true }).limit(100); if (resource === "trips" || resource === "documents") query = query.is("archived_at", null); const { data, error } = await query; if (error) throw error; return NextResponse.json({ records: data ?? [] }, { headers: { "Cache-Control": "private, no-store" } }); } catch (error) {
+    if (isMissingOptionalSchema(error)) {
+      return NextResponse.json({ records: [], schemaStatus: "unavailable", schemaDependency: "V7 life schema" });
+    }
+    return apiError(error, "Life records could not be loaded.");
+  }
 }
 
 export async function POST(request: Request, context: { params: Promise<{ resource: string }> }) {

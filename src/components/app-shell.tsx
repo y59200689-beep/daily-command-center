@@ -14,22 +14,16 @@ import { InboxBadge } from "@/components/inbox-badge";
 import { NotificationCenter } from "@/features/notifications/notification-center";
 
 const groups = [
-  { label: "Command center", items: [
-    ["Today", "/today", Icons.Zap], ["Executive", "/executive", Icons.Sparkles], ["Chief of Staff", "/chief-of-staff", Icons.ShieldCheck], ["Learning", "/learning", Icons.BookOpen], ["Operations", "/operations", Icons.ListTodo], ["Team", "/team", Icons.Users], ["Control Tower", "/control-tower", Icons.Target], ["Plan", "/plan", Icons.Target], ["Inbox", "/inbox", Icons.Inbox], ["Tasks", "/tasks", Icons.ListTodo], ["Calendar", "/calendar", Icons.CalendarDays], ["Focus", "/focus", Icons.Focus], ["Communication", "/communication", Icons.MessageSquareText], ["Approvals", "/approvals", Icons.Check], ["Risks", "/risks", Icons.Bell], ["Analytics", "/analytics", Icons.ChartNoAxesCombined],
-  ] },
-  { label: "Workspace", items: [
-    ["Projects", "/projects", Icons.BriefcaseBusiness], ["Clients", "/clients", Icons.Users], ["Follow-ups", "/followups", Icons.MessageSquareText], ["Notes", "/notes", Icons.FileText], ["Files", "/files", Icons.Paperclip], ["Goals", "/goals", Icons.Target], ["Waiting", "/waiting", Icons.Clock3], ["Content", "/content", Icons.BookOpen], ["Campaigns", "/campaigns", Icons.Zap],
-  ] },
-  { label: "Business", items: [
-    ["Founder", "/founder", Icons.ChartNoAxesCombined], ["Business", "/business", Icons.ChartNoAxesCombined], ["Growth", "/growth", Icons.TrendingUp], ["Pipeline", "/pipeline", Icons.BriefcaseBusiness], ["Leads", "/leads", Icons.Users], ["Proposals", "/proposals", Icons.FileText], ["Services", "/services", Icons.CircleDollarSign], ["Success", "/success", Icons.HeartHandshake], ["Commerce", "/commerce", Icons.Package],
-  ] },
-  { label: "Knowledge", items: [
-    ["Knowledge", "/knowledge", Icons.BookOpen], ["Watchlist", "/knowledge/watch", Icons.Bell], ["Review", "/knowledge/review", Icons.Check], ["Ideas", "/ideas", Icons.Lightbulb], ["Decisions", "/decisions", Icons.MessageSquareText], ["Memory", "/memory", Icons.BookOpen], ["Prompts", "/prompts", Icons.Command], ["Automations", "/automations", Icons.Zap], ["Weekly review", "/review/weekly", Icons.ChartNoAxesCombined],
-  ] },
-  { label: "Personal", items: [
-    ["Life", "/life", Icons.BookOpen], ["Travel", "/travel", Icons.CalendarDays], ["Documents", "/documents", Icons.FileText], ["Financial Control", "/financial-control", Icons.CircleDollarSign], ["Finance", "/finance", Icons.CircleDollarSign], ["Invoices", "/finance/invoices", Icons.ReceiptText], ["Fitness", "/fitness", Icons.Dumbbell],
-  ] },
+  { label: "Home", items: [["Today", "/today", Icons.Zap], ["Inbox", "/inbox", Icons.Inbox], ["Calendar", "/calendar", Icons.CalendarDays]] },
+  { label: "Work", items: [["Tasks", "/tasks", Icons.ListTodo], ["Projects", "/projects", Icons.BriefcaseBusiness], ["Clients", "/clients", Icons.Users], ["Plan", "/plan", Icons.Target], ["Focus", "/focus", Icons.Focus], ["Follow-ups", "/followups", Icons.MessageSquareText], ["Waiting", "/waiting", Icons.Clock3], ["Approvals", "/approvals", Icons.Check]] },
+  { label: "Business", items: [["Finance", "/finance", Icons.CircleDollarSign], ["Financial Control", "/financial-control", Icons.ReceiptText], ["Business", "/business", Icons.ChartNoAxesCombined], ["Founder", "/founder", Icons.Sparkles], ["Growth", "/growth", Icons.TrendingUp], ["Pipeline", "/pipeline", Icons.BriefcaseBusiness], ["Leads", "/leads", Icons.Users], ["Proposals", "/proposals", Icons.FileText], ["Services", "/services", Icons.CircleDollarSign], ["Success", "/success", Icons.HeartHandshake], ["Commerce", "/commerce", Icons.Package], ["Campaigns", "/campaigns", Icons.Zap]] },
+  { label: "Operations", items: [["Operations", "/operations", Icons.ListTodo], ["Team", "/team", Icons.Users], ["Control Tower", "/control-tower", Icons.Target], ["Analytics", "/analytics", Icons.ChartNoAxesCombined], ["Communication", "/communication", Icons.MessageSquareText], ["Risks", "/risks", Icons.Bell]] },
+  { label: "Intelligence", items: [["Executive", "/executive", Icons.Sparkles], ["Chief of Staff", "/chief-of-staff", Icons.ShieldCheck], ["Knowledge", "/knowledge", Icons.BookOpen], ["Watchlist", "/knowledge/watch", Icons.Bell], ["Review", "/knowledge/review", Icons.Check], ["Learning", "/learning", Icons.Lightbulb], ["Memory", "/memory", Icons.BookOpen], ["Decisions", "/decisions", Icons.MessageSquareText], ["Ideas", "/ideas", Icons.Lightbulb], ["Prompts", "/prompts", Icons.Command], ["Weekly review", "/review/weekly", Icons.ChartNoAxesCombined]] },
+  { label: "Personal", items: [["Life", "/life", Icons.BookOpen], ["Fitness", "/fitness", Icons.Dumbbell], ["Travel", "/travel", Icons.CalendarDays], ["Documents", "/documents", Icons.FileText], ["Notes", "/notes", Icons.FileText], ["Files", "/files", Icons.Paperclip], ["Goals", "/goals", Icons.Target], ["Content", "/content", Icons.BookOpen]] },
+  { label: "System", items: [["Automations", "/automations", Icons.Zap], ["Integrations", "/settings/integrations", Icons.Command], ["Notifications", "/settings/notifications", Icons.Bell], ["Settings", "/settings", Icons.Settings]] },
 ] as const;
+
+const routeLabels = Object.fromEntries(groups.flatMap((group) => group.items.map(([label, href]) => [href, label])));
 
 type ShellUser = { name: string; email: string; initials: string };
 
@@ -46,6 +40,8 @@ function Shell({ children,user }: { children: ReactNode;user:ShellUser }) {
   const accountButtonRef = useRef<HTMLButtonElement>(null);
   const theme = useTheme();
   const dark = theme === "dark";
+  const currentRoute = Object.keys(routeLabels).sort((a, b) => b.length - a.length).find((href) => pathname === href || pathname.startsWith(`${href}/`));
+  const pageTitle = currentRoute ? routeLabels[currentRoute] : "Daily Command";
 
   const toggleTheme = useCallback(() => {
     setTheme(dark ? "light" : "dark");
@@ -113,14 +109,30 @@ function Shell({ children,user }: { children: ReactNode;user:ShellUser }) {
     <div className="app-frame">
       <a className="skip-link" href="#main-content">Skip to content</a>
       <aside className={`sidebar ${mobileMenu ? "sidebar--open" : ""}`} aria-label="Primary navigation">
-        <div className="brand"><span className="brand__mark">DC</span><span><strong>Daily Command</strong><small>Personal operating system</small></span></div>
+        <div className="brand"><span className="brand__mark"><Icons.Target size={17} strokeWidth={2.2}/></span><span><strong>Daily Command</strong><small>Command Center</small></span></div>
         <nav className="sidebar__nav">
-          {groups.map((group) => <div className="nav-group" key={group.label}><p>{group.label}</p>{group.items.map(([label, href, Icon]) => <Link className={pathname === href || pathname.startsWith(`${href}/`) ? "nav-link nav-link--active" : "nav-link"} href={href} key={href} onClick={() => setMobileMenu(false)}><Icon size={16} strokeWidth={1.8} /><span>{label}</span>{label === "Inbox" ? <InboxBadge /> : null}</Link>)}</div>)}
+          {groups.map((group) => {
+            const activeGroup = group.items.some(([, href]) => pathname === href || pathname.startsWith(`${href}/`));
+            return <details className="nav-group" key={group.label} open={activeGroup || group.label === "Home"}>
+              <summary><span>{group.label}</span><Icons.ChevronDown size={13}/></summary>
+              <div>{group.items.map(([label, href, Icon]) => <Link className={pathname === href || pathname.startsWith(`${href}/`) ? "nav-link nav-link--active" : "nav-link"} href={href} key={href} onClick={() => setMobileMenu(false)}><Icon size={16} strokeWidth={1.7} /><span>{label}</span>{label === "Inbox" ? <InboxBadge /> : null}</Link>)}</div>
+            </details>;
+          })}
         </nav>
         <div className="sidebar__footer">
-          <div className="sidebar-footer-row"><button className="nav-link" onClick={() => setPaletteOpen(true)}><Icons.Search size={16} /><span>Search</span><kbd>⌘K</kbd></button><NotificationCenter /></div>
-          <Link className="nav-link" href="/settings"><Icons.Settings size={16} /><span>Settings</span></Link>
-          <div className="account-control" ref={accountRef}>
+          <button className="nav-link" onClick={() => setCaptureOpen(true)}><Icons.Plus size={16}/><span>Quick capture</span><kbd>C</kbd></button>
+          <button className="nav-link" onClick={toggleTheme}>{dark ? <Icons.Sun size={16}/> : <Icons.Moon size={16}/>}<span>{dark ? "Light mode" : "Dark mode"}</span></button>
+        </div>
+      </aside>
+      {mobileMenu ? <button className="sidebar-scrim" aria-label="Close navigation" onClick={() => setMobileMenu(false)} /> : null}
+      <div className="workspace">
+        <header className="desktop-topbar">
+          <div className="topbar-context"><span>Workspace</span><strong>{pageTitle}</strong></div>
+          <button className="topbar-search" type="button" onClick={() => setPaletteOpen(true)}><Icons.Search size={16}/><span>Search anything</span><kbd>⌘K</kbd></button>
+          <div className="topbar-actions">
+            <button className="icon-button topbar-capture" type="button" onClick={() => setCaptureOpen(true)} aria-label="Quick capture"><Icons.Plus size={18}/></button>
+            <NotificationCenter />
+            <div className="account-control" ref={accountRef}>
             {accountOpen ? <div className="account-menu" id="account-menu" aria-label="Account">
               <div className="account-menu__identity" role="presentation"><span className="avatar">{user.initials}</span><span><strong>{user.name}</strong><small>{user.email}</small></span></div>
               <div className="account-menu__actions">
@@ -129,12 +141,10 @@ function Shell({ children,user }: { children: ReactNode;user:ShellUser }) {
                 <button className="account-menu__signout" type="button" disabled={signingOut} onClick={() => void signOut()}><Icons.LogOut size={16}/><span>{signingOut ? "Signing out…" : "Sign out"}</span></button>
               </div>
             </div> : null}
-            <button ref={accountButtonRef} className="profile-button" type="button" onClick={() => setAccountOpen((open) => !open)} aria-expanded={accountOpen} aria-controls="account-menu"><span className="avatar">{user.initials}</span><span><strong>{user.name}</strong><small>Private workspace</small></span><Icons.ChevronDown className={accountOpen ? "profile-button__chevron profile-button__chevron--open" : "profile-button__chevron"} size={16}/></button>
+            <button ref={accountButtonRef} className="profile-button" type="button" onClick={() => setAccountOpen((open) => !open)} aria-expanded={accountOpen} aria-controls="account-menu"><span className="avatar">{user.initials}</span><span><strong>{user.name}</strong><small>Workspace owner</small></span><Icons.ChevronDown className={accountOpen ? "profile-button__chevron profile-button__chevron--open" : "profile-button__chevron"} size={15}/></button>
           </div>
-        </div>
-      </aside>
-      {mobileMenu ? <button className="sidebar-scrim" aria-label="Close navigation" onClick={() => setMobileMenu(false)} /> : null}
-      <div className="workspace">
+          </div>
+        </header>
         <header className="mobile-header"><button className="icon-button" onClick={() => setMobileMenu(true)} aria-label="Open navigation"><Icons.Menu size={20} /></button><span className="mobile-brand">DAILY COMMAND</span><span className="mobile-header__actions"><NotificationCenter mobile/><button className="icon-button" onClick={() => setPaletteOpen(true)} aria-label="Search"><Icons.Search size={19} /></button></span></header>
         <main id="main-content" className="workspace__content">{children}</main>
       </div>

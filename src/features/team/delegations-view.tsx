@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState, useCallback } from "react";
 import { Icons } from "@/components/icons";
 import { Modal } from "@/components/ui/modal";
+import { TeamSchemaUnavailable } from "./team-schema-unavailable";
 
 interface Delegation {
   id: string;
@@ -30,6 +31,7 @@ export function DelegationsView() {
   const [delegations, setDelegations] = useState<Delegation[]>([]);
   const [people, setPeople] = useState<Person[]>([]);
   const [loading, setLoading] = useState(true);
+  const [schemaUnavailable, setSchemaUnavailable] = useState(false);
   const [tab, setTab] = useState<"all" | "waiting_team" | "waiting_me" | "blocked" | "completed">("all");
 
   // Create modal
@@ -65,6 +67,7 @@ export function DelegationsView() {
       fetch("/api/team/people").then((r) => (r.ok ? r.json() : null)),
     ])
       .then(([delJson, peopleJson]) => {
+        setSchemaUnavailable(delJson?.schemaStatus === "unavailable" || peopleJson?.schemaStatus === "unavailable");
         if (delJson?.data) setDelegations(delJson.data);
         if (peopleJson?.data) setPeople(peopleJson.data);
         setLoading(false);
@@ -75,6 +78,8 @@ export function DelegationsView() {
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  if (schemaUnavailable) return <TeamSchemaUnavailable title="Delegations" description="Manage responsibility for outcomes delegated to people." />;
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();

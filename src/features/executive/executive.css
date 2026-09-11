@@ -145,3 +145,12 @@
     min-height: 44px;
   }
 }
+
+/* TeamHub redesign */
+.executive-surface{max-width:1400px;padding:0;color:var(--ink)}
+.executive-memo-card,.executive-priority-card,.executive-cluster-card{border:1px solid var(--line);border-radius:var(--radius-surface);background:var(--surface);box-shadow:none}
+.executive-memo-card{margin-bottom:12px;padding:18px;background:var(--surface-green-soft)}.executive-memo-headline{margin-bottom:7px;color:var(--ink);font-size:22px;font-weight:680;letter-spacing:-.025em}.executive-memo-focus{margin-bottom:12px;color:var(--attention-dark);font-size:12px}
+.executive-priority-grid{gap:10px;margin-bottom:12px}.executive-priority-card{padding:14px}.executive-section-title{margin:16px 0 10px;color:var(--ink);font-size:15px}.executive-cluster-card{margin-bottom:9px;padding:14px;border-left:3px solid var(--danger)}.executive-cluster-title{color:var(--ink);font-size:13px}
+.executive-badge{padding:3px 7px;border:1px solid transparent;font-size:8px;letter-spacing:.025em}.executive-badge-critical{color:#a64d50;background:#fceced;border-color:#f3d7d8}.executive-badge-important{color:#8b681f;background:#fbf5df;border-color:#f1e7bd}.executive-badge-ready{color:var(--success);background:#e9f7f1;border-color:#d8eee5}.executive-badge-domain{color:var(--muted);background:var(--surface-secondary);border-color:var(--line)}
+.executive-btn{min-height:36px;padding:0 13px;border-radius:8px;font-size:11px}.executive-btn-primary{background:var(--attention)}.executive-btn-secondary{color:var(--ink);border:1px solid var(--line-strong);background:var(--surface)}
+@media(max-width:600px){.executive-surface{padding:0}.executive-btn{min-height:40px}}

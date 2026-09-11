@@ -27,8 +27,9 @@ export async function GET(request: Request) {
       supabase.from("important_dates").select("id,title,date").eq("user_id", userId).ilike("title", `%${query.replaceAll("%", "\\%")}%`).limit(8),
       supabase.from("personal_routines").select("id,title,category").eq("user_id", userId).ilike("title", `%${query.replaceAll("%", "\\%")}%`).limit(8),
     ]);
-    const failed = [workspace, products, suppliers, orders, roadmap, incidents, support, githubWork, marketing, trips, segments, reservations, documents, visas, renewals, admin, dates, routines].find((result) => result.error);
-    if (failed?.error) throw failed.error;
+    // Workspace search is the canonical baseline. Newer domain modules are optional
+    // so a missing versioned table must not take global search down with it.
+    if (workspace.error) throw workspace.error;
     const [planningPeriods, commitments, milestones, gates, scenarios, kTopics, kSources, kFindings, kBriefs, kCollections, kWatches, gPlaybooks, gExperiments, gTargets, opSops, opProcesses, opRuns, opIncidents, opRunbooks, opSystems, opImprovements, tPeople, tRoles, tResps, tDels, tCommits, tEscs, csOutcomes, csRenewals, csRisks, csIssues, csCommitments, csCheckIns, csPlans, cDiscrepancies, cAudits, cAdjustments] = await Promise.all([
       supabase.from("planning_periods").select("id,title,status").eq("user_id", userId).ilike("title", `%${query.replaceAll("%", "\\%")}%`).limit(8),
       supabase.from("strategic_commitments").select("id,title,status").eq("user_id", userId).ilike("title", `%${query.replaceAll("%", "\\%")}%`).limit(8),
@@ -69,8 +70,6 @@ export async function GET(request: Request) {
       supabase.from("inventory_audits").select("id,scope,status").eq("user_id", userId).ilike("scope", `%${query.replaceAll("%", "\\%")}%`).limit(6),
       supabase.from("inventory_adjustments").select("id,product_id,reason").eq("user_id", userId).ilike("reason", `%${query.replaceAll("%", "\\%")}%`).limit(6),
     ]);
-    const strategyFailure = [planningPeriods, commitments, milestones, gates, scenarios, kTopics, kSources, kFindings, kBriefs, kCollections, kWatches, gPlaybooks, gExperiments, gTargets, tPeople, tRoles, tResps, tDels, tCommits, tEscs, csOutcomes, csRenewals, csRisks, csIssues, csCommitments, csCheckIns, csPlans, cDiscrepancies, cAudits, cAdjustments].find((result) => result.error);
-    if (strategyFailure?.error) throw strategyFailure.error;
     const teamRows = [
       ...(tPeople.data ?? []).map((row) => ({ entity_type: "team_person", entity_id: row.id, title: row.name, snippet: row.role_title ?? "Person" })),
       ...(tRoles.data ?? []).map((row) => ({ entity_type: "team_role", entity_id: row.id, title: row.name, snippet: "Role" })),

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Icons } from "@/components/icons";
+import { SuccessSchemaUnavailable } from "./schema-unavailable";
 
 interface WaitingItem {
   id: string;
@@ -26,6 +27,7 @@ export function WaitingView() {
   const [data, setData] = useState<WaitingData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [schemaUnavailable, setSchemaUnavailable] = useState(false);
   const [tab, setTab] = useState<"us" | "client">("us");
 
   useEffect(() => {
@@ -37,6 +39,7 @@ export function WaitingView() {
       })
       .then((json) => {
         if (!cancelled) {
+          setSchemaUnavailable(json.schemaStatus === "unavailable");
           setData(json.data);
           setLoading(false);
         }
@@ -82,8 +85,9 @@ export function WaitingView() {
 
       {loading && <p style={{ color: "var(--text-secondary)" }}>Loading waiting state…</p>}
       {error && <p style={{ color: "var(--color-red-500)" }}>{error}</p>}
+      {schemaUnavailable && <SuccessSchemaUnavailable />}
 
-      {!loading && items.length === 0 && (
+      {!loading && !schemaUnavailable && items.length === 0 && (
         <div className="card" style={{ padding: "2rem", textAlign: "center" }}>
           <p style={{ color: "var(--text-secondary)" }}>
             {tab === "us" ? "No outstanding commitments owed to clients." : "No client-side prerequisites blocking progress."}

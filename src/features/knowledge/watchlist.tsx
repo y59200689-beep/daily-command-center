@@ -148,6 +148,7 @@ export function Watchlist({ selectedId }: { selectedId?: string }) {
   const [creating, setCreating] = useState(false);
   const [selected, setSelected] = useState<WatchEntity | null>(null);
   const [error, setError] = useState("");
+  const [schemaUnavailable, setSchemaUnavailable] = useState(false);
   const [filter, setFilter] = useState<"all"|"active"|"paused">("active");
 
   const load = useCallback(async () => {
@@ -158,6 +159,7 @@ export function Watchlist({ selectedId }: { selectedId?: string }) {
     ]);
     const [wBody, uBody, tBody] = await Promise.all([watchesRes.json(), updatesRes.json(), topicsRes.json()]);
     if (watchesRes.ok) {
+      setSchemaUnavailable([wBody, uBody, tBody].some((body) => body.schemaStatus === "unavailable"));
       setItems(wBody.items ?? []);
       if (selectedId) setSelected((wBody.items ?? []).find((i: WatchEntity) => i.id === selectedId) ?? null);
     } else setError(wBody.error ?? "Watchlist could not be loaded.");
@@ -184,11 +186,11 @@ export function Watchlist({ selectedId }: { selectedId?: string }) {
         </div>
         <div className="strategy-actions">
           <Link className="button button--outline" href="/knowledge">Knowledge</Link>
-          <Button intent="brand" onClick={() => setCreating(true)}>New watch item</Button>
+          {!schemaUnavailable ? <Button intent="brand" onClick={() => setCreating(true)}>New watch item</Button> : null}
         </div>
       </header>
       {error ? <p role="alert" className="field-error">{error}</p> : null}
-      <div className="content-stage-strip">
+      {schemaUnavailable ? <section className="data-surface empty-state"><h2>Knowledge is not configured</h2><p>This environment is missing the V9 knowledge schema. Watch items will be available after that dependency is installed.</p></section> : <><div className="content-stage-strip">
         {(["active","paused","all"] as const).map((f) => (
           <button key={f} className={filter === f ? "active" : ""} onClick={() => setFilter(f)}>{f === "all" ? "All" : STATUS_LABELS[f]}</button>
         ))}
@@ -205,6 +207,7 @@ export function Watchlist({ selectedId }: { selectedId?: string }) {
           )) : <p className="dataset-note">No {filter === "all" ? "" : filter + " "}watch items. Create one to start tracking signals.</p>}
         </div>
       </section>
+      </>}
       {creating ? <WatchForm topics={topics} onClose={() => setCreating(false)} onSave={async (v) => { await fetch("/api/knowledge/watches", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(v) }); await load(); }} /> : null}
     </main>
   );

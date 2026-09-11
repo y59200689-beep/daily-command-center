@@ -2,7 +2,7 @@ import { useSyncExternalStore } from "react";
 
 export type Theme = "light" | "dark";
 
-const STORAGE_KEY = "dcc-theme";
+const STORAGE_KEY = "dcc-theme-teamhub";
 const CHANGE_EVENT = "dcc-theme-change";
 const DARK_MODE_QUERY = "(prefers-color-scheme: dark)";
 let inMemoryTheme: Theme | null = null;
@@ -19,7 +19,7 @@ function readStoredTheme(): Theme | null {
 function getThemeSnapshot(): Theme {
   const stored = readStoredTheme();
   if (stored) return stored;
-  return window.matchMedia(DARK_MODE_QUERY).matches ? "dark" : "light";
+  return "light";
 }
 
 function getServerThemeSnapshot(): Theme {

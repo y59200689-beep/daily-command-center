@@ -3,6 +3,12 @@ import { apiError } from "@/lib/api";
 import { documentExpiryStatus, rankLifeSignals, type LifeSignal } from "@/lib/life";
 import { requireUser } from "@/lib/supabase/server";
 
+function isMissingLifeSchema(error: unknown) {
+  if (!error || typeof error !== "object") return false;
+  const candidate = error as { code?: string; message?: string };
+  return candidate.code === "PGRST205" || candidate.code === "42P01" || /personal_profiles|personal_documents|trips/i.test(candidate.message ?? "");
+}
+
 export async function GET() {
   try {
     const { supabase, userId } = await requireUser(); const today = new Date().toISOString().slice(0, 10);
@@ -29,7 +35,16 @@ export async function GET() {
     for (const trip of trips.data ?? []) { const days = trip.start_date ? daysUntil(trip.start_date, today) : null; if (days !== null && days <= 21 && days >= 0) signals.push({ id: `trip:${trip.id}:${trip.updated_at}`, kind: "trip", title: "Trip approaching", message: `${trip.title} starts ${relativeDays(days)}. Review preparation.`, route: `/travel/${trip.id}`, priority: Math.max(45, 80 - days) }); }
     const attention = rankLifeSignals(signals, 5); const nextAction = attention[0] ?? null;
     return NextResponse.json({ profile: profile.data, nextAction, attention, trips: trips.data ?? [], documents: documents.data ?? [], renewals: renewals.data ?? [], admin: admin.data ?? [], dates: dates.data ?? [], goals: goals.data ?? [], routines: routines.data ?? [], completedRoutineIds: (completions.data ?? []).map((item) => item.routine_id), fitness: { sessions: fitness.data?.length ?? 0, targets: targets.data ?? [] } }, { headers: { "Cache-Control": "private, no-store" } });
-  } catch (error) { return apiError(error, "Life overview could not be loaded."); }
+  } catch (error) {
+    if (isMissingLifeSchema(error)) {
+      return NextResponse.json({
+        schemaStatus: "unavailable",
+        schemaDependency: "V7 life schema",
+        profile: null, nextAction: null, attention: [], trips: [], documents: [], renewals: [], admin: [], dates: [], goals: [], routines: [], completedRoutineIds: [], fitness: { sessions: 0, targets: [] },
+      }, { headers: { "Cache-Control": "private, no-store" } });
+    }
+    return apiError(error, "Life overview could not be loaded.");
+  }
 }
 
 function weekStart(today: string) { const date = new Date(`${today}T12:00:00Z`); date.setUTCDate(date.getUTCDate() - ((date.getUTCDay() + 6) % 7)); return date.toISOString().slice(0, 10); }

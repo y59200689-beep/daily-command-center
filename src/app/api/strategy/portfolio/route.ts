@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { apiError } from "@/lib/api";
+import { apiError, isMissingOptionalSchema } from "@/lib/api";
 import { capacityState } from "@/lib/strategy";
 import { goalHealth, portfolioHealth, rankPortfolio, strategicRisks, tradeoffPreview } from "@/lib/strategy-extended";
 import { requireUser } from "@/lib/supabase/server";
@@ -24,4 +24,7 @@ export async function GET() { try {
   const goalRows=(goals.data??[]).map(row=>goalHealth({id:row.id,title:row.title,progress:Number(row.progress??0),targetDate:row.target_date,commitments:activeCommitments.filter(c=>c.source_type==="goal"&&c.source_id===row.id).length,milestones:allMilestones.filter(m=>m.source_type==="goal"&&m.source_id===row.id).length,recentActivity:Date.parse(row.updated_at)>Date.now()-30*86400000},today));
   const meetingHours=(events.data??[]).reduce((sum,row)=>sum+(Date.parse(row.ends_at)-Date.parse(row.starts_at))/3600000,0);const capacity=capacityState({commitments:activeCommitments.length,deadlines:activeCommitments.filter(row=>row.target_date&&row.target_date<=new Date(Date.now()+7*86400000).toISOString().slice(0,10)).length,meetingHours,availableHours:20});const items=rankPortfolio(mapped,today);
   return NextResponse.json({items,goals:goalRows,risks:strategicRisks({portfolio:items,goals:goalRows,capacity}),capacity,tradeoff:tradeoffPreview({commitments:activeCommitments.length,deadlines:0,meetingHours,availableHours:20})},{headers:{"Cache-Control":"private, no-store"}});
-}catch(error){return apiError(error,"Portfolio could not be loaded.");}}
+}catch(error){
+  if(isMissingOptionalSchema(error))return NextResponse.json({items:[],goals:[],risks:[],capacity:{state:"unknown",reason:"Planning capacity is unavailable."},tradeoff:{next:{state:"unknown"},suggestReview:false},schemaStatus:"unavailable",schemaDependency:"V8 strategic planning schema"},{headers:{"Cache-Control":"private, no-store"}});
+  return apiError(error,"Portfolio could not be loaded.");
+}}

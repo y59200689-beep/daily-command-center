@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
+import { SearchInput } from "@/components/ui/search-input";
 import { useToast } from "@/components/toast-provider";
 import { useDeferredEffect } from "@/lib/use-deferred-effect";
 import { minutesLabel } from "@/lib/utils";
@@ -359,6 +360,7 @@ type WeeklyReview = {
 };
 export function WeeklyReviewPage() {
   const [review, setReview] = useState<WeeklyReview | null>(null);
+  const [schemaUnavailable, setSchemaUnavailable] = useState(false);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const { showToast } = useToast();
@@ -369,6 +371,7 @@ export function WeeklyReviewPage() {
       });
       const body = await response.json();
       if (!response.ok) throw new Error(body.error);
+      setSchemaUnavailable(body.schemaStatus === "unavailable");
       setReview(body.review);
     } catch (reason) {
       setError(
@@ -395,6 +398,7 @@ export function WeeklyReviewPage() {
     );
   }
   if (error) return <Failure message={error} retry={() => void load()} />;
+  if (schemaUnavailable) return <div className="intelligence-page"><header className="page-header"><div><p className="eyebrow">Weekly executive review</p><h1>This week.</h1><p>What moved, what drifted, and what next week should protect.</p></div></header><section className="data-surface empty-state"><h2>Weekly review is unavailable</h2><p>This workspace is missing one or more optional V8–V13 domain schemas. Review data will be available after those dependencies are installed.</p></section></div>;
   if (!review) return <Loading label="Preparing your executive review" />;
   const m = review.metrics;
   return (
@@ -731,13 +735,17 @@ export function MemoryPage() {
       <div className="editorial-split">
         <section>
           <div className="domain-toolbar">
-            <input
-              aria-label="Search memory"
+            <SearchInput
+              label="Search memory"
               placeholder="Search memory…"
               value={query}
               onChange={(event) => {
                 setQuery(event.target.value);
                 void load(event.target.value);
+              }}
+              onClear={() => {
+                setQuery("");
+                void load("");
               }}
             />
           </div>

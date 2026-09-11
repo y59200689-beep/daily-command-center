@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Icons } from "@/components/icons";
+import { SuccessSchemaUnavailable } from "./schema-unavailable";
 
 interface ClientRisk {
   id: string;
@@ -38,6 +39,7 @@ export function ClientRisksView() {
   const [risks, setRisks] = useState<ClientRisk[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [schemaUnavailable, setSchemaUnavailable] = useState(false);
   const [severity, setSeverity] = useState("all");
   const [status, setStatus] = useState("open");
 
@@ -53,6 +55,7 @@ export function ClientRisksView() {
       })
       .then((json) => {
         if (!cancelled) {
+          setSchemaUnavailable(json.schemaStatus === "unavailable");
           setRisks(json.data ?? []);
           setLoading(false);
         }
@@ -97,8 +100,9 @@ export function ClientRisksView() {
 
       {loading && <p style={{ color: "var(--text-secondary)" }}>Loading risks…</p>}
       {error && <p style={{ color: "var(--color-red-500)" }}>{error}</p>}
+      {schemaUnavailable && <SuccessSchemaUnavailable />}
 
-      {!loading && risks.length === 0 && (
+      {!loading && !schemaUnavailable && risks.length === 0 && (
         <div className="card" style={{ padding: "2rem", textAlign: "center" }}>
           <p style={{ color: "var(--text-secondary)" }}>No risks match this filter.</p>
         </div>

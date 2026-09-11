@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { apiError } from "@/lib/api";
+import { apiError, isMissingOptionalSchema } from "@/lib/api";
 import { buildWeeklyReview } from "@/lib/intelligence/reviews";
 import { getIntelligence } from "@/lib/intelligence/server";
 import { requireUser } from "@/lib/supabase/server";
@@ -223,6 +223,7 @@ export async function GET() {
     if (saved.error) throw saved.error;
     return NextResponse.json({ review: {...review,financial:await optionalFinancialOverview(supabase,userId)}, saved: saved.data }, { headers: { "Cache-Control": "private, no-store" } });
   } catch (error) {
+    if (isMissingOptionalSchema(error)) return NextResponse.json({ review: null, schemaStatus: "unavailable", schemaDependency: "optional V8–V13 domain review schemas" }, { headers: { "Cache-Control": "private, no-store" } });
     return apiError(error, "Weekly review could not be prepared.");
   }
 }

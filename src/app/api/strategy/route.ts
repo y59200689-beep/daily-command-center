@@ -18,4 +18,9 @@ export async function GET() { try {
   const meetingHours=(events.data??[]).reduce((total,event)=>total+(Date.parse(event.ends_at)-Date.parse(event.starts_at))/3_600_000,0); const deadlines=rows.filter(row=>row.targetDate&&row.targetDate<=new Date(Date.now()+7*86400000).toISOString().slice(0,10)).length;
   const capacity=capacityState({commitments:rows.length,deadlines,meetingHours,availableHours:20}); const horizons={30:ranked.filter(row=>horizonFor(row.targetDate,today)===30),60:ranked.filter(row=>horizonFor(row.targetDate,today)===60),90:ranked.filter(row=>horizonFor(row.targetDate,today)===90)};
   return NextResponse.json({activePeriod, commitments:ranked.slice(0,7), nextMove:ranked[0]??null, atRisk, capacity, milestones:milestones.data??[], horizons, decisionGates:gates.data??[],dependencies:dependencies.data??[]},{headers:{"Cache-Control":"private, no-store"}});
-} catch(error){return apiError(error,"Control Tower could not be loaded.");} }
+} catch(error){
+  if(isMissingStrategySchema(error))return NextResponse.json({activePeriod:null,commitments:[],nextMove:null,atRisk:[],capacity:{state:"unknown",reason:"Strategic capacity is unavailable until the V8 planning schema is present."},milestones:[],horizons:{30:[],60:[],90:[]},decisionGates:[],dependencies:[],schemaStatus:"unavailable",schemaDependency:"V8 strategic planning schema"});
+  return apiError(error,"Control Tower could not be loaded.");
+} }
+
+function isMissingStrategySchema(error:unknown){return Boolean(error&&typeof error==="object"&&"code" in error&&((error as {code?:unknown}).code==="PGRST205"||(error as {code?:unknown}).code==="42P01"))}

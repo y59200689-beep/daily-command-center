@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Icons } from "@/components/icons";
+import { TeamSchemaUnavailable } from "./team-schema-unavailable";
 
 interface OwnershipItem {
   id: string;
@@ -19,12 +20,14 @@ interface OwnershipItem {
 export function OwnershipMap() {
   const [items, setItems] = useState<OwnershipItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [schemaUnavailable, setSchemaUnavailable] = useState(false);
   const [filterType, setFilterType] = useState("all");
 
   useEffect(() => {
     fetch("/api/team/ownership")
       .then((r) => (r.ok ? r.json() : null))
       .then((json) => {
+        setSchemaUnavailable(json?.schemaStatus === "unavailable");
         if (json?.items) setItems(json.items);
         setLoading(false);
       })
@@ -36,6 +39,8 @@ export function OwnershipMap() {
     if (filterType === "unowned") return !i.primary_owner;
     return i.entity_type === filterType;
   });
+
+  if (schemaUnavailable) return <TeamSchemaUnavailable title="Ownership Map" description="Cross-domain operational accountability without changing database security." />;
 
   return (
     <div className="page-shell team-page">

@@ -183,7 +183,7 @@ export function ChiefOfStaffHome() {
             <div className="flex items-center gap-2 mb-1">
               <ShieldCheck className="w-6 h-6 text-indigo-400" />
               <h1 className="text-xl font-bold tracking-tight text-white">Chief of Staff</h1>
-              <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+              <span className="chief-mode-badge text-xs font-semibold px-2 py-0.5 rounded-full">
                 Safe Action Orchestration
               </span>
             </div>
@@ -196,7 +196,7 @@ export function ChiefOfStaffHome() {
           <div className="flex flex-wrap gap-2">
             <Link
               href="/chief-of-staff/approvals"
-              className="px-3.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium transition"
+              className="chief-primary-link px-3.5 py-1.5 rounded-lg text-xs font-medium transition"
             >
               Approval Center ({metrics.awaitingApprovalCount})
             </Link>
@@ -225,21 +225,21 @@ export function ChiefOfStaffHome() {
 
         {/* Recommended Next Action */}
         {data?.nextAction && (
-          <div className="mt-5 p-4 rounded-xl bg-slate-900/80 border border-amber-500/30 flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div className="chief-next-action mt-5 p-4 rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-3">
             <div>
               <div className="flex items-center gap-2 mb-1">
                 <Sparkles className="w-4 h-4 text-amber-400" />
-                <span className="text-xs font-bold uppercase tracking-wider text-amber-300">Recommended Next Action</span>
+                <span className="chief-next-action-label text-xs font-bold uppercase tracking-wider">Recommended Next Action</span>
                 <span className={`chief-badge chief-badge-${data.nextAction.risk}`}>
                   {data.nextAction.risk}
                 </span>
               </div>
-              <h2 className="text-sm font-semibold text-white">{data.nextAction.title}</h2>
-              <p className="text-xs text-slate-400 mt-0.5">{data.nextAction.whyNow}</p>
+              <h2 className="chief-next-action-title text-sm font-semibold">{data.nextAction.title}</h2>
+              <p className="chief-next-action-copy text-xs mt-0.5">{data.nextAction.whyNow}</p>
             </div>
             <Link
               href={data.nextAction.route}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-semibold text-xs whitespace-nowrap transition"
+              className="chief-next-action-cta inline-flex items-center gap-1.5 px-4 py-2 rounded-lg font-semibold text-xs whitespace-nowrap transition"
             >
               Take Action <ArrowRight className="w-3.5 h-3.5" />
             </Link>

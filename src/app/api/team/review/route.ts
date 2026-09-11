@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { apiError } from "@/lib/api";
+import { apiError, isMissingOptionalSchema } from "@/lib/api";
 import { requireUser } from "@/lib/supabase/server";
 import {
   buildTeamReview,
@@ -36,6 +36,8 @@ export async function GET(request: Request) {
       supabase.from("approvals").select("id,title,status,requester_name,created_at").eq("user_id", userId).eq("status", "pending").limit(20),
       supabase.from("team_availability").select("*").eq("user_id", userId),
     ]);
+    const failed = [peopleRes, responsibilitiesRes, delegationsRes, escalationsRes, handoffsRes, approvalsRes, availabilityRes].find((result) => result.error);
+    if (failed?.error) throw failed.error;
 
     const people = (peopleRes.data ?? []) as TeamPerson[];
     const delegations = (delegationsRes.data ?? []) as TeamDelegation[];
@@ -75,6 +77,7 @@ export async function GET(request: Request) {
       risks: risks.slice(0, 10),
     });
   } catch (error) {
+    if (isMissingOptionalSchema(error)) return NextResponse.json({ schemaStatus: "unavailable", schemaDependency: "V12 Team Coordination schema" });
     return apiError(error, "Team review could not be prepared.");
   }
 }

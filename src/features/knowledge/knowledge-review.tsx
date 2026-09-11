@@ -36,6 +36,7 @@ export function KnowledgeReview() {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [watches, setWatches] = useState<WatchEntity[]>([]);
   const [error, setError] = useState("");
+  const [schemaUnavailable, setSchemaUnavailable] = useState(false);
 
   const load = useCallback(async () => {
     const [tRes, sRes, fRes, qRes, wRes] = await Promise.all([
@@ -47,6 +48,7 @@ export function KnowledgeReview() {
     ]);
     const [tB, sB, fB, qB, wB] = await Promise.all([tRes.json(), sRes.json(), fRes.json(), qRes.json(), wRes.json()]);
     if (!tRes.ok) { setError(tB.error ?? "Review data could not be loaded."); return; }
+    setSchemaUnavailable([tB, sB, fB, qB, wB].some((body) => body.schemaStatus === "unavailable"));
     setTopics(tB.items ?? []);
     setSources(sB.items ?? []);
     setFindings(fB.items ?? []);
@@ -86,7 +88,14 @@ export function KnowledgeReview() {
       </header>
       {error ? <p role="alert" className="field-error">{error}</p> : null}
 
-      {totalItems === 0 ? (
+      {schemaUnavailable ? (
+        <section className="data-surface empty-state">
+          <h2>Knowledge is not configured</h2>
+          <p>This environment is missing the V9 knowledge schema. Review queues will be available after that dependency is installed.</p>
+        </section>
+      ) : null}
+
+      {!schemaUnavailable && totalItems === 0 ? (
         <div className="empty-state">
           <span>✓</span>
           <h2>All caught up</h2>

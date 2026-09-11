@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { apiError } from "@/lib/api";
+import { apiError, isMissingOptionalSchema } from "@/lib/api";
 import { requireUser } from "@/lib/supabase/server";
 import { buildRetentionReview, type ClientRecord } from "@/lib/success";
 
@@ -37,7 +37,8 @@ export async function GET(request: Request) {
       supabase.from("client_commitments").select("*, client:clients(id, name)").eq("user_id", userId),
     ]);
 
-    if (clientsRes.error) throw clientsRes.error;
+    const failed = [clientsRes, renewalsRes, risksRes, outcomesRes, issuesRes, commitmentsRes].find((result) => result.error);
+    if (failed?.error) throw failed.error;
 
     const summary = buildRetentionReview(
       (clientsRes.data ?? []) as ClientRecord[],
@@ -51,6 +52,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json({ data: summary });
   } catch (error) {
+    if (isMissingOptionalSchema(error)) return NextResponse.json({ data: null, schemaStatus: "unavailable", schemaDependency: "V13 Customer Success schema" });
     return apiError(error, "Retention reviews could not be loaded.");
   }
 }

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { apiError } from "@/lib/api";
+import { apiError, isMissingOptionalSchema } from "@/lib/api";
 import { requireUser } from "@/lib/supabase/server";
 
 const create1on1Schema = z.object({
@@ -81,6 +81,7 @@ export async function GET(request: Request) {
       suggestedTopics,
     });
   } catch (error) {
+    if (isMissingOptionalSchema(error)) return NextResponse.json({ people: [], schemaStatus: "unavailable", schemaDependency: "V12 Team Coordination schema" });
     return apiError(error, "1:1 prep could not be loaded.");
   }
 }

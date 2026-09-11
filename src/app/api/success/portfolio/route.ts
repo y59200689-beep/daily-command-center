@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { apiError } from "@/lib/api";
+import { apiError, isMissingOptionalSchema } from "@/lib/api";
 import { requireUser } from "@/lib/supabase/server";
 import {
   evaluateAccountHealth,
@@ -53,7 +53,8 @@ export async function GET() {
         .eq("user_id", userId),
     ]);
 
-    if (clientsRes.error) throw clientsRes.error;
+    const failed = [clientsRes, outcomesRes, commitmentsRes, checkInsRes, signalsRes, risksRes, renewalsRes, issuesRes, invoicesRes, projectsRes].find((result) => result.error);
+    if (failed?.error) throw failed.error;
 
     const clients = (clientsRes.data ?? []) as ClientRecord[];
     const outcomes = (outcomesRes.data ?? []) as ClientOutcome[];
@@ -225,6 +226,7 @@ export async function GET() {
       },
     });
   } catch (error) {
+    if (isMissingOptionalSchema(error)) return NextResponse.json({ data: null, schemaStatus: "unavailable", schemaDependency: "V13 Customer Success schema" });
     return apiError(error, "Portfolio health could not be loaded.");
   }
 }

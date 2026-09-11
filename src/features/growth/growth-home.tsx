@@ -50,6 +50,9 @@ export function GrowthHome() {
   const experiments = (data?.activeExperiments as Row[] | undefined) ?? [];
 
   const currency = String(revenue?.currency ?? "MAD");
+  const pipelineSignals = Array.isArray(pipeline?.qualitySignals)
+    ? pipeline.qualitySignals.map(String).join(", ")
+    : "";
 
   return (
     <main className="domain-page growth-page">
@@ -59,7 +62,7 @@ export function GrowthHome() {
           <h1>Growth.</h1>
           <p>
             {opportunities.length} open opportunities
-            {pipeline ? ` · Pipeline: ${String(pipeline.signal)}` : ""}
+            {pipelineSignals ? ` · Pipeline: ${pipelineSignals}` : ""}
           </p>
         </div>
         <div className="growth-header-actions">
@@ -145,7 +148,7 @@ export function GrowthHome() {
               <p className="eyebrow">Expansion</p>
               <h2>Growth opportunities</h2>
             </div>
-            <Link href="/growth/expansion"><Button emphasis="ghost">All</Button></Link>
+            <Link href="/pipeline"><Button emphasis="ghost">All</Button></Link>
           </header>
           {expansion.length ? (
             <div className="signal-stack">
@@ -212,7 +215,7 @@ export function GrowthHome() {
               <p className="eyebrow">Offer intelligence</p>
               <h2>Service performance</h2>
             </div>
-            <Link href="/growth/offers"><Button emphasis="ghost">All</Button></Link>
+            <Link href="/services"><Button emphasis="ghost">All</Button></Link>
           </header>
           {offers.length ? (
             <div className="signal-stack">

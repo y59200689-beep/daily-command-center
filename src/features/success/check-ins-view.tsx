@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Icons } from "@/components/icons";
+import { SuccessSchemaUnavailable } from "./schema-unavailable";
 
 interface CheckIn {
   id: string;
@@ -30,6 +31,7 @@ export function CheckInsView() {
   const [checkIns, setCheckIns] = useState<CheckIn[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [schemaUnavailable, setSchemaUnavailable] = useState(false);
   const [status, setStatus] = useState("all");
 
   useEffect(() => {
@@ -43,6 +45,7 @@ export function CheckInsView() {
       })
       .then((json) => {
         if (!cancelled) {
+          setSchemaUnavailable(json.schemaStatus === "unavailable");
           setCheckIns(json.data ?? []);
           setLoading(false);
         }
@@ -77,8 +80,9 @@ export function CheckInsView() {
 
       {loading && <p style={{ color: "var(--text-secondary)" }}>Loading check-ins…</p>}
       {error && <p style={{ color: "var(--color-red-500)" }}>{error}</p>}
+      {schemaUnavailable && <SuccessSchemaUnavailable />}
 
-      {!loading && checkIns.length === 0 && (
+      {!loading && !schemaUnavailable && checkIns.length === 0 && (
         <div className="card" style={{ padding: "2rem", textAlign: "center" }}>
           <p style={{ color: "var(--text-secondary)" }}>No check-ins found. Schedule client check-ins from the client profile.</p>
         </div>

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
+import { SearchInput } from "@/components/ui/search-input";
 import { KnowledgeEntityLinksPanel, KnowledgeRelationsPanel } from "@/features/knowledge/knowledge-links";
 import { sourceFreshness } from "@/lib/knowledge";
 import { useDeferredEffect } from "@/lib/use-deferred-effect";
@@ -18,12 +19,14 @@ export function KnowledgeDetail({ kind, id }: { kind: "sources" | "findings"; id
   const [sources, setSources] = useState<Row[]>([]);
   const [notes, setNotes] = useState<Row[]>([]);
   const [error, setError] = useState("");
+  const [schemaUnavailable, setSchemaUnavailable] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [evidenceOpen, setEvidenceOpen] = useState(false);
   const [editingEvidence, setEditingEvidence] = useState<Row | null>(null);
   const load = useCallback(async () => {
     const list = await fetch(`/api/knowledge/${kind}`, { cache: "no-store" });
     const body = await list.json();
+    if (body.schemaStatus === "unavailable") { setSchemaUnavailable(true); setError(""); return; }
     const found = (body.items ?? []).find((row: Row) => row.id === id);
     if (!list.ok || !found) { setError("Knowledge record is unavailable."); return; }
     setItem(found); setError("");
@@ -43,7 +46,7 @@ export function KnowledgeDetail({ kind, id }: { kind: "sources" | "findings"; id
     if (!response.ok) { setError("Changes could not be saved."); return false; }
     await load(); return true;
   };
-  if (!item) return <main className="domain-page"><p className="dataset-note">{error || "Loading knowledge…"}</p></main>;
+  if (!item) return <main className="domain-page">{schemaUnavailable ? <section className="data-surface empty-state"><h2>Knowledge is not configured</h2><p>This detail is unavailable until the V9 knowledge schema is installed.</p></section> : <p className="dataset-note">{error || "Loading knowledge…"}</p>}</main>;
   if (kind === "sources") return <SourceDetail item={item} notes={notes} error={error} editOpen={editOpen} onEdit={() => setEditOpen(true)} onClose={() => setEditOpen(false)} onRefresh={() => void patch({ accessed_at: new Date().toISOString() })} onSave={async (values) => { if (await patch(values)) setEditOpen(false); }} onReload={load} />;
   const groups: Array<[string, Row[]]> = [["Supporting evidence", evidence.filter((row) => ["supports", "weak_support"].includes(String(row.relation_type)))], ["Contradictory evidence", evidence.filter((row) => row.relation_type === "contradicts")], ["Context", evidence.filter((row) => row.relation_type === "context")]];
   return <main className="domain-page knowledge-detail">
@@ -67,7 +70,7 @@ function EvidenceGroup({ title, rows, sources, onEdit, onRemove }: { title: stri
 function EvidenceForm({ sources, initial, onClose, onSave }: { sources: Row[]; initial: Row | null; onClose: () => void; onSave: (sourceId: string, relation: Relation) => Promise<void> }) {
   const [source, setSource] = useState(String(initial?.source_id ?? "")); const [relation, setRelation] = useState<Relation>((initial?.relation_type as Relation) ?? "supports"); const [query, setQuery] = useState("");
   const choices = sources.filter((row) => [row.title, row.publisher, row.author, row.source_type].some((value) => String(value ?? "").toLowerCase().includes(query.toLowerCase())));
-  return <Modal open onClose={onClose} title={initial ? "Change evidence relation" : "Add evidence"}><form className="simple-form" onSubmit={(event) => { event.preventDefault(); if (source) void onSave(source, relation); }}><label>Search sources<input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Title, publisher, author, or type" /></label><label>Source<select value={source} disabled={Boolean(initial)} onChange={(event) => setSource(event.target.value)}><option value="">{sources.length ? "Select an owned source" : "No sources available yet"}</option>{choices.map((row) => <option key={String(row.id)} value={String(row.id)}>{String(row.title)} · {String(row.source_type)}</option>)}</select></label>{!sources.length ? <Link href="/knowledge" className="button button--outline">Add source</Link> : null}<label>Relation<select value={relation} onChange={(event) => setRelation(event.target.value as Relation)}>{(["supports", "contradicts", "context", "weak_support"] as const).map((value) => <option key={value} value={value}>{label(value)}</option>)}</select></label><div className="modal__actions"><Button emphasis="ghost" onClick={onClose}>Cancel</Button><Button intent="brand" type="submit" disabled={!source}>Save evidence</Button></div></form></Modal>;
+  return <Modal open onClose={onClose} title={initial ? "Change evidence relation" : "Add evidence"}><form className="simple-form" onSubmit={(event) => { event.preventDefault(); if (source) void onSave(source, relation); }}><label>Search sources<SearchInput label="Search sources" containerClassName="search-control--full" value={query} onChange={(event) => setQuery(event.target.value)} onClear={() => setQuery("")} placeholder="Title, publisher, author, or type" /></label><label>Source<select value={source} disabled={Boolean(initial)} onChange={(event) => setSource(event.target.value)}><option value="">{sources.length ? "Select an owned source" : "No sources available yet"}</option>{choices.map((row) => <option key={String(row.id)} value={String(row.id)}>{String(row.title)} · {String(row.source_type)}</option>)}</select></label>{!sources.length ? <Link href="/knowledge" className="button button--outline">Add source</Link> : null}<label>Relation<select value={relation} onChange={(event) => setRelation(event.target.value as Relation)}>{(["supports", "contradicts", "context", "weak_support"] as const).map((value) => <option key={value} value={value}>{label(value)}</option>)}</select></label><div className="modal__actions"><Button emphasis="ghost" onClick={onClose}>Cancel</Button><Button intent="brand" type="submit" disabled={!source}>Save evidence</Button></div></form></Modal>;
 }
 
 function FindingEdit({ item, onClose, onSave }: { item: Row; onClose: () => void; onSave: (values: Row) => Promise<void> }) {

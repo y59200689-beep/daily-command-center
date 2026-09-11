@@ -7,6 +7,7 @@
 | Navigation shell | `AppShell` | This contract | Desktop rail / mobile bar | Responsive browser check |
 | Authentication session | `AppShell` + Supabase SSR helpers | Supabase Auth | Current-browser sign out | Auth flow test |
 | Commands and capture | `CommandPalette`, `QuickCapture` | This contract | Dialog / mobile sheet | Keyboard and mobile checks |
+| Search field | `SearchInput` | `DESIGN.md` and this contract | Standard / command palette | Keyboard, clear, and responsive checks |
 | Form | Shared field classes + Zod server validation | This contract | Create / sign-in | Validation tests |
 | Select/Listbox | Native control | `DESIGN.md` and this contract | Native | Keyboard and popup check |
 | Date | Native control | This contract | Native ISO date | Locale and keyboard check |

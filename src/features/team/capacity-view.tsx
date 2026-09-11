@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Icons } from "@/components/icons";
+import { TeamSchemaUnavailable } from "./team-schema-unavailable";
 
 interface CapacityCard {
   person_id: string;
@@ -20,11 +21,13 @@ export function CapacityView() {
   const [cards, setCards] = useState<CapacityCard[]>([]);
   const [summary, setSummary] = useState<{ total: number; overloaded: number; busy: number; available: number } | null>(null);
   const [loading, setLoading] = useState(true);
+  const [schemaUnavailable, setSchemaUnavailable] = useState(false);
 
   useEffect(() => {
     fetch("/api/team/capacity")
       .then((r) => (r.ok ? r.json() : null))
       .then((json) => {
+        setSchemaUnavailable(json?.schemaStatus === "unavailable");
         if (json?.capacityCards) {
           setCards(json.capacityCards);
           setSummary(json.summary);
@@ -33,6 +36,8 @@ export function CapacityView() {
       })
       .catch(() => setLoading(false));
   }, []);
+
+  if (schemaUnavailable) return <TeamSchemaUnavailable title="Team Workload & Capacity" description="Objective commitment balance based strictly on active tasks, runs, and delegations." />;
 
   return (
     <div className="page-shell team-page">

@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useEffect, useState, useCallback } from "react";
 import { Icons } from "@/components/icons";
 import { Modal } from "@/components/ui/modal";
+import { SearchInput } from "@/components/ui/search-input";
+import { TeamSchemaUnavailable } from "./team-schema-unavailable";
 
 interface Person {
   id: string;
@@ -20,6 +22,7 @@ interface Person {
 export function PeopleList() {
   const [people, setPeople] = useState<Person[]>([]);
   const [loading, setLoading] = useState(true);
+  const [schemaUnavailable, setSchemaUnavailable] = useState(false);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [relationshipFilter, setRelationshipFilter] = useState("all");
@@ -42,6 +45,7 @@ export function PeopleList() {
     fetch(url)
       .then((res) => (res.ok ? res.json() : null))
       .then((json) => {
+        setSchemaUnavailable(json?.schemaStatus === "unavailable");
         if (json?.data) setPeople(json.data);
         setLoading(false);
       })
@@ -86,6 +90,8 @@ export function PeopleList() {
     }
   };
 
+  if (schemaUnavailable) return <TeamSchemaUnavailable title="People Directory" description="Collaborators, contractors, and team members you coordinate with." />;
+
   return (
     <div className="page-shell team-page">
       <div className="page-header">
@@ -103,13 +109,13 @@ export function PeopleList() {
 
       {/* FILTERS */}
       <div className="filter-bar" style={{ display: "flex", gap: "12px", flexWrap: "wrap", margin: "20px 0" }}>
-        <input
-          type="text"
+        <SearchInput
+          label="Search people"
           placeholder="Search people by name or title…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="search-input"
-          style={{ maxWidth: "320px", padding: "8px 12px" }}
+          onClear={() => setSearch("")}
+          containerClassName="search-control--compact"
         />
         <select
           value={statusFilter}

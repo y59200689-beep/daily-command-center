@@ -18,6 +18,7 @@ export function SystemsRegistry() {
   const [systems, setSystems] = useState<SystemRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [schemaUnavailable, setSchemaUnavailable] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [name, setName] = useState("");
   const [purpose, setPurpose] = useState("");
@@ -31,6 +32,7 @@ export function SystemsRegistry() {
       const res = await fetch("/api/operations/systems", { cache: "no-store" });
       const body = await res.json();
       if (res.ok) {
+        setSchemaUnavailable(body.schemaStatus === "unavailable");
         setSystems(body.systems || []);
       } else {
         setError(body.error || "Failed to load systems");
@@ -89,13 +91,21 @@ export function SystemsRegistry() {
         <div className="operations-header-actions">
           <Link href="/operations"><Button emphasis="outline">Overview</Button></Link>
           <Link href="/operations/runbooks"><Button emphasis="outline">Runbooks</Button></Link>
-          <Button intent="brand" onClick={() => setShowModal(true)}>Register System</Button>
+          {!error && !schemaUnavailable ? <Button intent="brand" onClick={() => setShowModal(true)}>Register System</Button> : null}
         </div>
       </header>
 
-      {error ? <p role="alert" className="field-error">{error}</p> : null}
-
-      <div className="operations-systems-grid">
+      {schemaUnavailable ? (
+        <section className="data-surface empty-state">
+          <h2>Systems Registry is unavailable</h2>
+          <p>This workspace is missing the optional V11 operations schema. Registration will be available after that dependency is installed.</p>
+        </section>
+      ) : error ? (
+        <section className="data-surface empty-state" role="alert">
+          <h2>Systems Registry is unavailable</h2>
+          <p>{error} This workspace is missing the optional V11 operations schema; registration is disabled until that dependency is installed.</p>
+        </section>
+      ) : <div className="operations-systems-grid">
         {loading ? (
           <p className="faint-note">Loading systems...</p>
         ) : systems.length === 0 ? (
@@ -124,7 +134,7 @@ export function SystemsRegistry() {
             </div>
           ))
         )}
-      </div>
+      </div>}
 
       {showModal && (
         <div className="modal-backdrop" role="dialog" aria-modal="true">

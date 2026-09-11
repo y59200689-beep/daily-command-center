@@ -82,6 +82,8 @@ export function TodayDashboard() {
   const [tab, setTab] = useState("Priorities");
   const { showToast } = useToast();
   const load = useCallback(async () => {
+    setLoading(true);
+    setError("");
     try {
       const response = await fetch("/api/today", { cache: "no-store" });
       const body = await response.json();

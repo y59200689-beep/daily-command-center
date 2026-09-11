@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { apiError } from "@/lib/api";
+import { apiError, isMissingOptionalSchema } from "@/lib/api";
 import { requireUser } from "@/lib/supabase/server";
 
 export async function GET(_request: Request, context: { params: Promise<{ id: string }> }) {
@@ -33,6 +33,7 @@ export async function GET(_request: Request, context: { params: Promise<{ id: st
       links: linksRes.data ?? [],
     });
   } catch (error) {
+    if (isMissingOptionalSchema(error)) return NextResponse.json({ schemaStatus: "unavailable", schemaDependency: "V11 operations schema" });
     return apiError(error, "SOP detail could not be loaded.");
   }
 }

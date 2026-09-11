@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Icons } from "@/components/icons";
+import { TeamSchemaUnavailable } from "./team-schema-unavailable";
 
 interface PersonOption {
   id: string;
@@ -29,6 +30,7 @@ export function OneOnOneView() {
   const [selectedPersonId, setSelectedPersonId] = useState(initialPersonId);
   const [prep, setPrep] = useState<PrepData | null>(null);
   const [loading, setLoading] = useState(false);
+  const [schemaUnavailable, setSchemaUnavailable] = useState(false);
 
   // Form
   const [meetingDate, setMeetingDate] = useState(() => new Date().toISOString().slice(0, 10));
@@ -42,6 +44,7 @@ export function OneOnOneView() {
     fetch("/api/team/1on1")
       .then((r) => (r.ok ? r.json() : null))
       .then((json) => {
+        setSchemaUnavailable(json?.schemaStatus === "unavailable");
         if (json?.people) {
           setPeople(json.people);
           if (json.people.length > 0) {
@@ -107,6 +110,8 @@ export function OneOnOneView() {
       setSaving(false);
     }
   };
+
+  if (schemaUnavailable) return <TeamSchemaUnavailable title="1:1 Preparation & Follow-through" description="Objective meeting context, open loops, and operational follow-through without subjective employee ranking." />;
 
   return (
     <div className="page-shell team-page">

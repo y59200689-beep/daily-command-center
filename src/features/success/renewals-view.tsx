@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Icons } from "@/components/icons";
+import { SuccessSchemaUnavailable } from "./schema-unavailable";
 
 interface Renewal {
   id: string;
@@ -41,6 +42,7 @@ export function RenewalsView() {
   const [renewals, setRenewals] = useState<Renewal[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [schemaUnavailable, setSchemaUnavailable] = useState(false);
   const [status, setStatus] = useState("all");
 
   useEffect(() => {
@@ -54,6 +56,7 @@ export function RenewalsView() {
       })
       .then((json) => {
         if (!cancelled) {
+          setSchemaUnavailable(json.schemaStatus === "unavailable");
           setRenewals(json.data ?? []);
           setLoading(false);
         }
@@ -88,8 +91,9 @@ export function RenewalsView() {
 
       {loading && <p style={{ color: "var(--text-secondary)" }}>Loading renewals…</p>}
       {error && <p style={{ color: "var(--color-red-500)" }}>{error}</p>}
+      {schemaUnavailable && <SuccessSchemaUnavailable />}
 
-      {!loading && renewals.length === 0 && (
+      {!loading && !schemaUnavailable && renewals.length === 0 && (
         <div className="card" style={{ padding: "2rem", textAlign: "center" }}>
           <p style={{ color: "var(--text-secondary)", marginBottom: "0.5rem" }}>No renewals found.</p>
           <p style={{ fontSize: "0.8rem", color: "var(--text-secondary)" }}>Track renewal dates for clients from the client success profile.</p>

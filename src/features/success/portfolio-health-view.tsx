@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Icons } from "@/components/icons";
+import { SuccessSchemaUnavailable } from "./schema-unavailable";
 
 interface PortfolioAccount {
   client: { id: string; name: string; company?: string | null; status: string };
@@ -67,6 +68,7 @@ export function PortfolioHealthView() {
   const [data, setData] = useState<PortfolioData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [schemaUnavailable, setSchemaUnavailable] = useState(false);
   const [filter, setFilter] = useState<string>("all");
 
   useEffect(() => {
@@ -78,6 +80,7 @@ export function PortfolioHealthView() {
       })
       .then((json) => {
         if (!cancelled) {
+          setSchemaUnavailable(json.schemaStatus === "unavailable");
           setData(json.data);
           setLoading(false);
         }
@@ -108,6 +111,7 @@ export function PortfolioHealthView() {
 
       {loading && <p style={{ color: "var(--text-secondary)", padding: "1rem 0" }}>Loading portfolio…</p>}
       {error && <p style={{ color: "var(--color-red-500)" }}>{error}</p>}
+      {schemaUnavailable && <SuccessSchemaUnavailable />}
 
       {data && (
         <>

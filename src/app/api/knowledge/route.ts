@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireUser } from "@/lib/supabase/server";
-import { rankResearchQueue, sourceFreshness, topicHealth } from "@/lib/knowledge";
+import { isMissingKnowledgeSchema, rankResearchQueue, sourceFreshness, topicHealth } from "@/lib/knowledge";
 import { apiError } from "@/lib/api";
 
 export async function GET() {
@@ -29,5 +29,16 @@ export async function GET() {
       ...health.filter((item) => item.next_review_at && item.next_review_at <= today).map((item) => ({ id: `review:${item.id}`, title: item.title, reason: "Topic review is due.", route: `/knowledge/topics/${item.id}`, score: 75 })),
     ]);
     return NextResponse.json({ overview: { topics: health, sources: sources.data ?? [], findings: findings.data ?? [], questions: questions.data ?? [], briefs: briefs.data ?? [], watches: watches.data ?? [], stale, queue } }, { headers: { "Cache-Control": "private, no-store" } });
-  } catch (error) { return apiError(error, "Knowledge could not be loaded."); }
+  } catch (error) {
+    if (isMissingKnowledgeSchema(error)) {
+      return NextResponse.json({
+        overview: {
+          schemaStatus: "unavailable",
+          schemaDependency: "V9 knowledge schema",
+          topics: [], sources: [], findings: [], questions: [], briefs: [], watches: [], stale: [], queue: [],
+        },
+      }, { headers: { "Cache-Control": "private, no-store" } });
+    }
+    return apiError(error, "Knowledge could not be loaded.");
+  }
 }

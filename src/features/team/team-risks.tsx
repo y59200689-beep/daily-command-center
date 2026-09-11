@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Icons } from "@/components/icons";
 import { Modal } from "@/components/ui/modal";
+import { TeamSchemaUnavailable } from "./team-schema-unavailable";
 
 interface TeamRisk {
   id: string;
@@ -34,6 +35,7 @@ export function TeamRisks() {
   const [escalations, setEscalations] = useState<Escalation[]>([]);
   const [people, setPeople] = useState<Person[]>([]);
   const [loading, setLoading] = useState(true);
+  const [schemaUnavailable, setSchemaUnavailable] = useState(false);
 
   // New escalation modal
   const [escOpen, setEscOpen] = useState(false);
@@ -49,6 +51,7 @@ export function TeamRisks() {
       fetch("/api/team/people").then((r) => (r.ok ? r.json() : null)),
     ])
       .then(([risksJson, escJson, peopleJson]) => {
+        setSchemaUnavailable(risksJson?.schemaStatus === "unavailable" || peopleJson?.schemaStatus === "unavailable");
         if (risksJson?.risks) setRisks(risksJson.risks);
         if (escJson?.data) setEscalations(escJson.data);
         if (peopleJson?.data) setPeople(peopleJson.data);
@@ -60,6 +63,8 @@ export function TeamRisks() {
   useEffect(() => {
     loadData();
   }, []);
+
+  if (schemaUnavailable) return <TeamSchemaUnavailable title="Team Risks & Escalations" description="Coordination bottlenecks, single-owner dependencies, and operational escalations." />;
 
   const handleCreateEscalation = async (e: React.FormEvent) => {
     e.preventDefault();

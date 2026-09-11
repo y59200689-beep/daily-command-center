@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { apiError } from "@/lib/api";
+import { apiError, isMissingOptionalSchema } from "@/lib/api";
 import { requireUser } from "@/lib/supabase/server";
 
 const systemSchema = z.object({
@@ -34,6 +34,7 @@ export async function GET() {
 
     return NextResponse.json({ systems });
   } catch (error) {
+    if (isMissingOptionalSchema(error)) return NextResponse.json({ systems: [], schemaStatus: "unavailable", schemaDependency: "V11 operations schema" });
     return apiError(error, "Systems registry could not be loaded.");
   }
 }

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
+import { SearchInput } from "@/components/ui/search-input";
 import { useDeferredEffect } from "@/lib/use-deferred-effect";
 
 type Row = Record<string, unknown> & { id: string; link_id?: string };
@@ -116,7 +117,7 @@ export function DecisionResearchPanel({ decisionId }: { decisionId: string }) {
             <option value="brief">Research Brief</option>
           </select>
           <label htmlFor={`research-search-${decisionId}`}>Search</label>
-          <input id={`research-search-${decisionId}`} value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search by title" />
+          <SearchInput id={`research-search-${decisionId}`} label="Search research" containerClassName="search-control--full" value={query} onChange={(event) => setQuery(event.target.value)} onClear={() => setQuery("")} placeholder="Search by title" />
           <label htmlFor={`research-item-${decisionId}`}>Owned record</label>
           <select id={`research-item-${decisionId}`} required value={selected} onChange={(event) => setSelected(event.target.value)}>
             <option value="">{filteredOptions.length ? "Select a record" : "No records available"}</option>

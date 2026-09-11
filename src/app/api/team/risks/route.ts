@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { apiError } from "@/lib/api";
+import { apiError, isMissingOptionalSchema } from "@/lib/api";
 import { requireUser } from "@/lib/supabase/server";
 import {
   detectTeamRisks,
@@ -29,6 +29,8 @@ export async function GET() {
       supabase.from("operational_handoffs").select("id,accepted,expected_handoff_time").eq("user_id", userId),
       supabase.from("team_availability").select("*").eq("user_id", userId),
     ]);
+    const failed = [peopleRes, delegationsRes, responsibilitiesRes, escalationsRes, handoffsRes, availabilityRes].find((result) => result.error);
+    if (failed?.error) throw failed.error;
 
     const people = (peopleRes.data ?? []) as TeamPerson[];
     const delegations = (delegationsRes.data ?? []) as TeamDelegation[];
@@ -52,6 +54,7 @@ export async function GET() {
       mediumCount: risks.filter((r) => r.severity === "medium").length,
     });
   } catch (error) {
+    if (isMissingOptionalSchema(error)) return NextResponse.json({ risks: [], criticalCount: 0, highCount: 0, mediumCount: 0, schemaStatus: "unavailable", schemaDependency: "V12 Team Coordination schema" });
     return apiError(error, "Team risks could not be loaded.");
   }
 }

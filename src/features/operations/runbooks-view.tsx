@@ -11,6 +11,7 @@ export function RunbooksView() {
   const [runbooks, setRunbooks] = useState<RunbookRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [schemaUnavailable, setSchemaUnavailable] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [title, setTitle] = useState("");
   const [triggerCondition, setTriggerCondition] = useState("");
@@ -23,6 +24,7 @@ export function RunbooksView() {
       const res = await fetch("/api/operations/runbooks", { cache: "no-store" });
       const body = await res.json();
       if (res.ok) {
+        setSchemaUnavailable(body.schemaStatus === "unavailable");
         setRunbooks(body.runbooks || []);
       } else {
         setError(body.error || "Failed to load runbooks");
@@ -80,13 +82,18 @@ export function RunbooksView() {
         <div className="operations-header-actions">
           <Link href="/operations"><Button emphasis="outline">Overview</Button></Link>
           <Link href="/operations/systems"><Button emphasis="outline">Systems</Button></Link>
-          <Button intent="brand" onClick={() => setShowModal(true)}>New Runbook</Button>
+          {!schemaUnavailable ? <Button intent="brand" onClick={() => setShowModal(true)}>New Runbook</Button> : null}
         </div>
       </header>
 
       {error ? <p role="alert" className="field-error">{error}</p> : null}
 
-      <div className="data-surface">
+      {schemaUnavailable ? (
+        <section className="data-surface empty-state">
+          <h2>Emergency Runbooks are unavailable</h2>
+          <p>This workspace is missing the optional V11 operations schema. Runbook creation will be available after that dependency is installed.</p>
+        </section>
+      ) : <div className="data-surface">
         {loading ? (
           <p className="faint-note">Loading runbooks...</p>
         ) : runbooks.length === 0 ? (
@@ -111,7 +118,7 @@ export function RunbooksView() {
             </div>
           ))
         )}
-      </div>
+      </div>}
 
       {showModal && (
         <div className="modal-backdrop" role="dialog" aria-modal="true">

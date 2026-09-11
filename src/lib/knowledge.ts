@@ -1,5 +1,11 @@
 export type Freshness = "current" | "review_soon" | "stale" | "no_rule";
 
+export function isMissingKnowledgeSchema(error: unknown) {
+  if (!error || typeof error !== "object") return false;
+  const candidate = error as { code?: string; message?: string };
+  return candidate.code === "PGRST205" || candidate.code === "42P01" || /research_topics|knowledge_sources|research_findings|research_questions|research_briefs|watch_entities|knowledge_collections|collection_items|watch_updates/i.test(candidate.message ?? "");
+}
+
 export function sourceFreshness(expiresAt?: string | null, today = new Date().toISOString().slice(0, 10)): Freshness {
   if (!expiresAt) return "no_rule";
   const days = Math.ceil((Date.parse(`${expiresAt}T00:00:00Z`) - Date.parse(`${today}T00:00:00Z`)) / 86_400_000);

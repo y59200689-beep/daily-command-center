@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { Icons } from "@/components/icons";
 import "./executive.css";
 
 type AttentionItem = {
@@ -61,7 +62,7 @@ export function ExecutiveAttentionView() {
           {/* Immediate */}
           <section className="mb-8">
             <div className="executive-section-title">
-              <span>🔴 Requires Immediate Attention</span>
+              <span className="flex items-center gap-2"><Icons.AlertTriangle size={15} aria-hidden="true" />Requires Immediate Attention</span>
               <span className="text-xs text-red-400 font-normal">{data.immediate.length} items</span>
             </div>
             {data.immediate.length === 0 ? (
@@ -88,7 +89,7 @@ export function ExecutiveAttentionView() {
           {/* Today */}
           <section className="mb-8">
             <div className="executive-section-title">
-              <span>🟡 Handle Today</span>
+              <span className="flex items-center gap-2"><Icons.Clock3 size={15} aria-hidden="true" />Handle Today</span>
               <span className="text-xs text-amber-400 font-normal">{data.today.length} items</span>
             </div>
             {data.today.length === 0 ? (
@@ -115,7 +116,7 @@ export function ExecutiveAttentionView() {
           {/* This Week */}
           <section className="mb-8">
             <div className="executive-section-title">
-              <span>🔵 This Week</span>
+              <span className="flex items-center gap-2"><Icons.CalendarDays size={15} aria-hidden="true" />This Week</span>
               <span className="text-xs text-blue-400 font-normal">{data.thisWeek.length} items</span>
             </div>
             {data.thisWeek.length === 0 ? (
@@ -140,7 +141,7 @@ export function ExecutiveAttentionView() {
           {data.delegationCandidates.length > 0 && (
             <section className="mb-6">
               <div className="executive-section-title">
-                <span>🤝 Delegation Candidates</span>
+                <span className="flex items-center gap-2"><Icons.Users size={15} aria-hidden="true" />Delegation Candidates</span>
                 <Link href="/team/delegations" className="text-xs text-blue-400 hover:underline font-normal">Open Delegations →</Link>
               </div>
               <div className="space-y-2">

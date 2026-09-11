@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { apiError } from "@/lib/api";
+import { apiError, isMissingOptionalSchema } from "@/lib/api";
 import { requireUser } from "@/lib/supabase/server";
 import { validateRunCompletion } from "@/lib/operations";
 
@@ -38,6 +38,7 @@ export async function GET(_request: Request, context: { params: Promise<{ id: st
       timeline: timelineRes.data ?? [],
     });
   } catch (error) {
+    if (isMissingOptionalSchema(error)) return NextResponse.json({ schemaStatus: "unavailable", schemaDependency: "V11 operations schema" });
     return apiError(error, "Run detail could not be loaded.");
   }
 }

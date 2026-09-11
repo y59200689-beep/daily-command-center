@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { apiError } from "@/lib/api";
+import { apiError, isMissingOptionalSchema } from "@/lib/api";
 import { requireUser } from "@/lib/supabase/server";
 
 export async function GET(request: Request) {
@@ -28,6 +28,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json({ data: data ?? [] });
   } catch (error) {
+    if (isMissingOptionalSchema(error)) return NextResponse.json({ data: [], schemaStatus: "unavailable", schemaDependency: "V13 Customer Success schema" });
     return apiError(error, "Renewals could not be loaded.");
   }
 }

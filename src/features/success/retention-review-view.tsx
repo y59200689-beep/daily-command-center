@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Icons } from "@/components/icons";
+import { SuccessSchemaUnavailable } from "./schema-unavailable";
 
 interface RetentionReview {
   period: "week" | "month";
@@ -27,6 +28,7 @@ export function RetentionReviewView() {
   const [data, setData] = useState<RetentionReview | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [schemaUnavailable, setSchemaUnavailable] = useState(false);
   const [period, setPeriod] = useState<"week" | "month">("week");
 
   useEffect(() => {
@@ -38,6 +40,7 @@ export function RetentionReviewView() {
       })
       .then((json) => {
         if (!cancelled) {
+          setSchemaUnavailable(json.schemaStatus === "unavailable");
           setData(json.data);
           setLoading(false);
         }
@@ -89,6 +92,7 @@ export function RetentionReviewView() {
 
       {loading && <p style={{ color: "var(--text-secondary)" }}>Loading retention review…</p>}
       {error && <p style={{ color: "var(--color-red-500)" }}>{error}</p>}
+      {schemaUnavailable && <SuccessSchemaUnavailable />}
 
       {!loading && data && (
         <>
@@ -127,7 +131,7 @@ export function RetentionReviewView() {
             <div className="card">
               <h2 className="card-title" style={{ marginBottom: "0.75rem" }}>Top Open Risks</h2>
               {data.topRisks.length === 0 ? (
-                <p style={{ fontSize: "0.8rem", color: "#10b981" }}>No open risks. 🎉</p>
+                <p style={{ fontSize: "0.8rem", color: "#10b981" }}>No open risks.</p>
               ) : (
                 <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
                   {data.topRisks.map((r) => (
@@ -149,7 +153,7 @@ export function RetentionReviewView() {
             <div className="card">
               <h2 className="card-title" style={{ marginBottom: "0.75rem" }}>Top Open Issues</h2>
               {data.topIssues.length === 0 ? (
-                <p style={{ fontSize: "0.8rem", color: "#10b981" }}>No open issues. 🎉</p>
+                <p style={{ fontSize: "0.8rem", color: "#10b981" }}>No open issues.</p>
               ) : (
                 <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
                   {data.topIssues.map((i) => (
