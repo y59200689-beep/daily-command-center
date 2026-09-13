@@ -156,14 +156,14 @@ export function GrowthExperiments() {
       </section>
 
       <Modal open={open} onClose={() => { setOpen(false); resetForm(); }} title="New growth experiment" description="State a testable hypothesis and define what you'll measure.">
-        <form className="simple-form" onSubmit={(e) => { e.preventDefault(); void create(); }} noValidate>
+        <form noValidate className="simple-form" onSubmit={(e) => { e.preventDefault(); void create(); }}>
           <label>
             Experiment name
             <input required value={name} onChange={(e) => setName(e.target.value)} autoFocus />
           </label>
           <label>
             Hypothesis
-            <textarea required value={hypothesis} onChange={(e) => setHypothesis(e.target.value)} rows={3} placeholder="If we do X, we expect Y because Z." />
+            <textarea className="resize-none" required value={hypothesis} onChange={(e) => setHypothesis(e.target.value)} rows={3} placeholder="If we do X, we expect Y because Z." />
           </label>
           <label>
             Target metric

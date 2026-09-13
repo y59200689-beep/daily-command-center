@@ -280,14 +280,14 @@ export function DelegationsView() {
 
       {/* CREATE MODAL */}
       <Modal open={createOpen} onClose={() => setCreateOpen(false)} title="New Delegation">
-        <form onSubmit={handleCreate} style={{ display: "grid", gap: "14px" }}>
+        <form noValidate onSubmit={handleCreate} style={{ display: "grid", gap: "14px" }}>
           <div>
             <label className="field-label">Title *</label>
             <input required type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Set up weekly inventory sync" className="text-input" />
           </div>
           <div>
             <label className="field-label">Expected Outcome *</label>
-            <textarea required value={expectedOutcome} onChange={(e) => setExpectedOutcome(e.target.value)} placeholder="What specific result will confirm this is complete?" className="text-input" rows={3} />
+            <textarea required value={expectedOutcome} onChange={(e) => setExpectedOutcome(e.target.value)} placeholder="What specific result will confirm this is complete?" className="text-input resize-none" rows={3} />
           </div>
           <div>
             <label className="field-label">Delegate To *</label>
@@ -322,7 +322,7 @@ export function DelegationsView() {
 
       {/* REASSIGN MODAL */}
       <Modal open={reassignOpen} onClose={() => setReassignOpen(false)} title="Reassign Delegation">
-        <form onSubmit={handleReassign} style={{ display: "grid", gap: "14px" }}>
+        <form noValidate onSubmit={handleReassign} style={{ display: "grid", gap: "14px" }}>
           <p className="muted" style={{ fontSize: "13px" }}>
             Reassigning <strong>{targetDelegation?.title}</strong> will preserve history and record the transfer.
           </p>
@@ -337,7 +337,7 @@ export function DelegationsView() {
           </div>
           <div>
             <label className="field-label">Reason for Reassignment</label>
-            <textarea value={reassignReason} onChange={(e) => setReassignReason(e.target.value)} placeholder="e.g. Workload rebalancing, specialist handover" className="text-input" rows={2} />
+            <textarea value={reassignReason} onChange={(e) => setReassignReason(e.target.value)} placeholder="e.g. Workload rebalancing, specialist handover" className="text-input resize-none" rows={2} />
           </div>
           <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px" }}>
             <button type="button" onClick={() => setReassignOpen(false)} className="button button--secondary">Cancel</button>
@@ -348,10 +348,10 @@ export function DelegationsView() {
 
       {/* BLOCK MODAL */}
       <Modal open={blockOpen} onClose={() => setBlockOpen(false)} title="Record Blocker">
-        <form onSubmit={handleBlockSubmit} style={{ display: "grid", gap: "14px" }}>
+        <form noValidate onSubmit={handleBlockSubmit} style={{ display: "grid", gap: "14px" }}>
           <div>
             <label className="field-label">Blocker Reason *</label>
-            <textarea required value={blockReason} onChange={(e) => setBlockReason(e.target.value)} placeholder="What is blocking this outcome from proceeding?" className="text-input" rows={3} />
+            <textarea required value={blockReason} onChange={(e) => setBlockReason(e.target.value)} placeholder="What is blocking this outcome from proceeding?" className="text-input resize-none" rows={3} />
           </div>
           <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px" }}>
             <button type="button" onClick={() => setBlockOpen(false)} className="button button--secondary">Cancel</button>

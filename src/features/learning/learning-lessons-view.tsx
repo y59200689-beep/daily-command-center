@@ -169,7 +169,7 @@ export function LearningLessonsView() {
               </div>
             )}
 
-            <form onSubmit={handlePropose} style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
+            <form noValidate onSubmit={handlePropose} style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
               <div>
                 <label style={{ fontSize: "0.8rem", color: "#94a3b8", display: "block", marginBottom: "0.25rem" }}>
                   Title
@@ -188,7 +188,7 @@ export function LearningLessonsView() {
                 <label style={{ fontSize: "0.8rem", color: "#94a3b8", display: "block", marginBottom: "0.25rem" }}>
                   Statement (Operational Guidance)
                 </label>
-                <textarea
+                <textarea className="resize-none"
                   required
                   rows={3}
                   value={statement}
@@ -202,7 +202,7 @@ export function LearningLessonsView() {
                 <label style={{ fontSize: "0.8rem", color: "#94a3b8", display: "block", marginBottom: "0.25rem" }}>
                   Why Proposed (Empirical Evidence Basis)
                 </label>
-                <textarea
+                <textarea className="resize-none"
                   required
                   rows={2}
                   value={whyProposed}

@@ -76,8 +76,8 @@ export function ProcessList() {
           </p>
         </div>
         <div className="operations-header-actions">
-          <Link href="/operations"><Button emphasis="outline">Overview</Button></Link>
-          <Link href="/operations/runs"><Button emphasis="outline">All Runs</Button></Link>
+          <Link href="/operations" className="button button--outline">Overview</Link>
+          <Link href="/operations/runs" className="button button--outline">All Runs</Link>
         </div>
       </header>
 

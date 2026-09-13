@@ -63,12 +63,12 @@ const schemas = {
 
 export type DomainRecord = Record<string, unknown> & { id: string };
 
-export const domainConfig: Record<PersistedDomain, { table: string; schema: z.ZodType; titleField: string; secondary: string; tertiary: string; sort: string }> = {
+export const domainConfig: Record<PersistedDomain, { table: string; schema: z.ZodType; titleField: string; secondary: string; tertiary: string; sort: string; sortAscending?: boolean }> = {
   tasks: { table: "tasks", schema: schemas.tasks, titleField: "title", secondary: "status", tertiary: "due_date", sort: "created_at" },
   inbox: { table: "inbox_items", schema: schemas.inbox, titleField: "raw_text", secondary: "detected_type", tertiary: "created_at", sort: "created_at" },
   projects: { table: "projects", schema: schemas.projects, titleField: "name", secondary: "status", tertiary: "progress", sort: "updated_at" },
   clients: { table: "clients", schema: schemas.clients, titleField: "name", secondary: "company", tertiary: "next_follow_up_at", sort: "updated_at" },
-  followups: { table: "followups", schema: schemas.followups, titleField: "title", secondary: "status", tertiary: "due_at", sort: "due_at" },
+  followups: { table: "followups", schema: schemas.followups, titleField: "title", secondary: "status", tertiary: "due_at", sort: "due_at", sortAscending: true },
   waiting: { table: "waiting_items", schema: schemas.waiting, titleField: "title", secondary: "contact", tertiary: "expected_by", sort: "created_at" },
   notes: { table: "notes", schema: schemas.notes, titleField: "title", secondary: "category", tertiary: "updated_at", sort: "updated_at" },
   goals: { table: "goals", schema: schemas.goals, titleField: "title", secondary: "period", tertiary: "progress", sort: "updated_at" },
@@ -78,14 +78,14 @@ export const domainConfig: Record<PersistedDomain, { table: string; schema: z.Zo
   invoices: { table: "invoices", schema: schemas.invoices, titleField: "invoice_number", secondary: "status", tertiary: "amount_remaining", sort: "created_at" },
   payments: { table: "payments", schema: schemas.payments, titleField: "reference", secondary: "payment_method", tertiary: "amount", sort: "payment_date" },
   expenses: { table: "expenses", schema: schemas.expenses, titleField: "description", secondary: "category", tertiary: "amount", sort: "expense_date" },
-  subscriptions: { table: "subscriptions", schema: schemas.subscriptions, titleField: "name", secondary: "status", tertiary: "next_billing_date", sort: "next_billing_date" },
+  subscriptions: { table: "subscriptions", schema: schemas.subscriptions, titleField: "name", secondary: "status", tertiary: "next_billing_date", sort: "next_billing_date", sortAscending: true },
   campaigns: { table: "campaigns", schema: schemas.campaigns, titleField: "name", secondary: "status", tertiary: "end_date", sort: "updated_at" },
   finance: { table: "finance_transactions", schema: schemas.finance, titleField: "notes", secondary: "status", tertiary: "amount", sort: "occurred_on" },
   content: { table: "content_items", schema: schemas.content, titleField: "title", secondary: "status", tertiary: "publish_date", sort: "updated_at" },
   fitness: { table: "fitness_activities", schema: schemas.fitness, titleField: "activity_type", secondary: "duration_minutes", tertiary: "date", sort: "date" },
   "fitness-targets": { table: "fitness_targets", schema: schemas["fitness-targets"], titleField: "activity_type", secondary: "target_type", tertiary: "target_value", sort: "updated_at" },
   "notification-preferences": { table:"notification_preferences",schema:schemas["notification-preferences"],titleField:"category",secondary:"minimum_severity",tertiary:"enabled",sort:"updated_at" },
-  calendar: { table: "calendar_events", schema: schemas.calendar, titleField: "title", secondary: "starts_at", tertiary: "timezone", sort: "starts_at" },
+  calendar: { table: "calendar_events", schema: schemas.calendar, titleField: "title", secondary: "starts_at", tertiary: "timezone", sort: "starts_at", sortAscending: true },
 };
 
 export function isPersistedDomain(value: string): value is PersistedDomain { return domainKeys.includes(value as PersistedDomain); }

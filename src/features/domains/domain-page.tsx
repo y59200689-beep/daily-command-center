@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useCallback, useDeferredValue, useEffect, useRef, useState } from "react";
+import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { AttachmentSection } from "@/components/attachment-section";
 import { Icons } from "@/components/icons";
 import { Button } from "@/components/ui/button";
@@ -37,7 +37,7 @@ const f = (key: string, label: string, type?: Field["type"], options?: string[],
 const c = (eyebrow: string, title: string, intro: string, action: string, columns: string[], titleField: string, secondary: string, tertiary: string, fields: Field[]): Config => ({ eyebrow, title, intro, action, columns, titleField, secondary, tertiary, fields });
 const configs: Record<DomainKey, Config> = {
     tasks: c("Execution", "Tasks", "A deliberate list of commitments—not a graveyard of good intentions.", "New task", ["Task", "Status", "Due"], "title", "status", "due_date", [f("title", "Task", "text", undefined, true), f("description", "Notes", "textarea"), f("status", "Status", "select", ["inbox", "planned", "in_progress", "waiting", "blocked", "completed", "cancelled"]), f("priority", "Priority", "select", ["none", "low", "medium", "high", "urgent"]), f("due_date", "Due date", "date")]),
-    inbox: c("Triage", "Inbox", "Give every loose thought a useful home.", "Capture", ["Captured item", "Detected as", "Captured"], "raw_text", "detected_type", "created_at", [f("raw_text", "Capture", "textarea", undefined, true), f("detected_type", "Type", "select", ["inbox", "task", "note", "idea", "decision", "follow-up"])]),
+    inbox: c("Triage", "Inbox", "Capture quickly, then decide what each item becomes.", "Capture", ["Captured item", "Detected as", "Captured"], "raw_text", "detected_type", "created_at", [f("raw_text", "Capture", "textarea", undefined, true), f("detected_type", "Type", "select", ["inbox", "task", "note", "idea", "decision", "follow-up"]), f("status", "Triage status", "select", ["unprocessed", "processed", "archived"])]),
     projects: c("Workspace", "Projects", "See momentum, risk, and the next meaningful move.", "New project", ["Project", "Status", "Progress"], "name", "status", "progress", [f("name", "Project name", "text", undefined, true), f("description", "Description", "textarea"), f("status", "Status", "select", ["idea", "planning", "active", "paused", "completed", "archived"]), f("progress", "Progress", "number"), f("value_amount", "Project value", "number"), f("currency", "Currency"), f("target_date", "Target date", "date")]),
     clients: c("Relationships", "Clients", "Keep promises, context, and follow-ups close together.", "New client", ["Client", "Company", "Next contact"], "name", "company", "next_follow_up_at", [f("name", "Client name", "text", undefined, true), f("company", "Company"), f("email", "Email"), f("phone", "Phone"), f("notes", "Notes", "textarea")]),
     followups: c("Relationships", "Follow-ups", "Keep every promised check-in visible.", "New follow-up", ["Follow-up", "Status", "Due"], "title", "status", "due_at", [f("title", "Follow-up", "text", undefined, true), f("due_at", "Due", "datetime-local"), f("status", "Status", "select", ["open", "done", "cancelled"]), f("notes", "Notes", "textarea")]),
@@ -78,6 +78,9 @@ export function DomainPage({ domain, embedded = false, onMutationSuccess, refres
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [query, setQuery] = useState("");
+    const [statusFilter, setStatusFilter] = useState("open");
+    const [priorityFilter, setPriorityFilter] = useState("all");
+    const [calendarView, setCalendarView] = useState<"month" | "agenda">("month");
     const deferredQuery=useDeferredValue(query);
     const [page,setPage]=useState(1);
     const [total,setTotal]=useState(0);
@@ -110,7 +113,13 @@ export function DomainPage({ domain, embedded = false, onMutationSuccess, refres
         previousRefreshToken.current = refreshToken;
         void load();
     }, [load, refreshToken]);
-    const rows = records;
+    const rows = useMemo(() => records.filter((record) => {
+        if (domain !== "tasks") return true;
+        const status = String(record.status ?? "");
+        const priority = String(record.priority ?? "none");
+        const statusMatches = statusFilter === "all" || statusFilter === "open" && !["completed", "cancelled"].includes(status) || status === statusFilter;
+        return statusMatches && (priorityFilter === "all" || priority === priorityFilter);
+    }), [domain, priorityFilter, records, statusFilter]);
     if (domain === "assistant")
         return <AssistantView config={config}/>;
     if (domain === "settings")
@@ -146,13 +155,29 @@ export function DomainPage({ domain, embedded = false, onMutationSuccess, refres
         const data = await response.json();
         setError(data.error ?? "Record could not be archived.");
     } }
+    async function toggleTask(record: DomainRecord) {
+        const completed = record.status === "completed";
+        const response = await fetch(`/api/entities/tasks/${record.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: completed ? "planned" : "completed", completed_at: completed ? null : new Date().toISOString() }) });
+        const data = await response.json();
+        if (!response.ok) { showToast(data.error ?? "Task could not be updated.", "error"); return; }
+        setRecords((current) => current.map((item) => item.id === record.id ? data.record : item));
+        showToast(completed ? "Task reopened." : "Task completed.");
+        announceWorkspaceMutation("tasks");
+    }
+    async function resolveInbox(record: DomainRecord) {
+        const response = await fetch(`/api/entities/inbox/${record.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: "processed" }) });
+        const data = await response.json();
+        if (!response.ok) { showToast(data.error ?? "Inbox item could not be cleared.", "error"); return; }
+        setRecords((current) => current.map((item) => item.id === record.id ? data.record : item));
+        showToast("Inbox item cleared."); announceWorkspaceMutation("inbox");
+    }
     return <div className={`domain-page ${embedded ? "domain-page--embedded" : ""}`}>
         {embedded ? <div className="embedded-heading"><div><p className="eyebrow">Manage records</p><h2>{config.title}</h2></div><Button intent="brand" onClick={() => begin()}><Icons.Plus size={16}/>{config.action}</Button></div> : <header className="page-header"><div><p className="eyebrow">{config.eyebrow}</p><h1>{config.title}</h1><p>{config.intro}</p></div><Button intent="brand" onClick={() => begin()}><Icons.Plus size={16}/>{config.action}</Button></header>}
         {domain === "calendar" ? <CalendarConflicts onEdit={begin} onResolved={load} /> : null}
-        <div className="domain-toolbar"><SearchInput ref={inputRef} id={`${domain}-search`} label={`Search ${domain}`} value={query} onChange={(event) => {setQuery(event.target.value);setPage(1)}} onClear={() => {setQuery("");setPage(1)}} placeholder={`Search ${domain}…`}/><span className="status">{total} total</span></div>
+        <div className="domain-toolbar"><SearchInput ref={inputRef} id={`${domain}-search`} label={`Search ${domain}`} value={query} onChange={(event) => {setQuery(event.target.value);setPage(1)}} onClear={() => {setQuery("");setPage(1)}} placeholder={`Search ${domain}…`}/><div className="domain-toolbar__controls">{domain === "tasks" ? <><label className="compact-select"><span>Status</span><select aria-label="Filter tasks by status" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}><option value="open">Open</option><option value="all">All</option><option value="inbox">Inbox</option><option value="planned">Planned</option><option value="in_progress">In progress</option><option value="waiting">Waiting</option><option value="blocked">Blocked</option><option value="completed">Completed</option></select></label><label className="compact-select"><span>Priority</span><select aria-label="Filter tasks by priority" value={priorityFilter} onChange={(event) => setPriorityFilter(event.target.value)}><option value="all">All priorities</option><option value="urgent">Urgent</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option><option value="none">No priority</option></select></label></> : null}{domain === "calendar" ? <div className="view-switch" aria-label="Calendar view"><button className={calendarView === "month" ? "active" : ""} onClick={() => setCalendarView("month")}>Month</button><button className={calendarView === "agenda" ? "active" : ""} onClick={() => setCalendarView("agenda")}>Agenda</button></div> : null}<span className="record-count">{total} {total === 1 ? "item" : "items"}</span></div></div>
         {error && !open ? <ErrorState error={error} retry={load}/> : null}
-        {loading ? <div className="empty-state" aria-live="polite"><span>···</span><h2>Loading {config.title.toLowerCase()}</h2></div> : domain === "projects" ? <ProjectGrid rows={rows} onEdit={begin}/> : <div className="data-surface"><div className="data-header">{config.columns.map((column) => <span key={column}>{column}</span>)}</div>{rows.length ? rows.map((record) => <button className="data-row data-row--button" onClick={() => begin(record)} key={record.id}><strong>{display(record[config.titleField])}</strong><span>{display(record[config.secondary])}</span><span>{display(record[config.tertiary])}</span><Icons.MoreHorizontal size={17}/></button>) : <EmptyState query={query} title={config.title} action={config.action} clear={() => setQuery("")} create={() => begin()}/>}</div>}
-        <div className="dataset-pagination"><p className="dataset-note">Showing {rows.length?((page-1)*50)+1:0}–{Math.min(page*50,total)} of {total} · Authenticated Supabase workspace</p><div><Button emphasis="ghost" disabled={page===1} onClick={()=>setPage((current)=>Math.max(1,current-1))}>Previous</Button><Button emphasis="ghost" disabled={page*50>=total} onClick={()=>setPage((current)=>current+1)}>Next</Button></div></div>
+        {loading ? <div className="loading-state" aria-live="polite"><span className="loading-spinner"/><p>Loading {config.title.toLowerCase()}…</p></div> : domain === "projects" ? <ProjectGrid rows={rows} onEdit={begin}/> : domain === "tasks" ? <TaskTable rows={rows} onEdit={begin} onToggle={toggleTask} empty={<EmptyState query={query} title={config.title} action={config.action} clear={() => setQuery("")} create={() => begin()}/>}/> : domain === "inbox" ? <InboxList rows={rows} onEdit={begin} onResolve={resolveInbox} empty={<EmptyState query={query} title={config.title} action={config.action} clear={() => setQuery("")} create={() => begin()}/>}/> : domain === "calendar" ? <CalendarWorkspace rows={rows} view={calendarView} onEdit={begin} empty={<EmptyState query={query} title={config.title} action={config.action} clear={() => setQuery("")} create={() => begin()}/>}/> : <div className="data-surface"><div className="data-header">{config.columns.map((column) => <span key={column}>{column}</span>)}</div>{rows.length ? rows.map((record) => <button className="data-row data-row--button" onClick={() => begin(record)} key={record.id}><strong>{display(record[config.titleField])}</strong><span>{display(record[config.secondary])}</span><span>{display(record[config.tertiary])}</span><Icons.MoreHorizontal size={17}/></button>) : <EmptyState query={query} title={config.title} action={config.action} clear={() => setQuery("")} create={() => begin()}/>}</div>}
+        {total > 50 || page > 1 ? <nav className="dataset-pagination" aria-label={`${config.title} pagination`}><p className="dataset-note">Showing {rows.length?((page-1)*50)+1:0}–{Math.min(page*50,total)} of {total}</p><div><Button emphasis="ghost" disabled={page===1} onClick={()=>setPage((current)=>Math.max(1,current-1))}>Previous</Button><Button emphasis="ghost" disabled={page*50>=total} onClick={()=>setPage((current)=>current+1)}>Next</Button></div></nav> : null}
         <Modal open={open} onClose={() => setOpen(false)} title={editing ? `Edit ${config.title.toLowerCase().replace(/s$/, "")}` : config.action} description="Changes are saved to your private workspace.">
             {editing && domain === "calendar" ? <div className="meeting-capture-entry"><Link className="button button--outline button--neutral" href={`/meeting/${editing.id}/capture`}>Capture meeting outcome</Link><Link className="button button--ghost button--neutral" href={`/meeting/${editing.id}`}>Open meeting brief</Link></div> : null}
             <form className="simple-form" onSubmit={save} noValidate>{config.fields.map((field) => <FormField field={field} value={values[field.key] ?? ""} setValue={(value) => setValues((current) => ({ ...current, [field.key]: value }))} key={field.key}/>)}{error ? <p className="field-error" role="alert">{error}</p> : null}<div className="modal__actions">{editing ? <Button emphasis="danger" onClick={() => void archive(editing)}>{archiveArmed ? "Confirm archive" : "Archive"}</Button> : null}<Button emphasis="ghost" onClick={() => setOpen(false)}>Cancel</Button><Button intent="brand" type="submit" disabled={saving}>{saving ? "Saving…" : "Save changes"}</Button></div></form>
@@ -160,6 +185,29 @@ export function DomainPage({ domain, embedded = false, onMutationSuccess, refres
         </Modal>
     </div>;
 }
+function TaskTable({ rows, onEdit, onToggle, empty }: { rows: DomainRecord[]; onEdit: (record: DomainRecord) => void; onToggle: (record: DomainRecord) => Promise<void>; empty: ReactNode }) {
+    if (!rows.length) return <div className="data-surface">{empty}</div>;
+    return <div className="table-frame"><table className="work-table"><caption className="sr-only">Tasks</caption><thead><tr><th scope="col"><span className="sr-only">Complete</span></th><th scope="col">Task</th><th scope="col">Status</th><th scope="col">Priority</th><th scope="col">Due</th><th scope="col"><span className="sr-only">Actions</span></th></tr></thead><tbody>{rows.map((record) => { const done = record.status === "completed"; return <tr className={done ? "is-complete" : ""} key={record.id}><td><button className="task-check" aria-label={`${done ? "Reopen" : "Complete"} ${record.title}`} onClick={() => void onToggle(record)}>{done ? <Icons.Check size={14}/> : null}</button></td><td><button className="table-title" onClick={() => onEdit(record)}><strong>{display(record.title)}</strong>{record.description ? <small>{display(record.description)}</small> : null}</button></td><td><span className={`status status--${String(record.status ?? "neutral")}`}>{display(record.status)}</span></td><td><span className={`priority priority--${String(record.priority ?? "none")}`}>{display(record.priority)}</span></td><td><time>{formatDate(record.due_date)}</time></td><td><button className="icon-button" onClick={() => onEdit(record)} aria-label={`Edit ${record.title}`}><Icons.MoreHorizontal size={16}/></button></td></tr>; })}</tbody></table></div>;
+}
+function InboxList({ rows, onEdit, onResolve, empty }: { rows: DomainRecord[]; onEdit: (record: DomainRecord) => void; onResolve: (record: DomainRecord) => Promise<void>; empty: ReactNode }) {
+    if (!rows.length) return <div className="data-surface">{empty}</div>;
+    const unprocessed = rows.filter((record) => record.status !== "processed" && record.status !== "archived");
+    return <div className="inbox-workbench"><div className="inbox-summary"><strong>{unprocessed.length}</strong><span>to triage</span><p>Clarify the type, then clear the item when it has a home.</p></div><div className="inbox-list">{rows.map((record) => <article className={record.status === "processed" ? "inbox-item is-processed" : "inbox-item"} key={record.id}><div className="inbox-item__mark"><Icons.Inbox size={15}/></div><div><p>{display(record.raw_text)}</p><span>{display(record.detected_type)} · {new Date(String(record.created_at)).toLocaleDateString()}</span></div><div className="inbox-item__actions"><Button emphasis="ghost" onClick={() => onEdit(record)}>Organize</Button>{record.status !== "processed" ? <Button emphasis="outline" onClick={() => void onResolve(record)}><Icons.Check size={14}/> Clear</Button> : <span className="status status--completed">Cleared</span>}</div></article>)}</div></div>;
+}
+
+function CalendarWorkspace({ rows, view, onEdit, empty }: { rows: DomainRecord[]; view: "month" | "agenda"; onEdit: (record: DomainRecord) => void; empty: ReactNode }) {
+    const today = new Date();
+    const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+    const gridStart = new Date(monthStart); gridStart.setDate(1 - monthStart.getDay());
+    const days = Array.from({ length: 42 }, (_, index) => { const date = new Date(gridStart); date.setDate(gridStart.getDate() + index); return date; });
+    const eventMap = new Map<string, DomainRecord[]>();
+    rows.forEach((record) => { const key = String(record.starts_at ?? "").slice(0, 10); if (!key) return; eventMap.set(key, [...(eventMap.get(key) ?? []), record]); });
+    if (view === "agenda") return <div className="calendar-agenda">{rows.length ? rows.slice().sort((a,b) => String(a.starts_at).localeCompare(String(b.starts_at))).map((record) => <button className="calendar-agenda__row" onClick={() => onEdit(record)} key={record.id}><time><strong>{new Date(String(record.starts_at)).toLocaleDateString([], { month: "short", day: "numeric" })}</strong><span>{new Date(String(record.starts_at)).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span></time><span className="calendar-event-mark"/><span><strong>{display(record.title)}</strong><small>{display(record.description ?? record.timezone)}</small></span><Icons.ChevronRight size={16}/></button>) : empty}</div>;
+    return <><section className="calendar-board" aria-label={`${today.toLocaleDateString([], { month: "long", year: "numeric" })} calendar`}><div className="calendar-board__heading"><div><strong>{today.toLocaleDateString([], { month: "long" })}</strong><span>{today.getFullYear()}</span></div><span>{rows.length} scheduled</span></div><div className="calendar-weekdays" aria-hidden="true">{["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map((day) => <span key={day}>{day}</span>)}</div><div className="calendar-month">{days.map((date) => { const key = localDateKey(date); const events = eventMap.get(key) ?? []; const outside = date.getMonth() !== today.getMonth(); const isToday = key === localDateKey(today); return <div className={`calendar-day ${outside ? "is-outside" : ""} ${isToday ? "is-today" : ""}`} key={key}><time dateTime={key}>{date.getDate()}</time><div>{events.slice(0,3).map((record) => <button onClick={() => onEdit(record)} title={String(record.title)} key={record.id}><span>{new Date(String(record.starts_at)).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})}</span>{display(record.title)}</button>)}{events.length > 3 ? <small>+{events.length - 3} more</small> : null}</div></div>; })}</div></section>{rows.length ? <div className="calendar-mobile-agenda">{rows.slice().sort((a,b) => String(a.starts_at).localeCompare(String(b.starts_at))).map((record) => <button className="calendar-agenda__row" onClick={() => onEdit(record)} key={record.id}><time><strong>{new Date(String(record.starts_at)).toLocaleDateString([], { month: "short", day: "numeric" })}</strong><span>{new Date(String(record.starts_at)).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span></time><span className="calendar-event-mark"/><span><strong>{display(record.title)}</strong><small>{display(record.description ?? record.timezone)}</small></span><Icons.ChevronRight size={16}/></button>)}</div> : <div className="calendar-zero-prompt">{empty}</div>}</>;
+}
+
+function localDateKey(date: Date) { return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")}`; }
+function formatDate(value: unknown) { if (!value) return "No date"; const date = new Date(`${String(value).slice(0,10)}T12:00:00`); return date.toLocaleDateString([], { month: "short", day: "numeric" }); }
 function FormField({ field, value, setValue }: {
     field: Field;
     value: string;

@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useCallback, useState } from "react";
-import { Button } from "@/components/ui/button";
 import { useDeferredEffect } from "@/lib/use-deferred-effect";
 
 type RunRow = Record<string, unknown> & { id: string };
@@ -57,8 +56,8 @@ export function RunsList() {
           </p>
         </div>
         <div className="operations-header-actions">
-          <Link href="/operations"><Button emphasis="outline">Overview</Button></Link>
-          {!schemaUnavailable ? <Link href="/operations/processes"><Button intent="brand">Start from Process</Button></Link> : null}
+          <Link href="/operations" className="button button--outline">Overview</Link>
+          {!schemaUnavailable ? <Link href="/operations/processes" className="button button--solid button--brand">Start from Process</Link> : null}
         </div>
       </header>
 

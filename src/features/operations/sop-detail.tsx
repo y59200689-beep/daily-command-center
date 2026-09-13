@@ -108,7 +108,7 @@ export function SopDetail({ id }: SOPDetailProps) {
     return (
       <main className="domain-page operations-page">
         <p className="field-error">{error || "SOP not found"}</p>
-        <Link href="/operations/sops"><Button emphasis="outline">Back to Library</Button></Link>
+        <Link href="/operations/sops" className="button button--outline">Back to Library</Link>
       </main>
     );
   }
@@ -126,7 +126,7 @@ export function SopDetail({ id }: SOPDetailProps) {
           <p>{sop.description || "No description provided"}</p>
         </div>
         <div className="operations-header-actions">
-          <Link href="/operations/sops"><Button emphasis="outline">Library</Button></Link>
+          <Link href="/operations/sops" className="button button--outline">Library</Link>
           <Button emphasis="outline" onClick={handleMarkReviewed}>Mark Reviewed</Button>
           <Button intent="brand" onClick={() => setShowVersionModal(true)}>New Version</Button>
         </div>
@@ -208,7 +208,7 @@ export function SopDetail({ id }: SOPDetailProps) {
         <div className="modal-backdrop" role="dialog" aria-modal="true">
           <div className="modal-card">
             <h2>Publish New SOP Version (v{Number(sop.current_version) + 1})</h2>
-            <form onSubmit={handleCreateVersion}>
+            <form noValidate onSubmit={handleCreateVersion}>
               <label>
                 Summary of Changes
                 <input
@@ -221,7 +221,7 @@ export function SopDetail({ id }: SOPDetailProps) {
               </label>
               <label>
                 Updated Procedure Content (Markdown)
-                <textarea
+                <textarea className="resize-none"
                   rows={8}
                   required
                   value={newVersionContent}

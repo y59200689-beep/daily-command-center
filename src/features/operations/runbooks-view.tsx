@@ -80,8 +80,8 @@ export function RunbooksView() {
           </p>
         </div>
         <div className="operations-header-actions">
-          <Link href="/operations"><Button emphasis="outline">Overview</Button></Link>
-          <Link href="/operations/systems"><Button emphasis="outline">Systems</Button></Link>
+          <Link href="/operations" className="button button--outline">Overview</Link>
+          <Link href="/operations/systems" className="button button--outline">Systems</Link>
           {!schemaUnavailable ? <Button intent="brand" onClick={() => setShowModal(true)}>New Runbook</Button> : null}
         </div>
       </header>
@@ -124,7 +124,7 @@ export function RunbooksView() {
         <div className="modal-backdrop" role="dialog" aria-modal="true">
           <div className="modal-card">
             <h2>Create Emergency Runbook</h2>
-            <form onSubmit={handleCreateRunbook}>
+            <form noValidate onSubmit={handleCreateRunbook}>
               <label>
                 Runbook Title
                 <input
@@ -137,7 +137,7 @@ export function RunbooksView() {
               </label>
               <label>
                 Trigger Conditions
-                <textarea
+                <textarea className="resize-none"
                   rows={2}
                   value={triggerCondition}
                   onChange={(e) => setTriggerCondition(e.target.value)}
@@ -146,7 +146,7 @@ export function RunbooksView() {
               </label>
               <label>
                 Mitigation Steps
-                <textarea
+                <textarea className="resize-none"
                   rows={5}
                   value={mitigationSteps}
                   onChange={(e) => setMitigationSteps(e.target.value)}

@@ -159,7 +159,7 @@ export function LearningRetrospectivesView() {
         <div className="learning-modal-overlay">
           <div className="learning-modal-content">
             <h2 style={{ fontSize: "1.25rem", margin: 0 }}>Start Structured Retrospective</h2>
-            <form onSubmit={handleCreate} style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+            <form noValidate onSubmit={handleCreate} style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
               <div>
                 <label style={{ fontSize: "0.8rem", color: "#94a3b8", display: "block", marginBottom: "0.25rem" }}>
                   Title
@@ -228,7 +228,7 @@ export function LearningRetrospectivesView() {
                 <label style={{ fontSize: "0.8rem", color: "#94a3b8", display: "block", marginBottom: "0.25rem" }}>
                   Expected Plan (What was supposed to happen)
                 </label>
-                <textarea
+                <textarea className="resize-none"
                   rows={2}
                   value={expectedSummary}
                   onChange={(e) => setExpectedSummary(e.target.value)}
@@ -241,7 +241,7 @@ export function LearningRetrospectivesView() {
                 <label style={{ fontSize: "0.8rem", color: "#94a3b8", display: "block", marginBottom: "0.25rem" }}>
                   Observed Reality (What actually happened)
                 </label>
-                <textarea
+                <textarea className="resize-none"
                   rows={2}
                   value={actualSummary}
                   onChange={(e) => setActualSummary(e.target.value)}

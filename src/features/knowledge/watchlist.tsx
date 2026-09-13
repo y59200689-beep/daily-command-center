@@ -21,7 +21,7 @@ function WatchForm({ item, topics, onClose, onSave }: { item?: WatchEntity | nul
   const [saving, setSaving] = useState(false);
   return (
     <Modal open onClose={onClose} title={item ? "Edit watch item" : "New watch item"} description="Track a competitor, brand, market, or custom signal without fabricating data.">
-      <form className="simple-form" onSubmit={async (e) => { e.preventDefault(); setSaving(true); await onSave({ name, watch_type: watchType, topic_id: topicId || null, next_check_at: nextCheck || null, notes: notes || null }); setSaving(false); onClose(); }}>
+      <form noValidate className="simple-form" onSubmit={async (e) => { e.preventDefault(); setSaving(true); await onSave({ name, watch_type: watchType, topic_id: topicId || null, next_check_at: nextCheck || null, notes: notes || null }); setSaving(false); onClose(); }}>
         <label>Name<input required value={name} onChange={(e) => setName(e.target.value)} /></label>
         <label>Watch type
           <select value={watchType} onChange={(e) => setWatchType(e.target.value)}>
@@ -37,7 +37,7 @@ function WatchForm({ item, topics, onClose, onSave }: { item?: WatchEntity | nul
           </label>
         ) : null}
         <label>Next review date (optional)<input type="date" value={nextCheck} onChange={(e) => setNextCheck(e.target.value)} /></label>
-        <label>Notes (optional)<textarea rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} /></label>
+        <label>Notes (optional)<textarea className="resize-none" rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} /></label>
         <div className="modal__actions">
           <Button emphasis="ghost" type="button" onClick={onClose}>Cancel</Button>
           <Button intent="brand" type="submit" disabled={saving}>{saving ? "Saving…" : item ? "Save changes" : "Create watch item"}</Button>
@@ -55,9 +55,9 @@ function UpdateForm({ watchId, onClose, onSave }: { watchId: string; onClose: ()
   const UPDATE_TYPES = ["observation","pricing_change","product_change","announcement","market_shift","regulatory","partnership","other"];
   return (
     <Modal open onClose={onClose} title="Add watch update" description="Record an observation. Use your own sourced information only.">
-      <form className="simple-form" onSubmit={async (e) => { e.preventDefault(); setSaving(true); const body = JSON.stringify({ watch_id: watchId, summary, update_type: updateType, observed_at: new Date(observedAt + "T12:00:00Z").toISOString() }); await fetch("/api/knowledge/watch_updates", { method: "POST", headers: { "Content-Type": "application/json" }, body }); await onSave(); setSaving(false); onClose(); }}>
+      <form noValidate className="simple-form" onSubmit={async (e) => { e.preventDefault(); setSaving(true); const body = JSON.stringify({ watch_id: watchId, summary, update_type: updateType, observed_at: new Date(observedAt + "T12:00:00Z").toISOString() }); await fetch("/api/knowledge/watch_updates", { method: "POST", headers: { "Content-Type": "application/json" }, body }); await onSave(); setSaving(false); onClose(); }}>
         <label>Summary <small style={{ fontWeight: 400, color: "var(--muted)" }}>(your own sourced observation)</small>
-          <textarea required rows={4} value={summary} onChange={(e) => setSummary(e.target.value)} maxLength={4000} />
+          <textarea className="resize-none" required rows={4} value={summary} onChange={(e) => setSummary(e.target.value)} maxLength={4000} />
         </label>
         <label>Update type
           <select value={updateType} onChange={(e) => setUpdateType(e.target.value)}>

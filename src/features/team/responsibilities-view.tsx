@@ -197,7 +197,7 @@ export function ResponsibilitiesView() {
 
       {/* CREATE MODAL */}
       <Modal open={createOpen} onClose={() => setCreateOpen(false)} title="New Responsibility Area">
-        <form onSubmit={handleCreate} style={{ display: "grid", gap: "14px" }}>
+        <form noValidate onSubmit={handleCreate} style={{ display: "grid", gap: "14px" }}>
           {errorMsg && <p className="error-text" style={{ color: "var(--danger)" }}>{errorMsg}</p>}
           <div>
             <label className="field-label">Area Name *</label>
@@ -205,7 +205,7 @@ export function ResponsibilitiesView() {
           </div>
           <div>
             <label className="field-label">Description</label>
-            <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="What does this responsibility entail?" className="text-input" rows={2} />
+            <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="What does this responsibility entail?" className="text-input resize-none" rows={2} />
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
             <div>

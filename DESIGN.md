@@ -1,85 +1,92 @@
 ---
 version: alpha
 colors:
-  canvas: "#F4F5F1"
-  surface: "#FCFCF9"
-  ink: "#161815"
-  muted: "#686C65"
-  line: "#D9DCD3"
-  attention: "#3157D5"
-  success: "#387A58"
-  warning: "#A46222"
-  danger: "#B84438"
+  primary: "#5B5BD6"
+  canvas: "#F7F7F8"
+  surface: "#FFFFFF"
+  surfaceMuted: "#F1F2F4"
+  ink: "#202124"
+  muted: "#666A73"
+  line: "#E2E3E7"
+  attention: "#5B5BD6"
+  success: "#287A55"
+  warning: "#9A6418"
+  danger: "#B33A3A"
 typography:
   display:
-    fontFamily: '"Instrument Serif", Georgia, serif'
-    fontSize: "4rem"
-    lineHeight: "0.96"
+    fontFamily: '"Geist", Arial, sans-serif'
+    fontSize: "2.125rem"
+    lineHeight: "1.15"
   body:
     fontFamily: '"Geist", Arial, sans-serif'
-    fontSize: "0.9375rem"
+    fontSize: "0.8125rem"
     lineHeight: "1.5"
   utility:
     fontFamily: '"Geist Mono", monospace'
-    fontSize: "0.6875rem"
+    fontSize: "0.5625rem"
     lineHeight: "1.25"
 rounded:
-  control: "0.625rem"
-  surface: "0.875rem"
+  control: "0.4375rem"
+  surface: "0.5625rem"
   pill: "999px"
 spacing:
-  xs: "0.375rem"
-  sm: "0.625rem"
-  md: "1rem"
-  lg: "1.5rem"
-  xl: "2.5rem"
+  xs: "0.25rem"
+  sm: "0.5rem"
+  md: "0.875rem"
+  lg: "1.25rem"
+  xl: "2rem"
 components:
   button:
-    height: "2.5rem"
-    radius: "0.625rem"
+    height: "2.125rem"
+    rounded: "0.4375rem"
   panel:
-    radius: "0.875rem"
-    border: "1px solid var(--line)"
+    rounded: "0.5625rem"
   search:
-    height: "2.5rem"
-    rounded: "0.5rem"
+    height: "2.125rem"
+    rounded: "0.4375rem"
 ---
 
 ## Overview
 
-Daily Command Center is a personal briefing folio for one ambitious operator. It should feel like opening a carefully edited morning edition: decisive hierarchy, calm density, and the sense that the system has already sorted signal from noise. The product register leads; the memorable signature is a vertical cobalt attention beam that connects time, priority, and the next action. Avoid generic card mosaics, glass effects, rainbow category systems, and decorative statistics.
+Daily Command Center is a calm personal workbench for an operator moving between daily execution and deeper business systems. The product register leads: compact controls, dependable alignment, and purpose-built work views. Its signature is the attention rail—a narrow indigo edge used only on the selected destination and the single most useful next action. It must never become a decorative stripe system.
 
-Runtime CSS variables in `src/app/globals.css` are canonical (mapping model B). This file mirrors those semantic values and explains their use. Theme overrides preserve roles rather than literal color parity.
+The interface takes structural cues from mature productivity software without imitating any one product: Slack-like separation of frequent navigation from workspace depth, Notion-like contextual detail, and the purposeful view controls common to Monday and ClickUp. Avoid dashboard mosaics, motivational hero copy, mint-tinted canvases, decorative metrics, and inflated empty cards.
+
+Runtime variables in `src/app/product-system.css` are canonical (token mapping model B). This file mirrors accepted semantic values and explains intent. Legacy feature selectors remain in `src/app/globals.css` during migration, but shared shell and workflow styling must consume the canonical variables.
 
 ## Colors
 
-Neutral canvas and paper surfaces carry nearly all of the UI. Cobalt is reserved for the selected route, the current priority, focus state, and primary action. Green means completed, ochre means waiting or approaching, and red is reserved for destructive or overdue conditions. Project colors appear only as narrow marks.
+Neutral gray canvas and white surfaces carry the interface. Indigo is reserved for primary actions, selected navigation, focus, and the current item. Green communicates completion, amber communicates waiting or reversible caution, and red is reserved for destructive or failed states. Dark mode remaps semantic roles rather than inverting literal colors. Project colors may appear only as narrow identity marks.
 
 ## Typography
 
-Geist is the workhorse. Instrument Serif is used sparingly for the daily thesis and empty-state invitations; it never appears in controls or dense data. Geist Mono carries timestamps, counts, shortcuts, and ordered priority numbers.
+Geist is the sole display and body family so hierarchy comes from scale, weight, and spacing rather than editorial decoration. Page titles top out at 34px on desktop and 25px on mobile. Geist Mono is limited to dates, counts, shortcuts, and small section labels. Controls and table rows remain readable at compact SaaS density.
 
 ## Layout
 
-Desktop uses a 248px navigation rail, a fluid reading column, and a narrow context rail. Mobile is intentionally sequential: greeting, brief, first priority, next appointment, remaining priorities, waiting, capture. Breakpoints are 640px, 768px, 1024px, and 1440px; the tested targets also include 390px, 430px, and 1920px.
+Desktop uses a 232px persistent sidebar, a 52px command bar, and a fluid content workspace capped at 1480px. The first sidebar tier contains the six everyday destinations; deeper capabilities are grouped into four scan-friendly workspaces. At 767px and below, the sidebar becomes a drawer and a five-item bottom bar preserves Today, Tasks, Capture, Calendar, and More.
+
+List pages use a compact title/action row, one view-control bar, and a purpose-built work surface. Today puts the recommendation, focus capacity, priorities, and next calendar actions in the first viewport. Calendar uses a month surface on desktop and chronological agenda on mobile. Detail context stays in dialogs/sheets or existing detail routes so closing it preserves list context.
 
 ## Elevation & Depth
 
-Hierarchy comes from tone, rules, and overlap rather than shadow. Floating command surfaces use one restrained shadow. Static content remains flat.
+Static content is flat. Borders, tone, and alignment create separation. Only overlays, account menus, and command surfaces use the shared shadow. Hover never lifts routine controls.
 
 ## Shapes
 
-Controls use a 10px radius; contained surfaces use 14px. Pills belong only to status and filter chips. Large rounded rectangles are not a layout strategy.
+Controls use 7px radii and contained surfaces use 9px. Status markers use compact rounded rectangles; fully pill-shaped geometry is limited to binary status or exceptional compact metadata. Large rounded cards are not a page-layout device.
 
 ## Components
 
-Shared owners live in `src/components`: Button, AppShell, CommandPalette, QuickCapture, EmptyState, and domain rows. All interactive states include hover, active, visible focus, disabled, and busy behavior. The global stylesheet owns scrollbars and reduced motion.
+`AppShell` owns responsive navigation, search entry, account actions, theme, and capture. `DomainPage` owns canonical CRUD state and delegates to purpose-built Tasks, Inbox, Calendar, Projects, and generic record surfaces. `Button`, `Modal`, `SearchInput`, and `ToastProvider` remain canonical interaction owners. Every enabled action has hover, active, visible focus, disabled, and busy behavior; global scrollbars and reduced motion are defined once.
 
 ## Do's and Don'ts
 
-- Do lead with one clear recommendation and a credible explanation.
-- Do keep task rows compact, ordered, and easy to scan.
-- Do preserve line length and whitespace around editorial type.
-- Don't place every datum in a bordered card.
-- Don't use color without a text or icon cue.
-- Don't animate stable navigation or routine re-renders.
+- Do expose the next useful action before summaries or explanation.
+- Do use the same dataset controls and verbs across equivalent routes.
+- Do preserve compact desktop density and 44px mobile touch targets.
+- Do keep empty states short and actionable while preserving the shape of the real view.
+- Don't show infrastructure or authentication implementation language in product copy.
+- Don't render pagination unless the dataset can actually paginate.
+- Don't make every domain look like the same table or card grid.
+- Don't introduce decorative integrations, metrics, or actions that are not wired to real behavior.

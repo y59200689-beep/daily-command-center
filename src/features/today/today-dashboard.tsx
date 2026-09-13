@@ -618,7 +618,7 @@ function ContextTab({ tab, count }: { tab: string; count: number }) {
           ? `${count} item${count === 1 ? "" : "s"} in view.`
           : `Nothing needs attention in ${tab.toLowerCase()}.`}
       </h2>
-      <p>This view is calculated from your authenticated workspace.</p>
+      <p>Open the full view to review the details and take action.</p>
       <Link className="button button--outline button--neutral" href={href}>
         Open {tab.toLowerCase()}
       </Link>

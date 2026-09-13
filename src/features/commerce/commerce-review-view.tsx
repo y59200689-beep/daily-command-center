@@ -122,7 +122,7 @@ export function CommerceReviewView() {
 
       await loadReview();
     } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : "Failed to record review");
+      setError(err instanceof Error ? err.message : "Failed to record review");
     } finally {
       setConducting(false);
     }

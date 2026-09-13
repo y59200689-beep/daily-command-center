@@ -319,7 +319,7 @@ export function PersonDetail({ id }: PersonDetailProps) {
 
       {/* EDIT MODAL */}
       <Modal open={editOpen} onClose={() => setEditOpen(false)} title="Edit Person">
-        <form onSubmit={handleSaveEdit} style={{ display: "grid", gap: "14px" }}>
+        <form noValidate onSubmit={handleSaveEdit} style={{ display: "grid", gap: "14px" }}>
           <div>
             <label className="field-label">Name</label>
             <input required type="text" value={name} onChange={(e) => setName(e.target.value)} className="text-input" />
@@ -347,7 +347,7 @@ export function PersonDetail({ id }: PersonDetailProps) {
           </div>
           <div>
             <label className="field-label">Notes</label>
-            <textarea value={notes} onChange={(e) => setNotes(e.target.value)} className="text-input" rows={3} />
+            <textarea value={notes} onChange={(e) => setNotes(e.target.value)} className="text-input resize-none" rows={3} />
           </div>
           <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px" }}>
             <button type="button" onClick={() => setEditOpen(false)} className="button button--secondary">Cancel</button>
@@ -358,14 +358,14 @@ export function PersonDetail({ id }: PersonDetailProps) {
 
       {/* DELEGATE WORK MODAL */}
       <Modal open={delOpen} onClose={() => setDelOpen(false)} title={`Delegate Work to ${person.name}`}>
-        <form onSubmit={handleCreateDelegation} style={{ display: "grid", gap: "14px" }}>
+        <form noValidate onSubmit={handleCreateDelegation} style={{ display: "grid", gap: "14px" }}>
           <div>
             <label className="field-label">Delegation Title *</label>
             <input required type="text" value={delTitle} onChange={(e) => setDelTitle(e.target.value)} placeholder="e.g. Audit supplier invoice discrepancies" className="text-input" />
           </div>
           <div>
             <label className="field-label">Expected Outcome *</label>
-            <textarea required value={delOutcome} onChange={(e) => setDelOutcome(e.target.value)} placeholder="Clear description of the expected result or deliverable" className="text-input" rows={3} />
+            <textarea required value={delOutcome} onChange={(e) => setDelOutcome(e.target.value)} placeholder="Clear description of the expected result or deliverable" className="text-input resize-none" rows={3} />
           </div>
           <div>
             <label className="field-label">Priority</label>
