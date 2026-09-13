@@ -126,7 +126,7 @@ export function DiscrepanciesAuditsView() {
       setAuditLocation("");
       await loadData();
     } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : "Error creating audit");
+      setError(err instanceof Error ? err.message : "Error creating audit");
     } finally {
       setSubmitting(false);
     }
@@ -162,7 +162,7 @@ export function DiscrepanciesAuditsView() {
       setTargetDiscrepancyId(null);
       await loadData();
     } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : "Error recording adjustment");
+      setError(err instanceof Error ? err.message : "Error recording adjustment");
     } finally {
       setSubmitting(false);
     }
@@ -349,7 +349,7 @@ export function DiscrepanciesAuditsView() {
                 <Icons.X className="h-5 w-5" />
               </button>
             </div>
-            <form onSubmit={handleCreateAudit} className="space-y-4">
+            <form noValidate onSubmit={handleCreateAudit} className="space-y-4">
               <div>
                 <label className="text-xs font-semibold text-muted-foreground uppercase">Audit Title *</label>
                 <input
@@ -418,7 +418,7 @@ export function DiscrepanciesAuditsView() {
                 <Icons.X className="h-5 w-5" />
               </button>
             </div>
-            <form onSubmit={handleRecordAdjustment} className="space-y-4">
+            <form noValidate onSubmit={handleRecordAdjustment} className="space-y-4">
               <div>
                 <label className="text-xs font-semibold text-muted-foreground uppercase">Product *</label>
                 <select

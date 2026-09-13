@@ -183,10 +183,10 @@ export function TeamRisks() {
 
       {/* CREATE ESCALATION MODAL */}
       <Modal open={escOpen} onClose={() => setEscOpen(false)} title="Log Operational Escalation">
-        <form onSubmit={handleCreateEscalation} style={{ display: "grid", gap: "14px" }}>
+        <form noValidate onSubmit={handleCreateEscalation} style={{ display: "grid", gap: "14px" }}>
           <div>
             <label className="field-label">Escalation Reason *</label>
-            <textarea required value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Describe the operational issue requiring escalation" className="text-input" rows={3} />
+            <textarea required value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Describe the operational issue requiring escalation" className="text-input resize-none" rows={3} />
           </div>
           <div>
             <label className="field-label">Related Person (Optional)</label>

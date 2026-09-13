@@ -188,7 +188,7 @@ export function PeopleList() {
 
       {/* CREATE PERSON MODAL */}
       <Modal open={createOpen} onClose={() => setCreateOpen(false)} title="Add Person">
-        <form onSubmit={handleCreate} style={{ display: "grid", gap: "16px" }}>
+        <form noValidate onSubmit={handleCreate} style={{ display: "grid", gap: "16px" }}>
           {errorMsg && <p className="error-text" style={{ color: "var(--danger)" }}>{errorMsg}</p>}
           <div>
             <label className="field-label">Name *</label>

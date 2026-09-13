@@ -165,7 +165,7 @@ export function PurchasingView() {
       setLines([{ product_id: "", product_name: "", quantity: 1, unit_cost: 0 }]);
       await loadData();
     } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : "Error creating purchase order");
+      setError(err instanceof Error ? err.message : "Error creating purchase order");
     } finally {
       setSubmitting(false);
     }
@@ -279,7 +279,7 @@ export function PurchasingView() {
                 <Icons.X className="h-5 w-5" />
               </button>
             </div>
-            <form onSubmit={handleCreatePO} className="space-y-4">
+            <form noValidate onSubmit={handleCreatePO} className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs font-semibold text-muted-foreground uppercase">Supplier *</label>
@@ -400,7 +400,7 @@ export function PurchasingView() {
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="Shipping instructions, terms..."
-                  className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-background text-sm"
+                  className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-background text-sm resize-none"
                 />
               </div>
 

@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useCallback, useState } from "react";
-import { Button } from "@/components/ui/button";
 import { useDeferredEffect } from "@/lib/use-deferred-effect";
 
 type ProcessItem = Record<string, unknown> & { id: string };
@@ -52,8 +51,8 @@ export function OperationsCalendar() {
           </p>
         </div>
         <div className="operations-header-actions">
-          <Link href="/operations"><Button emphasis="outline">Overview</Button></Link>
-          <Link href="/operations/runs"><Button emphasis="outline">Active Runs</Button></Link>
+          <Link href="/operations" className="button button--outline">Overview</Link>
+          <Link href="/operations/runs" className="button button--outline">Active Runs</Link>
         </div>
       </header>
 
@@ -81,9 +80,7 @@ export function OperationsCalendar() {
                     <strong>{String(proc.name)}</strong>
                     <small>{String(proc.target_duration_minutes || 15)}m target</small>
                   </div>
-                  <Link href={`/operations/processes`}>
-                    <Button emphasis="ghost">View</Button>
-                  </Link>
+                  <Link href={`/operations/processes`} className="button button--ghost">View</Link>
                 </div>
               ))}
             </div>
@@ -111,9 +108,7 @@ export function OperationsCalendar() {
                     <strong>{String(proc.name)}</strong>
                     <small>{String(proc.target_duration_minutes || 30)}m target</small>
                   </div>
-                  <Link href={`/operations/processes`}>
-                    <Button emphasis="ghost">View</Button>
-                  </Link>
+                  <Link href={`/operations/processes`} className="button button--ghost">View</Link>
                 </div>
               ))}
             </div>
@@ -141,9 +136,7 @@ export function OperationsCalendar() {
                     <strong>{String(proc.name)}</strong>
                     <small>{String(proc.target_duration_minutes || 60)}m target</small>
                   </div>
-                  <Link href={`/operations/processes`}>
-                    <Button emphasis="ghost">View</Button>
-                  </Link>
+                  <Link href={`/operations/processes`} className="button button--ghost">View</Link>
                 </div>
               ))}
             </div>

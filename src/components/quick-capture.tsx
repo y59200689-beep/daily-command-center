@@ -47,7 +47,9 @@ export function QuickCapture({ open, onClose }: QuickCaptureProps) {
         {error ? <p className="field-error" id="capture-error" role="alert">{error}</p> : null}
         <div className="modal__actions">
           <Button emphasis="ghost" onClick={onClose}>Cancel</Button>
-          <Button intent="brand" type="submit" disabled={busy}>{busy ? "Saving…" : "Save to Inbox"}</Button>
+          <Button intent="brand" type="submit" disabled={busy}>
+            {busy ? "Saving…" : classification.kind === "inbox" ? "Save to Inbox" : `Save ${classification.kind === "followup" ? "Follow-up" : classification.kind[0].toUpperCase() + classification.kind.slice(1)}`}
+          </Button>
         </div>
       </form>
     </Modal>

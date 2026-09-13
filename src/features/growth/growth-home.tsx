@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useCallback, useState } from "react";
-import { Button } from "@/components/ui/button";
 import { useDeferredEffect } from "@/lib/use-deferred-effect";
 
 type Row = Record<string, unknown> & { id: string };
@@ -66,10 +65,10 @@ export function GrowthHome() {
           </p>
         </div>
         <div className="growth-header-actions">
-          <Link href="/growth/pipeline"><Button emphasis="outline">Pipeline</Button></Link>
-          <Link href="/growth/playbooks"><Button emphasis="outline">Playbooks</Button></Link>
-          <Link href="/growth/reviews"><Button emphasis="outline">Reviews</Button></Link>
-          <Link href="/growth/experiments"><Button intent="brand">Experiments</Button></Link>
+          <Link href="/growth/pipeline" className="button button--outline">Pipeline</Link>
+          <Link href="/growth/playbooks" className="button button--outline">Playbooks</Link>
+          <Link href="/growth/reviews" className="button button--outline">Reviews</Link>
+          <Link href="/growth/experiments" className="button button--solid button--brand">Experiments</Link>
         </div>
       </header>
 
@@ -119,7 +118,7 @@ export function GrowthHome() {
               <p className="eyebrow">Deal health</p>
               <h2>Open opportunities</h2>
             </div>
-            <Link href="/growth/pipeline"><Button emphasis="ghost">View pipeline</Button></Link>
+            <Link href="/growth/pipeline" className="button button--ghost">View pipeline</Link>
           </header>
           {opportunities.length ? (
             <div className="signal-stack">
@@ -148,7 +147,7 @@ export function GrowthHome() {
               <p className="eyebrow">Expansion</p>
               <h2>Growth opportunities</h2>
             </div>
-            <Link href="/pipeline"><Button emphasis="ghost">All</Button></Link>
+            <Link href="/pipeline" className="button button--ghost">All</Link>
           </header>
           {expansion.length ? (
             <div className="signal-stack">
@@ -215,7 +214,7 @@ export function GrowthHome() {
               <p className="eyebrow">Offer intelligence</p>
               <h2>Service performance</h2>
             </div>
-            <Link href="/services"><Button emphasis="ghost">All</Button></Link>
+            <Link href="/services" className="button button--ghost">All</Link>
           </header>
           {offers.length ? (
             <div className="signal-stack">
@@ -241,7 +240,7 @@ export function GrowthHome() {
               <p className="eyebrow">Running now</p>
               <h2>Active experiments</h2>
             </div>
-            <Link href="/growth/experiments"><Button emphasis="ghost">All experiments</Button></Link>
+            <Link href="/growth/experiments" className="button button--ghost">All experiments</Link>
           </header>
           <div className="growth-experiments-strip">
             {experiments.map((exp) => (

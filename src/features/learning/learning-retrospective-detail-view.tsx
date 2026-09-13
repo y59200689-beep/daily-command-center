@@ -234,7 +234,7 @@ export function LearningRetrospectiveDetailView({ id }: RetroDetailProps) {
         <div className="learning-section-title">
           <span>Add Retrospective Observation</span>
         </div>
-        <form onSubmit={handleAddItem} className="learning-card" style={{ flexDirection: "row", gap: "0.75rem", alignItems: "flex-end" }}>
+        <form noValidate onSubmit={handleAddItem} className="learning-card" style={{ flexDirection: "row", gap: "0.75rem", alignItems: "flex-end" }}>
           <div style={{ flex: "0 0 160px" }}>
             <label style={{ fontSize: "0.75rem", color: "#94a3b8", display: "block", marginBottom: "0.25rem" }}>
               Category

@@ -302,7 +302,7 @@ export function LearningLessonDetailView({ id }: LessonDetailProps) {
         <div className="learning-modal-overlay">
           <div className="learning-modal-content">
             <h2 style={{ fontSize: "1.25rem", margin: 0 }}>Edit Operating Statement</h2>
-            <textarea
+            <textarea className="resize-none"
               rows={4}
               value={editStatement}
               onChange={(e) => setEditStatement(e.target.value)}

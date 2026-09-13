@@ -104,7 +104,7 @@ export function QualityCenter() {
           </p>
         </div>
         <div className="operations-header-actions">
-          <Link href="/operations"><Button emphasis="outline">Overview</Button></Link>
+          <Link href="/operations" className="button button--outline">Overview</Link>
           <Button intent="brand" onClick={() => setShowModal(true)}>Log Incident</Button>
         </div>
       </header>
@@ -149,7 +149,7 @@ export function QualityCenter() {
         <div className="modal-backdrop" role="dialog" aria-modal="true">
           <div className="modal-card">
             <h2>Log Quality Incident</h2>
-            <form onSubmit={handleCreateIncident}>
+            <form noValidate onSubmit={handleCreateIncident}>
               <label>
                 Title / Symptom
                 <input
@@ -170,7 +170,7 @@ export function QualityCenter() {
               </label>
               <label>
                 Impact Summary
-                <textarea
+                <textarea className="resize-none"
                   rows={3}
                   value={impactSummary}
                   onChange={(e) => setImpactSummary(e.target.value)}
@@ -179,7 +179,7 @@ export function QualityCenter() {
               </label>
               <label>
                 Root Cause Analysis
-                <textarea
+                <textarea className="resize-none"
                   rows={3}
                   value={rootCause}
                   onChange={(e) => setRootCause(e.target.value)}

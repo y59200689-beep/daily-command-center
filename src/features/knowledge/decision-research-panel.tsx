@@ -109,7 +109,7 @@ export function DecisionResearchPanel({ decisionId }: { decisionId: string }) {
     )}
     {open ? (
       <Modal open onClose={() => setOpen(false)} title="Link research to decision" description="Attach owned knowledge to track supporting context and readiness.">
-        <form className="simple-form knowledge-selector" onSubmit={linkResearch}>
+        <form noValidate className="simple-form knowledge-selector" onSubmit={linkResearch}>
           <label htmlFor={`research-type-${decisionId}`}>Research type</label>
           <select id={`research-type-${decisionId}`} value={researchType} onChange={(event) => { const next = event.target.value as "topic" | "finding" | "brief"; setResearchType(next); setSelected(""); void loadOptions(next); }}>
             <option value="topic">Topic</option>

@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useCallback, useState } from "react";
-import { Button } from "@/components/ui/button";
 import { useDeferredEffect } from "@/lib/use-deferred-effect";
 
 type Row = Record<string, unknown> & { id: string };
@@ -48,12 +47,12 @@ export function OperationsHome() {
           </p>
         </div>
         <div className="operations-header-actions">
-          <Link href="/operations/runs"><Button emphasis="outline">Runs</Button></Link>
-          <Link href="/operations/sops"><Button emphasis="outline">SOPs</Button></Link>
-          <Link href="/operations/processes"><Button emphasis="outline">Processes</Button></Link>
-          <Link href="/operations/quality"><Button emphasis="outline">Quality</Button></Link>
-          <Link href="/operations/systems"><Button emphasis="outline">Systems</Button></Link>
-          <Link href="/operations/review"><Button intent="brand">Review</Button></Link>
+          <Link href="/operations/runs" className="button button--outline">Runs</Link>
+          <Link href="/operations/sops" className="button button--outline">SOPs</Link>
+          <Link href="/operations/processes" className="button button--outline">Processes</Link>
+          <Link href="/operations/quality" className="button button--outline">Quality</Link>
+          <Link href="/operations/systems" className="button button--outline">Systems</Link>
+          <Link href="/operations/review" className="button button--solid button--brand">Review</Link>
         </div>
       </header>
 
@@ -117,7 +116,7 @@ export function OperationsHome() {
               <p className="eyebrow">Execution</p>
               <h2>Active & Blocked Runs</h2>
             </div>
-            <Link href="/operations/runs"><Button emphasis="ghost">View all</Button></Link>
+            <Link href="/operations/runs" className="button button--ghost">View all</Link>
           </header>
           {blockedRuns.length === 0 && activeRuns.length === 0 ? (
             <p className="faint-note">No runs currently in progress.</p>
@@ -152,7 +151,7 @@ export function OperationsHome() {
               <p className="eyebrow">Procedure Hygiene</p>
               <h2>SOP Reviews Due</h2>
             </div>
-            <Link href="/operations/sops"><Button emphasis="ghost">SOP Library</Button></Link>
+            <Link href="/operations/sops" className="button button--ghost">SOP Library</Link>
           </header>
           {sopsReviewDue.length === 0 ? (
             <p className="faint-note">All SOPs are up to date and fresh.</p>
@@ -180,7 +179,7 @@ export function OperationsHome() {
               <p className="eyebrow">Quality & Reliability</p>
               <h2>Open Incidents & Failures</h2>
             </div>
-            <Link href="/operations/quality"><Button emphasis="ghost">Quality Center</Button></Link>
+            <Link href="/operations/quality" className="button button--ghost">Quality Center</Link>
           </header>
           {openIncidents.length === 0 && repeatedFailures.length === 0 ? (
             <p className="faint-note">No open incidents or detected failure loops.</p>
@@ -217,7 +216,7 @@ export function OperationsHome() {
               <p className="eyebrow">Infrastructure</p>
               <h2>Systems at Risk</h2>
             </div>
-            <Link href="/operations/systems"><Button emphasis="ghost">Registry</Button></Link>
+            <Link href="/operations/systems" className="button button--ghost">Registry</Link>
           </header>
           {atRiskSystems.length === 0 ? (
             <p className="faint-note">All internal systems and tools are healthy.</p>

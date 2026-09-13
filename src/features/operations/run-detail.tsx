@@ -184,7 +184,7 @@ export function RunDetail({ id }: RunDetailProps) {
     return (
       <main className="domain-page operations-page">
         <p className="field-error">{error || "Run not found"}</p>
-        <Link href="/operations/runs"><Button emphasis="outline">Back to Runs</Button></Link>
+        <Link href="/operations/runs" className="button button--outline">Back to Runs</Link>
       </main>
     );
   }
@@ -207,7 +207,7 @@ export function RunDetail({ id }: RunDetailProps) {
           </p>
         </div>
         <div className="operations-header-actions">
-          <Link href="/operations/runs"><Button emphasis="outline">Runs List</Button></Link>
+          <Link href="/operations/runs" className="button button--outline">Runs List</Link>
           {run.status === "Blocked" ? (
             <Button intent="brand" onClick={handleUnblockRun}>Unblock Run</Button>
           ) : run.status !== "Completed" ? (
@@ -327,10 +327,10 @@ export function RunDetail({ id }: RunDetailProps) {
         <div className="modal-backdrop" role="dialog" aria-modal="true">
           <div className="modal-card">
             <h2>Record Blocker on Run</h2>
-            <form onSubmit={handleBlockRun}>
+            <form noValidate onSubmit={handleBlockRun}>
               <label>
                 Blocker Reason & Impact
-                <textarea
+                <textarea className="resize-none"
                   rows={4}
                   required
                   value={blockerReason}
@@ -361,7 +361,7 @@ export function RunDetail({ id }: RunDetailProps) {
             </p>
             <label>
               Audit Reason
-              <textarea
+              <textarea className="resize-none"
                 rows={4}
                 required
                 value={overrideReason}

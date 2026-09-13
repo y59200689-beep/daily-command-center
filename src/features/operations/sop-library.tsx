@@ -96,7 +96,7 @@ export function SopLibrary() {
           </p>
         </div>
         <div className="operations-header-actions">
-          <Link href="/operations"><Button emphasis="outline">Overview</Button></Link>
+          <Link href="/operations" className="button button--outline">Overview</Link>
           {!schemaUnavailable ? <Button intent="brand" onClick={() => setShowModal(true)}>New SOP</Button> : null}
         </div>
       </header>
@@ -156,7 +156,7 @@ export function SopLibrary() {
         <div className="modal-backdrop" role="dialog" aria-modal="true">
           <div className="modal-card">
             <h2>Create New SOP</h2>
-            <form onSubmit={handleCreateSop}>
+            <form noValidate onSubmit={handleCreateSop}>
               <label>
                 Title
                 <input
@@ -197,7 +197,7 @@ export function SopLibrary() {
               </label>
               <label>
                 Initial Procedure Content (Markdown)
-                <textarea
+                <textarea className="resize-none"
                   rows={6}
                   value={newContent}
                   onChange={(e) => setNewContent(e.target.value)}

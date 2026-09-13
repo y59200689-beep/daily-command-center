@@ -119,7 +119,7 @@ export function OperationsReview() {
           </p>
         </div>
         <div className="operations-header-actions">
-          <Link href="/operations"><Button emphasis="outline">Overview</Button></Link>
+          <Link href="/operations" className="button button--outline">Overview</Link>
           <Button intent="brand" onClick={() => setShowModal(true)}>Propose Improvement</Button>
         </div>
       </header>
@@ -228,7 +228,7 @@ export function OperationsReview() {
         <div className="modal-backdrop" role="dialog" aria-modal="true">
           <div className="modal-card">
             <h2>Propose Continuous Improvement</h2>
-            <form onSubmit={handleCreateImprovement}>
+            <form noValidate onSubmit={handleCreateImprovement}>
               <label>
                 Improvement Title
                 <input
@@ -241,7 +241,7 @@ export function OperationsReview() {
               </label>
               <label>
                 Problem Statement (Friction / Root Cause)
-                <textarea
+                <textarea className="resize-none"
                   rows={3}
                   value={problem}
                   onChange={(e) => setProblem(e.target.value)}
@@ -250,7 +250,7 @@ export function OperationsReview() {
               </label>
               <label>
                 Proposed Solution
-                <textarea
+                <textarea className="resize-none"
                   rows={3}
                   value={solution}
                   onChange={(e) => setSolution(e.target.value)}

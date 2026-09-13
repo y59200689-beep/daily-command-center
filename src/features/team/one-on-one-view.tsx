@@ -249,7 +249,7 @@ export function OneOnOneView() {
                 ✓ 1:1 meeting note preserved and linked to Notes library.
               </p>
             )}
-            <form onSubmit={handleSaveNote} style={{ display: "grid", gap: "14px" }}>
+            <form noValidate onSubmit={handleSaveNote} style={{ display: "grid", gap: "14px" }}>
               <div>
                 <label className="field-label">Meeting Date</label>
                 <input
@@ -265,7 +265,7 @@ export function OneOnOneView() {
                   value={topics}
                   onChange={(e) => setTopics(e.target.value)}
                   placeholder="Key items, blockers discussed, or alignment reached…"
-                  className="text-input"
+                  className="text-input resize-none"
                   rows={3}
                 />
               </div>
@@ -275,7 +275,7 @@ export function OneOnOneView() {
                   value={actionItems}
                   onChange={(e) => setActionItems(e.target.value)}
                   placeholder="Specific follow-up actions agreed upon…"
-                  className="text-input"
+                  className="text-input resize-none"
                   rows={3}
                 />
               </div>
@@ -285,7 +285,7 @@ export function OneOnOneView() {
                   value={noteContent}
                   onChange={(e) => setNoteContent(e.target.value)}
                   placeholder="Optional additional notes to store with the meeting note…"
-                  className="text-input"
+                  className="text-input resize-none"
                   rows={3}
                 />
               </div>

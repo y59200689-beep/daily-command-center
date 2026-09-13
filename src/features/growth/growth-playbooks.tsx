@@ -130,14 +130,14 @@ export function GrowthPlaybooks() {
       </div>
 
       <Modal open={open} onClose={() => { setOpen(false); resetForm(); }} title="New sales playbook" description="Define a sequence of touchpoints to work a lead, opportunity, or client.">
-        <form className="simple-form" onSubmit={(e) => { e.preventDefault(); void create(); }} noValidate>
+        <form noValidate className="simple-form" onSubmit={(e) => { e.preventDefault(); void create(); }}>
           <label>
             Playbook name
             <input required value={name} onChange={(e) => setName(e.target.value)} autoFocus />
           </label>
           <label>
             Purpose (optional)
-            <textarea value={purpose} onChange={(e) => setPurpose(e.target.value)} rows={2} />
+            <textarea className="resize-none" value={purpose} onChange={(e) => setPurpose(e.target.value)} rows={2} />
           </label>
           <label>
             Target type

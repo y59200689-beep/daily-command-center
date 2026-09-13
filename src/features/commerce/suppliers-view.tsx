@@ -114,7 +114,7 @@ export function SuppliersView() {
       });
       await loadSuppliers();
     } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : "Error saving supplier");
+      setError(err instanceof Error ? err.message : "Error saving supplier");
     } finally {
       setSubmitting(false);
     }
@@ -218,7 +218,7 @@ export function SuppliersView() {
                 <Icons.X className="h-5 w-5" />
               </button>
             </div>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form noValidate onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="text-xs font-semibold text-muted-foreground uppercase">Supplier Name *</label>
                 <input

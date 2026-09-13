@@ -4,7 +4,7 @@
 
 | Capability | Canonical owner | Source of truth | Allowed variants | Verification |
 | --- | --- | --- | --- | --- |
-| Navigation shell | `AppShell` | This contract | Desktop rail / mobile bar | Responsive browser check |
+| Navigation shell | `AppShell` | This contract | Everyday rail / grouped workspaces / mobile drawer and bar | Responsive browser check |
 | Authentication session | `AppShell` + Supabase SSR helpers | Supabase Auth | Current-browser sign out | Auth flow test |
 | Commands and capture | `CommandPalette`, `QuickCapture` | This contract | Dialog / mobile sheet | Keyboard and mobile checks |
 | Search field | `SearchInput` | `DESIGN.md` and this contract | Standard / command palette | Keyboard, clear, and responsive checks |
@@ -22,13 +22,17 @@
 
 ## Navigation and state
 
-The authenticated workspace opens at `/today`. Filters, committed search, sort, and pagination belong in URL parameters when server-backed. A task/client detail opens in a non-routing drawer on desktop and a full-screen sheet on mobile. Escape closes the top layer and restores focus.
+The authenticated workspace opens at `/today`. Today, Inbox, Tasks, Calendar, Projects, and Clients stay in the first navigation tier. All other implemented capabilities remain reachable through four workspace groups, Settings, or command search. The mobile bar preserves Today, Tasks, Capture, Calendar, and More; More opens the complete navigation drawer.
+
+Filters, committed search, sort, and pagination belong in URL parameters when server-backed. Temporary view presentation (for example Month versus Agenda before it is saved as a view) may remain local. A task/client detail opens in the canonical modal/sheet or its existing detail route. Escape closes the top layer and restores focus.
 
 Successful client-side CRUD mutations update the owning `DomainPage` collection from the mutation response. Pages with separate derived data, sibling collections, or shell-level counts await an authoritative no-store refetch through `onMutationSuccess` and publish a typed workspace-mutation notification. Full-page reloads and unrelated cache invalidation are not part of the CRUD refresh contract.
 
 ## Feedback and recovery
 
 Create, update, complete, archive, and connection actions show one shared toast. Validation is inline. Raw exceptions are never shown. Failed optimistic actions restore the prior value and keep the user in context. Loading reserves final geometry. Empty, no-results, no-permission, offline, and failure are distinct states.
+
+Dataset pagination is rendered only when there is a preceding or following page. Calendar always preserves a recognizable planning surface in an empty month and becomes a chronological agenda on narrow screens. Task rows expose completion, status, priority, and due date without opening the editor; Inbox rows expose organize and clear actions.
 
 ## Data safety
 

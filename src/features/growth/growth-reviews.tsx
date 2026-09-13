@@ -197,7 +197,7 @@ export function GrowthReviews() {
               <p className="eyebrow">Attention</p>
               <h2>Deals at risk</h2>
             </div>
-            <Link href="/growth/pipeline"><Button emphasis="ghost">Pipeline</Button></Link>
+            <Link href="/growth/pipeline" className="button button--ghost">Pipeline</Link>
           </header>
           {dealsAtRisk.length ? (
             <div className="signal-stack">
@@ -279,7 +279,7 @@ export function GrowthReviews() {
       {/* Deal Review Modal */}
       {reviewOpen ? (
         <Modal open onClose={() => { setReviewOpen(false); resetReviewForm(); }} title="Record deal review">
-          <form className="simple-form" onSubmit={submitDealReview}>
+          <form noValidate className="simple-form" onSubmit={submitDealReview}>
             <label htmlFor="rev-type">Review outcome</label>
             <select
               id="rev-type"
@@ -335,7 +335,7 @@ export function GrowthReviews() {
             ) : (
               <>
                 <label htmlFor="rev-why">Why did we win?</label>
-                <textarea
+                <textarea className="resize-none"
                   id="rev-why"
                   rows={2}
                   placeholder="Key differentiators that closed the deal"
@@ -362,7 +362,7 @@ export function GrowthReviews() {
             )}
 
             <label htmlFor="rev-lessons">Lessons learned & notes</label>
-            <textarea
+            <textarea className="resize-none"
               id="rev-lessons"
               rows={3}
               placeholder="What to do differently or repeat next time"
@@ -381,7 +381,7 @@ export function GrowthReviews() {
       {/* Target Modal */}
       {targetOpen ? (
         <Modal open onClose={() => setTargetOpen(false)} title="Set sales target">
-          <form className="simple-form" onSubmit={submitTarget}>
+          <form noValidate className="simple-form" onSubmit={submitTarget}>
             <label htmlFor="target-metric">Metric</label>
             <select
               id="target-metric"

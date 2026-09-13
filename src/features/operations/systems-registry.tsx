@@ -89,8 +89,8 @@ export function SystemsRegistry() {
           </p>
         </div>
         <div className="operations-header-actions">
-          <Link href="/operations"><Button emphasis="outline">Overview</Button></Link>
-          <Link href="/operations/runbooks"><Button emphasis="outline">Runbooks</Button></Link>
+          <Link href="/operations" className="button button--outline">Overview</Link>
+          <Link href="/operations/runbooks" className="button button--outline">Runbooks</Link>
           {!error && !schemaUnavailable ? <Button intent="brand" onClick={() => setShowModal(true)}>Register System</Button> : null}
         </div>
       </header>
@@ -140,7 +140,7 @@ export function SystemsRegistry() {
         <div className="modal-backdrop" role="dialog" aria-modal="true">
           <div className="modal-card">
             <h2>Register Internal System or Tool</h2>
-            <form onSubmit={handleCreateSystem}>
+            <form noValidate onSubmit={handleCreateSystem}>
               <label>
                 System Name
                 <input
@@ -162,7 +162,7 @@ export function SystemsRegistry() {
               </label>
               <label>
                 Purpose & Scope
-                <textarea
+                <textarea className="resize-none"
                   rows={3}
                   value={purpose}
                   onChange={(e) => setPurpose(e.target.value)}

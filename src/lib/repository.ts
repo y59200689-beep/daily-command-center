@@ -8,7 +8,7 @@ const strategyTables: Record<StrategyDomain, string> = { strategic_commitments: 
 export async function listRecords(client: UntypedClient, userId: string, domain: PersistedDomain, search?: string, page=1, pageSize=50) {
   const config = domainConfig[domain];
   const safePage=Math.max(1,Math.floor(page));const safePageSize=Math.min(100,Math.max(10,Math.floor(pageSize)));const start=(safePage-1)*safePageSize;
-  let query = client.from(config.table).select("*",{count:"exact"}).eq("user_id", userId).is("deleted_at", null).order(config.sort, { ascending: false }).range(start,start+safePageSize-1);
+  let query = client.from(config.table).select("*",{count:"exact"}).eq("user_id", userId).is("deleted_at", null).order(config.sort, { ascending: config.sortAscending ?? false }).range(start,start+safePageSize-1);
   if (search?.trim()) query = query.ilike(config.titleField, `%${search.trim().replaceAll("%", "\\%")}%`);
   const { data, error, count } = await query;
   if (error) throw error;
