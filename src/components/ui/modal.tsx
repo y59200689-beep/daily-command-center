@@ -9,10 +9,11 @@ interface ModalProps {
   title: string;
   description?: string;
   children: ReactNode;
+  variant?: "default" | "task";
 }
 let openModalCount = 0;
 
-export function Modal({ open, onClose, title, description, children }: ModalProps) {
+export function Modal({ open, onClose, title, description, children, variant = "default" }: ModalProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
   const onCloseRef = useRef(onClose);
   const titleId = useId();
@@ -53,7 +54,7 @@ export function Modal({ open, onClose, title, description, children }: ModalProp
   if (!open) return null;
   return (
     <div className="modal-layer" role="presentation" onMouseDown={(event) => { if (event.currentTarget === event.target) onClose(); }}>
-      <div ref={dialogRef} className="modal" role="dialog" aria-modal="true" aria-labelledby={titleId} aria-describedby={description ? descriptionId : undefined}>
+      <div ref={dialogRef} className={`modal modal--${variant}`} role="dialog" aria-modal="true" aria-labelledby={titleId} aria-describedby={description ? descriptionId : undefined}>
         <div className="modal__header">
           <div>
             <p className="eyebrow">Command center</p>

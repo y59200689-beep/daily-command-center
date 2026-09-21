@@ -71,17 +71,24 @@ export function RunbooksView() {
 
   return (
     <main className="domain-page operations-page">
-      <header className="page-header">
+      <header className="task-context-header">
         <div>
-          <p className="eyebrow">Operations · Incident Mitigation</p>
-          <h1>Emergency Runbooks.</h1>
-          <p>
-            {runbooks.length} mitigation runbook{runbooks.length === 1 ? "" : "s"} · Standardized procedures for unexpected failure states
+          <nav className="task-context-header__breadcrumb" aria-label="Breadcrumb">
+            <span>Operations</span>
+            <span>/</span>
+            <span className="current">Runbooks</span>
+          </nav>
+          <div className="task-context-header__title-row">
+            <h1>Emergency Runbooks</h1>
+            <span className="task-context-header__total-badge">{runbooks.length} runbooks</span>
+          </div>
+          <p className="task-context-header__description">
+            Standardized procedures for unexpected failure states
           </p>
         </div>
-        <div className="operations-header-actions">
-          <Link href="/operations" className="button button--outline">Overview</Link>
-          <Link href="/operations/systems" className="button button--outline">Systems</Link>
+        <div className="task-context-header__actions">
+          <Link href="/operations">Overview</Link>
+          <Link href="/operations/systems">Systems</Link>
           {!schemaUnavailable ? <Button intent="brand" onClick={() => setShowModal(true)}>New Runbook</Button> : null}
         </div>
       </header>

@@ -117,16 +117,24 @@ export function SopDetail({ id }: SOPDetailProps) {
 
   return (
     <main className="domain-page operations-page">
-      <header className="page-header">
+      <header className="task-context-header">
         <div>
-          <p className="eyebrow">
-            <Link href="/operations/sops">SOPs</Link> · {String(sop.category)} · v{String(sop.current_version)}
-          </p>
-          <h1>{sop.title}</h1>
-          <p>{sop.description || "No description provided"}</p>
+          <nav className="task-context-header__breadcrumb" aria-label="Breadcrumb">
+            <span>Operations</span>
+            <span>/</span>
+            <Link href="/operations/sops" style={{ color: "var(--muted)", textDecoration: "none" }}>SOPs</Link>
+            <span>/</span>
+            <span className="current">{sop.title}</span>
+          </nav>
+          <div className="task-context-header__title-row">
+            <h1>{sop.title}</h1>
+            <span className="task-context-header__total-badge">v{String(sop.current_version)}</span>
+            <span className="operations-badge badge--healthy">{String(sop.category)}</span>
+          </div>
+          <p className="task-context-header__description">{sop.description || "Standard operating procedure definition and execution record."}</p>
         </div>
-        <div className="operations-header-actions">
-          <Link href="/operations/sops" className="button button--outline">Library</Link>
+        <div className="task-context-header__actions">
+          <Link href="/operations/sops" className="button button--ghost">← Library</Link>
           <Button emphasis="outline" onClick={handleMarkReviewed}>Mark Reviewed</Button>
           <Button intent="brand" onClick={() => setShowVersionModal(true)}>New Version</Button>
         </div>

@@ -93,13 +93,22 @@ function WatchDetail({ item, updates, topics, onChanged, onBack }: { item: Watch
   };
   return (
     <div className="knowledge-page">
-      <header className="page-header">
+      <header className="task-context-header">
         <div>
-          <p className="eyebrow">Knowledge · Watchlist</p>
-          <h1>{item.name}</h1>
-          <p>{item.watch_type.replaceAll("_"," ")} · {STATUS_LABELS[item.status] ?? item.status}{item.next_check_at ? ` · Review by ${item.next_check_at}` : ""}</p>
+          <nav className="task-context-header__breadcrumb" aria-label="Breadcrumb">
+            <Link href="/knowledge" style={{ color: "var(--muted)", textDecoration: "none" }}>Knowledge</Link>
+            <span>/</span>
+            <button type="button" onClick={onBack} style={{ background: "none", border: "none", color: "var(--muted)", padding: 0, cursor: "pointer", font: "inherit" }}>Watchlist</button>
+            <span>/</span>
+            <span className="current">{item.name}</span>
+          </nav>
+          <div className="task-context-header__title-row">
+            <h1>{item.name}</h1>
+            <span className="task-context-header__total-badge">{STATUS_LABELS[item.status] ?? item.status}</span>
+          </div>
+          <p className="task-context-header__description">{item.watch_type.replaceAll("_"," ")}{item.next_check_at ? ` · Review by ${item.next_check_at}` : ""}</p>
         </div>
-        <div className="strategy-actions">
+        <div className="task-context-header__actions">
           <Button emphasis="ghost" onClick={onBack}>← All watches</Button>
           <Button emphasis="outline" onClick={() => void markReviewed()}>Mark reviewed</Button>
           <Button emphasis="outline" onClick={() => void togglePause()}>{item.status === "paused" ? "Resume" : "Pause"}</Button>
@@ -178,13 +187,22 @@ export function Watchlist({ selectedId }: { selectedId?: string }) {
 
   return (
     <main className="domain-page knowledge-page">
-      <header className="page-header">
+      <header className="task-context-header">
         <div>
-          <p className="eyebrow">Knowledge · Observation</p>
-          <h1>Watchlist.</h1>
-          <p>{items.filter((i) => i.status === "active").length} active · {items.filter((i) => i.next_check_at && i.next_check_at <= today && i.status === "active").length} due for review</p>
+          <nav className="task-context-header__breadcrumb" aria-label="Breadcrumb">
+            <span>Intelligence</span>
+            <span>/</span>
+            <Link href="/knowledge" style={{ color: "var(--muted)", textDecoration: "none" }}>Knowledge</Link>
+            <span>/</span>
+            <span className="current">Watchlist</span>
+          </nav>
+          <div className="task-context-header__title-row">
+            <h1>Watchlist.</h1>
+            {items.length > 0 && <span className="task-context-header__total-badge">{items.length} items</span>}
+          </div>
+          <p className="task-context-header__description">{items.filter((i) => i.status === "active").length} active · {items.filter((i) => i.next_check_at && i.next_check_at <= today && i.status === "active").length} due for review</p>
         </div>
-        <div className="strategy-actions">
+        <div className="task-context-header__actions">
           <Link className="button button--outline" href="/knowledge">Knowledge</Link>
           {!schemaUnavailable ? <Button intent="brand" onClick={() => setCreating(true)}>New watch item</Button> : null}
         </div>

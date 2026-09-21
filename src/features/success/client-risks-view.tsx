@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Icons } from "@/components/icons";
 import { SuccessSchemaUnavailable } from "./schema-unavailable";
 
 interface ClientRisk {
@@ -72,27 +71,52 @@ export function ClientRisksView() {
   }, [severity, status]);
 
   return (
-    <div className="success-page">
-      <div className="page-header" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.75rem" }}>
-        <h1 className="page-title" style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-          <Icons.Bell size={22} /> Client Risks
-        </h1>
-        <Link href="/success" className="btn btn-secondary" style={{ fontSize: "0.8125rem" }}>← Overview</Link>
-      </div>
+    <main className="domain-page success-page">
+      <header className="task-context-header">
+        <div>
+          <nav className="task-context-header__breadcrumb" aria-label="Breadcrumb">
+            <span>Customer Success</span>
+            <span>/</span>
+            <Link href="/success" style={{ color: "var(--muted)", textDecoration: "none" }}>Success Hub</Link>
+            <span>/</span>
+            <span className="current">Client Risks</span>
+          </nav>
+          <div className="task-context-header__title-row">
+            <h1>Client Risks</h1>
+            <span className="task-context-header__total-badge">
+              {loading ? "Loading…" : `${risks.length} ${risks.length === 1 ? "risk" : "risks"}`}
+            </span>
+          </div>
+          <p className="task-context-header__description">Track and mitigate account vulnerabilities, escalations, and churn signals.</p>
+        </div>
+        <div className="task-context-header__actions">
+          <Link href="/success" className="button button--ghost">← Overview</Link>
+        </div>
+      </header>
 
-      <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", marginBottom: "0.75rem" }}>
-        <span style={{ fontSize: "0.75rem", color: "var(--text-secondary)", alignSelf: "center" }}>Severity:</span>
+      <div className="filter-bar">
+        <span className="filter-label">Severity:</span>
         {SEVERITY_FILTERS.map((f) => (
-          <button key={f} onClick={() => setSeverity(f)} className={`btn ${severity === f ? "btn-primary" : "btn-secondary"}`} style={{ fontSize: "0.75rem" }}>
+          <button
+            key={f}
+            type="button"
+            onClick={() => setSeverity(f)}
+            className={`filter-pill ${severity === f ? "is-active" : ""}`}
+          >
             {f}
           </button>
         ))}
       </div>
 
-      <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", marginBottom: "1.25rem" }}>
-        <span style={{ fontSize: "0.75rem", color: "var(--text-secondary)", alignSelf: "center" }}>Status:</span>
+      <div className="filter-bar">
+        <span className="filter-label">Status:</span>
         {STATUS_FILTERS.map((f) => (
-          <button key={f} onClick={() => setStatus(f)} className={`btn ${status === f ? "btn-primary" : "btn-secondary"}`} style={{ fontSize: "0.75rem" }}>
+          <button
+            key={f}
+            type="button"
+            onClick={() => setStatus(f)}
+            className={`filter-pill ${status === f ? "is-active" : ""}`}
+          >
             {f}
           </button>
         ))}
@@ -142,6 +166,6 @@ export function ClientRisksView() {
           ))}
         </div>
       )}
-    </div>
+    </main>
   );
 }

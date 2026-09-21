@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 
 import { useCallback, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -92,17 +93,28 @@ export function GrowthExperiments() {
 
   return (
     <main className="domain-page growth-page">
-      <header className="page-header">
+      <header className="task-context-header">
         <div>
-          <p className="eyebrow">Growth · Experiments</p>
-          <h1>Growth experiments.</h1>
-          <p>
+          <nav className="task-context-header__breadcrumb" aria-label="Breadcrumb">
+            <span>Business</span>
+            <span>/</span>
+            <Link href="/growth" style={{ color: "var(--muted)", textDecoration: "none" }}>Growth</Link>
+            <span>/</span>
+            <span className="current">Experiments</span>
+          </nav>
+          <div className="task-context-header__title-row">
+            <h1>Growth experiments</h1>
+            {experiments.length > 0 && <span className="task-context-header__total-badge">{experiments.length} experiments</span>}
+          </div>
+          <p className="task-context-header__description">
             {experiments.filter((e) => e.status === "running").length} running ·{" "}
             {experiments.filter((e) => e.status === "planned").length} planned ·{" "}
-            {experiments.length} total
+            Structured growth hypotheses
           </p>
         </div>
-        <Button intent="brand" onClick={() => setOpen(true)}>New experiment</Button>
+        <div className="task-context-header__actions">
+          <Button intent="brand" onClick={() => setOpen(true)}>New experiment</Button>
+        </div>
       </header>
 
       {error ? <p role="alert" className="field-error">{error}</p> : null}

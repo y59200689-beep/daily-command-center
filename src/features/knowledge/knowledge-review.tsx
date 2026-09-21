@@ -75,13 +75,22 @@ export function KnowledgeReview() {
 
   return (
     <main className="domain-page knowledge-page">
-      <header className="page-header">
+      <header className="task-context-header">
         <div>
-          <p className="eyebrow">Knowledge · Periodic review</p>
-          <h1>Review.</h1>
-          <p>{totalItems} item{totalItems === 1 ? "" : "s"} need attention</p>
+          <nav className="task-context-header__breadcrumb" aria-label="Breadcrumb">
+            <span>Intelligence</span>
+            <span>/</span>
+            <Link href="/knowledge" style={{ color: "var(--muted)", textDecoration: "none" }}>Knowledge</Link>
+            <span>/</span>
+            <span className="current">Review</span>
+          </nav>
+          <div className="task-context-header__title-row">
+            <h1>Knowledge Review</h1>
+            {totalItems > 0 && <span className="task-context-header__total-badge task-context-header__total-badge--warning">{totalItems} attention items</span>}
+          </div>
+          <p className="task-context-header__description">{totalItems} item{totalItems === 1 ? "" : "s"} need attention across topics, sources, findings, questions, and watchlist</p>
         </div>
-        <div className="strategy-actions">
+        <div className="task-context-header__actions">
           <Link className="button button--outline" href="/knowledge">Knowledge</Link>
           <Link className="button button--outline" href="/knowledge/watch">Watchlist</Link>
         </div>

@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 
 import { useCallback, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -78,13 +79,24 @@ export function GrowthPlaybooks() {
 
   return (
     <main className="domain-page growth-page">
-      <header className="page-header">
+      <header className="task-context-header">
         <div>
-          <p className="eyebrow">Growth · Playbooks</p>
-          <h1>Sales playbooks.</h1>
-          <p>{playbooks.length} playbooks · {runs.filter((r) => r.status === "active").length} active runs</p>
+          <nav className="task-context-header__breadcrumb" aria-label="Breadcrumb">
+            <span>Business</span>
+            <span>/</span>
+            <Link href="/growth" style={{ color: "var(--muted)", textDecoration: "none" }}>Growth</Link>
+            <span>/</span>
+            <span className="current">Playbooks</span>
+          </nav>
+          <div className="task-context-header__title-row">
+            <h1>Sales playbooks</h1>
+            {playbooks.length > 0 && <span className="task-context-header__total-badge">{playbooks.length} playbooks</span>}
+          </div>
+          <p className="task-context-header__description">{playbooks.length} playbooks · {runs.filter((r) => r.status === "active").length} active runs</p>
         </div>
-        <Button intent="brand" onClick={() => setOpen(true)}>New playbook</Button>
+        <div className="task-context-header__actions">
+          <Button intent="brand" onClick={() => setOpen(true)}>New playbook</Button>
+        </div>
       </header>
 
       {error ? <p role="alert" className="field-error">{error}</p> : null}

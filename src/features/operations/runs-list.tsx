@@ -47,17 +47,24 @@ export function RunsList() {
 
   return (
     <main className="domain-page operations-page">
-      <header className="page-header">
+      <header className="task-context-header">
         <div>
-          <p className="eyebrow">Operations · Process Execution</p>
-          <h1>Process Runs.</h1>
-          <p>
-            {runs.length} recorded run{runs.length === 1 ? "" : "s"} · Live and historical operational tracking
+          <nav className="task-context-header__breadcrumb" aria-label="Breadcrumb">
+            <span>Operations</span>
+            <span>/</span>
+            <span className="current">Runs</span>
+          </nav>
+          <div className="task-context-header__title-row">
+            <h1>Process Runs</h1>
+            <span className="task-context-header__total-badge">{runs.length} runs</span>
+          </div>
+          <p className="task-context-header__description">
+            Live and historical operational execution tracking
           </p>
         </div>
-        <div className="operations-header-actions">
-          <Link href="/operations" className="button button--outline">Overview</Link>
-          {!schemaUnavailable ? <Link href="/operations/processes" className="button button--solid button--brand">Start from Process</Link> : null}
+        <div className="task-context-header__actions">
+          <Link href="/operations">Overview</Link>
+          {!schemaUnavailable ? <Link href="/operations/processes" className="btn-brand">Start from Process</Link> : null}
         </div>
       </header>
 

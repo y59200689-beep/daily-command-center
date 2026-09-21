@@ -1,0 +1,174 @@
+[
+  {
+    "route": "/services",
+    "mode": "desktop",
+    "file": "/Users/youssefmahir/Documents/ChatGPT/ysf/docs/design/screenshots/route-audit-2026-09-21/desktop/07--services.jpg",
+    "stable": true,
+    "ms": 6066,
+    "bodyLength": 442,
+    "buttons": 14,
+    "docWidth": 1440,
+    "forms": 0,
+    "h1": [
+      "Services"
+    ],
+    "innerHeight": 1000,
+    "innerWidth": 1440,
+    "links": 28,
+    "overlay": false,
+    "tables": 0,
+    "tail": "Y\nBusiness/Services\nServices\n\nA small, reusable catalogue for pricing proposals and understanding delivery.\n\nNew service\nSERVICE\nPRICING\nDEFAULT PRICE\n∅\nNo services yet. Add the work you can price and deliver repeatedly.",
+    "title": "Services · Daily Command",
+    "url": "/services"
+  },
+  {
+    "route": "/settings",
+    "mode": "desktop",
+    "file": "/Users/youssefmahir/Documents/ChatGPT/ysf/docs/design/screenshots/route-audit-2026-09-21/desktop/07--settings.jpg",
+    "stable": true,
+    "ms": 3776,
+    "bodyLength": 447,
+    "buttons": 13,
+    "docWidth": 1440,
+    "forms": 0,
+    "h1": [
+      "Settings"
+    ],
+    "innerHeight": 1000,
+    "innerWidth": 1440,
+    "links": 28,
+    "overlay": false,
+    "tables": 0,
+    "tail": "s, clients…\n⌘K\nY\nWorkspace/Settings\nSettings\n\nTune the command center to the way you work.\n\nIntegrations\nCalendar, mail, files, code, and fitness services\nManage\nNotifications\nControl which signals can enter Today\nManage",
+    "title": "Settings · Daily Command",
+    "url": "/settings"
+  },
+  {
+    "route": "/settings/business",
+    "mode": "desktop",
+    "error": "Timed out running CDP command \"Page.navigate\" for tab 2",
+    "ms": 21113
+  },
+  {
+    "route": "/settings/chief-of-staff",
+    "mode": "desktop",
+    "file": "/Users/youssefmahir/Documents/ChatGPT/ysf/docs/design/screenshots/route-audit-2026-09-21/desktop/07--settings--chief--of--staff.jpg",
+    "stable": true,
+    "ms": 18482,
+    "bodyLength": 1071,
+    "buttons": 13,
+    "docWidth": 1440,
+    "forms": 0,
+    "h1": [
+      "Chief of Staff Settings"
+    ],
+    "innerHeight": 1000,
+    "innerWidth": 1440,
+    "links": 27,
+    "overlay": false,
+    "tables": 0,
+    "tail": "afe internal reversible actions (internal tasks, follow-ups, notes). External and financial actions still require explicit approval.\n\nHard Safety Constraint: Unrestricted Level 3 external autonomy is permanently blocked.",
+    "title": "Chief of Staff Settings | Daily Command Center · Daily Command",
+    "url": "/settings/chief-of-staff"
+  },
+  {
+    "route": "/settings/integrations",
+    "mode": "desktop",
+    "error": "Timed out waiting for tab 2 to navigate to http://localhost:3000/settings/integrations.",
+    "ms": 10420
+  },
+  {
+    "route": "/services",
+    "mode": "mobile",
+    "file": "/Users/youssefmahir/Documents/ChatGPT/ysf/docs/design/screenshots/route-audit-2026-09-21/mobile/07--services.jpg",
+    "stable": true,
+    "ms": 9825,
+    "bodyLength": 306,
+    "buttons": 14,
+    "docWidth": 389,
+    "forms": 0,
+    "h1": [
+      "Services"
+    ],
+    "innerHeight": 843,
+    "innerWidth": 389,
+    "links": 28,
+    "overlay": false,
+    "tables": 0,
+    "tail": "l\nNew capture\nC\nSearch\n⌘K\nREVENUE\nFINANCE & COMMERCE\nDark mode\nBusiness\nDaily Command\nBusiness/Services\nServices\nNew service\n∅\nNo services yet. Add the work you can price and deliver repeatedly.\nToday\nTasks\nCalendar\nMore",
+    "title": "Services · Daily Command",
+    "url": "/services"
+  },
+  {
+    "route": "/settings",
+    "mode": "mobile",
+    "file": "/Users/youssefmahir/Documents/ChatGPT/ysf/docs/design/screenshots/route-audit-2026-09-21/mobile/07--settings.jpg",
+    "stable": true,
+    "ms": 5188,
+    "bodyLength": 374,
+    "buttons": 13,
+    "docWidth": 389,
+    "forms": 0,
+    "h1": [
+      "Settings"
+    ],
+    "innerHeight": 843,
+    "innerWidth": 389,
+    "links": 28,
+    "overlay": false,
+    "tables": 0,
+    "tail": "\nSettings\nDark mode\nPersonal\nSettings\nWorkspace/Settings\nSettings\nIntegrations\nCalendar, mail, files, code, and fitness services\nManage\nNotifications\nControl which signals can enter Today\nManage\nToday\nTasks\nCalendar\nMore",
+    "title": "Settings · Daily Command",
+    "url": "/settings"
+  },
+  {
+    "route": "/settings/business",
+    "mode": "mobile",
+    "error": "Timed out waiting for tab 2 to navigate to http://localhost:3000/settings/business.",
+    "ms": 10663
+  },
+  {
+    "route": "/settings/chief-of-staff",
+    "mode": "mobile",
+    "file": "/Users/youssefmahir/Documents/ChatGPT/ysf/docs/design/screenshots/route-audit-2026-09-21/mobile/07--settings--chief--of--staff.jpg",
+    "stable": true,
+    "ms": 9174,
+    "bodyLength": 1045,
+    "buttons": 13,
+    "docWidth": 389,
+    "forms": 0,
+    "h1": [
+      "Chief of Staff Settings"
+    ],
+    "innerHeight": 843,
+    "innerWidth": 389,
+    "links": 27,
+    "overlay": false,
+    "tables": 0,
+    "tail": "tions (internal tasks, follow-ups, notes). External and financial actions still require explicit approval.\n\nHard Safety Constraint: Unrestricted Level 3 external autonomy is permanently blocked.\nToday\nTasks\nCalendar\nMore",
+    "title": "Chief of Staff Settings | Daily Command Center · Daily Command",
+    "url": "/settings/chief-of-staff"
+  },
+  {
+    "route": "/settings/integrations",
+    "mode": "mobile",
+    "file": "/Users/youssefmahir/Documents/ChatGPT/ysf/docs/design/screenshots/route-audit-2026-09-21/mobile/07--settings--integrations.jpg",
+    "stable": true,
+    "ms": 3405,
+    "bodyLength": 846,
+    "buttons": 13,
+    "docWidth": 373,
+    "forms": 0,
+    "h1": [
+      "Integrations"
+    ],
+    "innerHeight": 843,
+    "innerWidth": 389,
+    "links": 31,
+    "overlay": false,
+    "tables": 0,
+    "tail": "ub\n\nUse repository activity, pull requests, and issues as project context.\n\nConnect GitHub\nNOT CONNECTED\nStrava\n\nImport activities without overwriting the notes you add yourself.\n\nConnect Strava\nToday\nTasks\nCalendar\nMore",
+    "title": "Integrations · Daily Command",
+    "url": "/settings/integrations"
+  }
+]

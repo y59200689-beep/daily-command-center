@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import {
-  ShieldCheck,
   AlertTriangle,
   Clock,
   ArrowRight,
@@ -11,6 +10,7 @@ import {
   RefreshCw,
   RotateCcw,
   Sparkles,
+  ShieldAlert,
 } from "lucide-react";
 import "./chief-of-staff.css";
 
@@ -176,44 +176,52 @@ export function ChiefOfStaffHome() {
 
   return (
     <div className="chief-container">
-      {/* Top Block: Hero & Editorial Hierarchy */}
-      <div className="chief-hero-card">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <ShieldCheck className="w-6 h-6 text-indigo-400" />
-              <h1 className="text-xl font-bold tracking-tight text-white">Chief of Staff</h1>
-              <span className="chief-mode-badge text-xs font-semibold px-2 py-0.5 rounded-full">
-                Safe Action Orchestration
+      {/* ClickUp Context Header */}
+      <header className="task-context-header">
+        <div>
+          <nav className="task-context-header__breadcrumb" aria-label="Breadcrumb">
+            <span>Operate</span>
+            <span>/</span>
+            <span className="current">Chief of Staff</span>
+          </nav>
+          <div className="task-context-header__title-row">
+            <h1><ShieldAlert className="w-5 h-5" style={{ display: "inline", verticalAlign: "middle", marginRight: "0.375rem" }} />Chief of Staff</h1>
+            {metrics.awaitingApprovalCount > 0 && (
+              <span className="task-context-header__total-badge task-context-header__total-badge--warning">
+                {metrics.awaitingApprovalCount} need approval
               </span>
-            </div>
-            <p className="text-slate-300 text-sm">
-              <strong className="text-white">{metrics.preparedCount}</strong> actions prepared.{" "}
-              <strong className="text-amber-300">{metrics.awaitingApprovalCount}</strong> requires your approval now.
-            </p>
+            )}
           </div>
-
-          <div className="flex flex-wrap gap-2">
-            <Link
-              href="/chief-of-staff/approvals"
-              className="chief-primary-link px-3.5 py-1.5 rounded-lg text-xs font-medium transition"
-            >
-              Approval Center ({metrics.awaitingApprovalCount})
-            </Link>
-            <Link
-              href="/chief-of-staff/plans"
-              className="px-3.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium border border-slate-700 transition"
-            >
-              Action Plans
-            </Link>
-            <Link
-              href="/chief-of-staff/history"
-              className="px-3.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium border border-slate-700 transition"
-            >
-              Audit History
-            </Link>
-          </div>
+          <p className="task-context-header__description">
+            {metrics.preparedCount} actions prepared · {metrics.inProgressCount} in progress · {metrics.recentlyCompletedCount} completed
+          </p>
         </div>
+        <div className="task-context-header__actions">
+          <Link
+            href="/chief-of-staff/approvals"
+            className="chief-primary-link px-3.5 py-1.5 rounded-lg text-xs font-medium transition"
+          >
+            Approval Center ({metrics.awaitingApprovalCount})
+          </Link>
+          <Link
+            href="/chief-of-staff/plans"
+            className="px-3.5 py-1.5 rounded-lg text-xs font-medium border transition"
+            style={{ borderColor: "var(--line)", color: "var(--ink)", background: "var(--surface)" }}
+          >
+            Action Plans
+          </Link>
+          <Link
+            href="/chief-of-staff/history"
+            className="px-3.5 py-1.5 rounded-lg text-xs font-medium border transition"
+            style={{ borderColor: "var(--line)", color: "var(--ink)", background: "var(--surface)" }}
+          >
+            Audit History
+          </Link>
+        </div>
+      </header>
+
+      {/* Remaining hero card content (next action, learning context) */}
+      <div className="chief-hero-card">
 
         {/* Message Banner */}
         {message && (

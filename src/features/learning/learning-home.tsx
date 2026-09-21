@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import { Brain } from "lucide-react";
 import "./learning.css";
 
 interface LearningOverview {
@@ -61,48 +62,58 @@ export function LearningHome() {
   }, []);
 
   return (
-    <div className="learning-container">
-      {/* Hero Block */}
-      <div className="learning-hero">
-        <div className="learning-hero-header">
-          <div>
-            <h1 className="learning-title">Operating Memory &amp; Learning System</h1>
-            <p className="learning-subtitle">
-              Human-auditable institutional memory, pattern detection, and retrospective intelligence.
-            </p>
+    <main className="domain-page learning-page learning-container">
+      {/* ClickUp Context Header */}
+      <header className="task-context-header">
+        <div>
+          <nav className="task-context-header__breadcrumb" aria-label="Breadcrumb">
+            <span>Intelligence</span>
+            <span>/</span>
+            <span className="current">Learning</span>
+          </nav>
+          <div className="task-context-header__title-row">
+            <h1><Brain className="w-5 h-5" style={{ display: "inline", verticalAlign: "middle", marginRight: "0.375rem" }} />Operating Memory &amp; Learning</h1>
+            {(data?.reviewQueue?.length ?? 0) > 0 && (
+              <span className="task-context-header__total-badge task-context-header__total-badge--warning">
+                {data?.reviewQueue.length} need review
+              </span>
+            )}
           </div>
-          <div style={{ display: "flex", gap: "0.5rem" }}>
-            <Link href="/learning/lessons" className="learning-btn-primary">
-              Propose Lesson
-            </Link>
-            <Link href="/learning/retrospectives" className="learning-btn-secondary">
-              New Retrospective
-            </Link>
-          </div>
+          <p className="task-context-header__description">
+            {data?.acceptedLessonsCount ?? 0} lessons · {data?.activePatternsCount ?? 0} patterns · {data?.activeRulesCount ?? 0} rules
+          </p>
         </div>
+        <div className="task-context-header__actions">
+          <Link href="/learning/lessons" className="btn-brand">
+            Propose Lesson
+          </Link>
+          <Link href="/learning/retrospectives">
+            New Retrospective
+          </Link>
+        </div>
+      </header>
 
-        {/* Stats Grid */}
-        <div className="learning-stats-grid">
-          <div className="learning-stat-card">
-            <span className="learning-stat-value">{data?.acceptedLessonsCount ?? 0}</span>
-            <span className="learning-stat-label">Accepted Lessons</span>
-          </div>
-          <div className="learning-stat-card">
-            <span className="learning-stat-value">{data?.activePatternsCount ?? 0}</span>
-            <span className="learning-stat-label">Active Patterns</span>
-          </div>
-          <div className="learning-stat-card">
-            <span className="learning-stat-value">{data?.activeRulesCount ?? 0}</span>
-            <span className="learning-stat-label">Operating Rules</span>
-          </div>
-          <div className="learning-stat-card">
-            <span className="learning-stat-value">{data?.reviewQueue.length ?? 0}</span>
-            <span className="learning-stat-label">Needs Review</span>
-          </div>
-          <div className="learning-stat-card">
-            <span className="learning-stat-value">{data?.staleMemoriesCount ?? 0}</span>
-            <span className="learning-stat-label">Stale Lessons</span>
-          </div>
+      {/* Stats Grid */}
+      <div className="learning-stats-grid">
+        <div className="learning-stat-card">
+          <span className="learning-stat-value">{data?.acceptedLessonsCount ?? 0}</span>
+          <span className="learning-stat-label">Accepted Lessons</span>
+        </div>
+        <div className="learning-stat-card">
+          <span className="learning-stat-value">{data?.activePatternsCount ?? 0}</span>
+          <span className="learning-stat-label">Active Patterns</span>
+        </div>
+        <div className="learning-stat-card">
+          <span className="learning-stat-value">{data?.activeRulesCount ?? 0}</span>
+          <span className="learning-stat-label">Operating Rules</span>
+        </div>
+        <div className="learning-stat-card">
+          <span className="learning-stat-value">{data?.reviewQueue.length ?? 0}</span>
+          <span className="learning-stat-label">Needs Review</span>
+        </div>
+        <div className="learning-stat-card">
+          <span className="learning-stat-value">{data?.staleMemoriesCount ?? 0}</span>
+          <span className="learning-stat-label">Stale Lessons</span>
         </div>
       </div>
 
@@ -202,6 +213,6 @@ export function LearningHome() {
           </div>
         )}
       </section>
-    </div>
+    </main>
   );
 }

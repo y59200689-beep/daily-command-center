@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { Icons } from "@/components/icons";
 import "./executive.css";
 import type { ExecutiveContext } from "@/lib/executive-server";
 
@@ -45,47 +46,57 @@ export function ExecutiveHome() {
 
   if (loading) {
     return (
-      <div className="executive-surface">
-        <div className="p-8 text-center text-slate-400">Loading executive briefing...</div>
+      <div className="domain-page executive-page">
+        <div className="loading-state" aria-live="polite">
+          <span className="loading-spinner" />
+          <p>Loading executive briefing…</p>
+        </div>
       </div>
     );
   }
 
   if (error || !data) {
     return (
-      <div className="executive-surface">
-        <div className="p-6 bg-red-950/40 border border-red-800 rounded-lg text-red-200">
-          {error ?? "Executive briefing unavailable."}
+      <div className="domain-page executive-page">
+        <div className="inline-error" role="alert">
+          <p>{error ?? "Executive briefing unavailable."}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="executive-surface">
-      {/* Scope Selector */}
-      <div className="flex items-center justify-between mb-6">
+    <div className="domain-page executive-page">
+      <header className="task-context-header executive-context-header">
         <div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">Executive Command Center</h1>
-          <p className="text-sm text-slate-400">Cross-domain intelligence briefing · {data.today}</p>
+          <div className="task-context-header__path">
+            <Icons.BriefcaseBusiness size={15} />
+            <span>Intelligence</span>
+            <Icons.ChevronRight size={13} />
+            <strong>Executive</strong>
+          </div>
+          <h1>Executive Command Center</h1>
+          <p>Cross-domain intelligence briefing · {data.today}</p>
         </div>
-        <div className="flex items-center gap-2 bg-slate-900 border border-slate-800 p-1 rounded-lg">
-          {(["business", "personal", "combined"] as const).map((s) => (
-            <button
-              key={s}
-              onClick={() => {
-                setLoading(true);
-                setScope(s);
-              }}
-              className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
-                scope === s ? "bg-blue-600 text-white" : "text-slate-400 hover:text-white"
-              }`}
-            >
-              {s.toUpperCase()}
-            </button>
-          ))}
+        <div className="task-context-header__actions">
+          <div className="view-switch" aria-label="Executive scope">
+            {(["business", "personal", "combined"] as const).map((s) => (
+              <button
+                key={s}
+                type="button"
+                onClick={() => {
+                  setLoading(true);
+                  setScope(s);
+                }}
+                className={scope === s ? "active" : ""}
+                aria-pressed={scope === s}
+              >
+                {s.toUpperCase()}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      </header>
 
       {/* Today's Executive Memo */}
       <div className="executive-memo-card">

@@ -1,0 +1,206 @@
+[
+  {
+    "route": "/plan/week",
+    "mode": "desktop",
+    "file": "/Users/youssefmahir/Documents/ChatGPT/ysf/docs/design/screenshots/route-audit-2026-09-21/desktop/06--plan--week.jpg",
+    "stable": true,
+    "ms": 2096,
+    "bodyLength": 387,
+    "buttons": 13,
+    "docWidth": 1440,
+    "forms": 0,
+    "h1": [
+      "Weekly Planning"
+    ],
+    "innerHeight": 1000,
+    "innerWidth": 1440,
+    "links": 26,
+    "overlay": false,
+    "tables": 0,
+    "tail": "\nDark mode\nDaily Command\nPlan\nSearch tasks, projects, clients…\n⌘K\nY\nPlan/Weekly Planning\nWeekly Planning\n\nReview constraints before choosing the commitments that deserve this week.\n\nNew period\n···\nPreparing weekly inputs",
+    "title": "Daily Command Center",
+    "url": "/plan/week"
+  },
+  {
+    "route": "/portfolio",
+    "mode": "desktop",
+    "file": "/Users/youssefmahir/Documents/ChatGPT/ysf/docs/design/screenshots/route-audit-2026-09-21/desktop/06--portfolio.jpg",
+    "stable": true,
+    "ms": 8254,
+    "bodyLength": 424,
+    "buttons": 18,
+    "docWidth": 1440,
+    "forms": 0,
+    "h1": [
+      "Portfolio"
+    ],
+    "innerHeight": 1000,
+    "innerWidth": 1440,
+    "links": 29,
+    "overlay": false,
+    "tables": 0,
+    "tail": "\nPortfolio\nSearch tasks, projects, clients…\n⌘K\nY\nPlan/Portfolio\nPortfolio\n\nThe few cross-domain records that materially shape your current horizon.\n\nControl Tower\nAll\nWork\nBusiness\nFounder\nLife\n···\nReading your portfolio",
+    "title": "Daily Command Center",
+    "url": "/portfolio"
+  },
+  {
+    "route": "/projects",
+    "mode": "desktop",
+    "file": "/Users/youssefmahir/Documents/ChatGPT/ysf/docs/design/screenshots/route-audit-2026-09-21/desktop/06--projects.jpg",
+    "stable": true,
+    "ms": 13204,
+    "bodyLength": 380,
+    "buttons": 15,
+    "docWidth": 1440,
+    "forms": 0,
+    "h1": [
+      "Projects"
+    ],
+    "innerHeight": 1000,
+    "innerWidth": 1440,
+    "links": 26,
+    "overlay": false,
+    "tables": 0,
+    "tail": "rk mode\nDaily Command\nProjects\nSearch tasks, projects, clients…\n⌘K\nY\nWorkspace\nProjects\nProjects\n\nSee momentum, risk, and the next meaningful move.\n\n1 total\nNew project\n1 item\nPLANNING\ncrb\n\n—\n\n0%\nOpen project workspace →",
+    "title": "Projects · Daily Command",
+    "url": "/projects"
+  },
+  {
+    "route": "/prompts",
+    "mode": "desktop",
+    "error": "Timed out waiting for tab 2 to navigate to http://localhost:3000/prompts.",
+    "ms": 10356
+  },
+  {
+    "route": "/proposals",
+    "mode": "desktop",
+    "file": "/Users/youssefmahir/Documents/ChatGPT/ysf/docs/design/screenshots/route-audit-2026-09-21/desktop/06--proposals.jpg",
+    "stable": true,
+    "ms": 5068,
+    "bodyLength": 437,
+    "buttons": 14,
+    "docWidth": 1440,
+    "forms": 0,
+    "h1": [
+      "Proposals"
+    ],
+    "innerHeight": 1000,
+    "innerWidth": 1440,
+    "links": 28,
+    "overlay": false,
+    "tables": 0,
+    "tail": "…\n⌘K\nY\nBusiness/Proposals\nProposals\n\nShape an offer deliberately before it becomes delivery work.\n\nNew proposal\nPROPOSAL\nSTATUS\nTOTAL\n∅\nNo proposals yet. Create a draft when an opportunity needs a clear commercial offer.",
+    "title": "Proposals · Daily Command",
+    "url": "/proposals"
+  },
+  {
+    "route": "/plan/week",
+    "mode": "mobile",
+    "file": "/Users/youssefmahir/Documents/ChatGPT/ysf/docs/design/screenshots/route-audit-2026-09-21/mobile/06--plan--week.jpg",
+    "stable": true,
+    "ms": 1681,
+    "bodyLength": 280,
+    "buttons": 13,
+    "docWidth": 389,
+    "forms": 0,
+    "h1": [
+      "Weekly Planning"
+    ],
+    "innerHeight": 843,
+    "innerWidth": 389,
+    "links": 26,
+    "overlay": false,
+    "tables": 0,
+    "tail": "e\nIntelligence\nPersonal\nNew capture\nC\nSearch\n⌘K\nPLANNING\nPlan\nFocus\nGoals\nApprovals\nFOLLOW THROUGH\nDark mode\nPlan\nPlan\nPlan/Weekly Planning\nWeekly Planning\nNew period\n···\nPreparing weekly inputs\nToday\nTasks\nCalendar\nMore",
+    "title": "Daily Command Center",
+    "url": "/plan/week"
+  },
+  {
+    "route": "/portfolio",
+    "mode": "mobile",
+    "file": "/Users/youssefmahir/Documents/ChatGPT/ysf/docs/design/screenshots/route-audit-2026-09-21/mobile/06--portfolio.jpg",
+    "stable": true,
+    "ms": 1641,
+    "bodyLength": 327,
+    "buttons": 18,
+    "docWidth": 389,
+    "forms": 0,
+    "h1": [
+      "Portfolio"
+    ],
+    "innerHeight": 843,
+    "innerWidth": 389,
+    "links": 29,
+    "overlay": false,
+    "tables": 0,
+    "tail": "earch\n⌘K\nCOMMAND\nSTRATEGY\nControl tower\nPortfolio\nMemory\nContent\nDark mode\nIntelligence\nPortfolio\nPlan/Portfolio\nPortfolio\nControl Tower\nAll\nWork\nBusiness\nFounder\nLife\n···\nReading your portfolio\nToday\nTasks\nCalendar\nMore",
+    "title": "Daily Command Center",
+    "url": "/portfolio"
+  },
+  {
+    "route": "/projects",
+    "mode": "mobile",
+    "file": "/Users/youssefmahir/Documents/ChatGPT/ysf/docs/design/screenshots/route-audit-2026-09-21/mobile/06--projects.jpg",
+    "stable": true,
+    "ms": 2587,
+    "bodyLength": 290,
+    "buttons": 15,
+    "docWidth": 389,
+    "forms": 0,
+    "h1": [
+      "Projects"
+    ],
+    "innerHeight": 843,
+    "innerWidth": 389,
+    "links": 26,
+    "overlay": false,
+    "tables": 0,
+    "tail": "ence\nPersonal\nNew capture\nC\nSearch\n⌘K\nMY WORK\nWORKSPACE\nProjects\nClients\nFiles\nDark mode\nHome\nProjects\nWorkspace\nProjects\nProjects\nNew project\n1 item\nPLANNING\ncrb\n\n—\n\n0%\nOpen project workspace →\nToday\nTasks\nCalendar\nMore",
+    "title": "Projects · Daily Command",
+    "url": "/projects"
+  },
+  {
+    "route": "/prompts",
+    "mode": "mobile",
+    "file": "/Users/youssefmahir/Documents/ChatGPT/ysf/docs/design/screenshots/route-audit-2026-09-21/mobile/06--prompts.jpg",
+    "stable": true,
+    "ms": 2625,
+    "bodyLength": 331,
+    "buttons": 15,
+    "docWidth": 389,
+    "forms": 0,
+    "h1": [
+      "Prompts"
+    ],
+    "innerHeight": 843,
+    "innerWidth": 389,
+    "links": 26,
+    "overlay": false,
+    "tables": 0,
+    "tail": "\nPERSONAL\nWORKSPACE\nIdeas\nDecisions\nPrompts\nSettings\nDark mode\nPersonal\nPrompts\nLibrary\nPrompts\nPrompts\nNew prompt\n0 items\n∅\nNo prompts yet\n\nUse “New prompt” to create the first one.\n\nNew prompt\nToday\nTasks\nCalendar\nMore",
+    "title": "Prompts · Daily Command",
+    "url": "/prompts"
+  },
+  {
+    "route": "/proposals",
+    "mode": "mobile",
+    "file": "/Users/youssefmahir/Documents/ChatGPT/ysf/docs/design/screenshots/route-audit-2026-09-21/mobile/06--proposals.jpg",
+    "stable": true,
+    "ms": 4351,
+    "bodyLength": 326,
+    "buttons": 14,
+    "docWidth": 389,
+    "forms": 0,
+    "h1": [
+      "Proposals"
+    ],
+    "innerHeight": 843,
+    "innerWidth": 389,
+    "links": 28,
+    "overlay": false,
+    "tables": 0,
+    "tail": "ch\n⌘K\nREVENUE\nFINANCE & COMMERCE\nDark mode\nBusiness\nDaily Command\nBusiness/Proposals\nProposals\nNew proposal\n∅\nNo proposals yet. Create a draft when an opportunity needs a clear commercial offer.\nToday\nTasks\nCalendar\nMore",
+    "title": "Proposals · Daily Command",
+    "url": "/proposals"
+  }
+]

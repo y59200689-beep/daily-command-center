@@ -131,22 +131,31 @@ export function ClientSuccessProfile({ clientId }: { clientId: string }) {
   ];
 
   return (
-    <div className="success-page">
-      <div className="page-header" style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: "0.75rem" }}>
+    <main className="domain-page success-page">
+      <header className="task-context-header">
         <div>
-          <Link href="/success" style={{ fontSize: "0.8rem", color: "var(--text-secondary)", marginBottom: "0.25rem", display: "block" }}>← Customer Success</Link>
-          <h1 className="page-title">{client.name}</h1>
-          {client.company && <p style={{ fontSize: "0.875rem", color: "var(--text-secondary)" }}>{client.company}</p>}
+          <nav className="task-context-header__breadcrumb" aria-label="Breadcrumb">
+            <span>Customer Success</span>
+            <span>/</span>
+            <Link href="/success" style={{ color: "var(--muted)", textDecoration: "none" }}>Success Hub</Link>
+            <span>/</span>
+            <span className="current">{client.name}</span>
+          </nav>
+          <div className="task-context-header__title-row">
+            <h1>{client.name}</h1>
+            <span style={{ padding: "3px 10px", borderRadius: 12, background: healthColor(health.state) + "20", color: healthColor(health.state), fontSize: "0.8rem", fontWeight: 600, alignSelf: "center" }}>
+              {health.state.replace(/_/g, " ")}
+            </span>
+            <span style={{ padding: "3px 10px", borderRadius: 12, background: churnColor(churn.state) + "20", color: churnColor(churn.state), fontSize: "0.8rem", alignSelf: "center" }}>
+              churn: {churn.state}
+            </span>
+          </div>
+          {client.company && <p className="task-context-header__description">{client.company}</p>}
         </div>
-        <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-          <span style={{ padding: "3px 10px", borderRadius: 12, background: healthColor(health.state) + "20", color: healthColor(health.state), fontSize: "0.8rem", fontWeight: 600, alignSelf: "center" }}>
-            {health.state.replace(/_/g, " ")}
-          </span>
-          <span style={{ padding: "3px 10px", borderRadius: 12, background: churnColor(churn.state) + "20", color: churnColor(churn.state), fontSize: "0.8rem", alignSelf: "center" }}>
-            churn: {churn.state}
-          </span>
+        <div className="task-context-header__actions">
+          <Link href="/success">Success Hub</Link>
         </div>
-      </div>
+      </header>
 
       {/* Quick metrics */}
       <div style={{ display: "flex", gap: "0.6rem", flexWrap: "wrap", marginBottom: "1.25rem" }}>
@@ -368,6 +377,6 @@ export function ClientSuccessProfile({ clientId }: { clientId: string }) {
           ))}
         </div>
       )}
-    </div>
+    </main>
   );
 }

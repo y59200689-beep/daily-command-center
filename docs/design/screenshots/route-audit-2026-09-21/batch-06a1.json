@@ -1,0 +1,222 @@
+[
+  {
+    "route": "/operations/review",
+    "mode": "desktop",
+    "file": "/Users/youssefmahir/Documents/ChatGPT/ysf/docs/design/screenshots/route-audit-2026-09-21/desktop/06--operations--review.jpg",
+    "stable": true,
+    "ms": 2932,
+    "bodyLength": 666,
+    "buttons": 17,
+    "docWidth": 1440,
+    "forms": 0,
+    "h1": [
+      "Operations Review"
+    ],
+    "innerHeight": 1000,
+    "innerWidth": 1440,
+    "links": 27,
+    "overlay": false,
+    "tables": 0,
+    "tail": "pective\nNaN%\nCompletion rate\n/\nRuns finished\nQuality incidents\nSOP reviews due\n\nCONTINUOUS IMPROVEMENT\n\nKaizen Backlog (0)\n+ New Item\n\nNo continuous improvements recorded. Propose an operational tweak or SOP enhancement.",
+    "title": "Operations · Cadence Review · Daily Command",
+    "url": "/operations/review"
+  },
+  {
+    "route": "/operations/runbooks",
+    "mode": "desktop",
+    "file": "/Users/youssefmahir/Documents/ChatGPT/ysf/docs/design/screenshots/route-audit-2026-09-21/desktop/06--operations--runbooks.jpg",
+    "stable": true,
+    "ms": 2026,
+    "bodyLength": 559,
+    "buttons": 13,
+    "docWidth": 1440,
+    "forms": 0,
+    "h1": [
+      "Emergency Runbooks"
+    ],
+    "innerHeight": 1000,
+    "innerWidth": 1440,
+    "links": 28,
+    "overlay": false,
+    "tables": 0,
+    "tail": "res for unexpected failure states\n\nOverview\nSystems\nEmergency Runbooks are unavailable\n\nThis workspace is missing the optional V11 operations schema. Runbook creation will be available after that dependency is installed.",
+    "title": "Operations · Emergency Runbooks · Daily Command",
+    "url": "/operations/runbooks"
+  },
+  {
+    "route": "/operations/runs",
+    "mode": "desktop",
+    "file": "/Users/youssefmahir/Documents/ChatGPT/ysf/docs/design/screenshots/route-audit-2026-09-21/desktop/06--operations--runs.jpg",
+    "stable": true,
+    "ms": 1937,
+    "bodyLength": 523,
+    "buttons": 13,
+    "docWidth": 1440,
+    "forms": 0,
+    "h1": [
+      "Process Runs"
+    ],
+    "innerHeight": 1000,
+    "innerWidth": 1440,
+    "links": 27,
+    "overlay": false,
+    "tables": 0,
+    "tail": "\n\nLive and historical operational execution tracking\n\nOverview\nProcess Runs are unavailable\n\nThis workspace is missing the optional V11 operations schema. Run history will be available after that dependency is installed.",
+    "title": "Operations · Process Runs · Daily Command",
+    "url": "/operations/runs"
+  },
+  {
+    "route": "/operations/sops",
+    "mode": "desktop",
+    "file": "/Users/youssefmahir/Documents/ChatGPT/ysf/docs/design/screenshots/route-audit-2026-09-21/desktop/06--operations--sops.jpg",
+    "stable": true,
+    "ms": 1840,
+    "bodyLength": 518,
+    "buttons": 13,
+    "docWidth": 1440,
+    "forms": 0,
+    "h1": [
+      "SOP Library"
+    ],
+    "innerHeight": 1000,
+    "innerWidth": 1440,
+    "links": 27,
+    "overlay": false,
+    "tables": 0,
+    "tail": "procedures\n\n0 documented procedures across 1 categories\n\nOverview\nSOP Library is unavailable\n\nThis workspace is missing the optional V11 operations schema. Procedures will be available after that dependency is installed.",
+    "title": "Operations · SOP Library · Daily Command",
+    "url": "/operations/sops"
+  },
+  {
+    "route": "/operations/systems",
+    "mode": "desktop",
+    "file": "/Users/youssefmahir/Documents/ChatGPT/ysf/docs/design/screenshots/route-audit-2026-09-21/desktop/06--operations--systems.jpg",
+    "stable": true,
+    "ms": 3843,
+    "bodyLength": 539,
+    "buttons": 13,
+    "docWidth": 1440,
+    "forms": 0,
+    "h1": [
+      "Systems Registry"
+    ],
+    "innerHeight": 1000,
+    "innerWidth": 1440,
+    "links": 28,
+    "overlay": false,
+    "tables": 0,
+    "tail": "rnal systems & third-party dependencies\n\nOverview\nRunbooks\nSystems Registry is unavailable\n\nThis workspace is missing the optional V11 operations schema. Registration will be available after that dependency is installed.",
+    "title": "Operations · Systems Registry · Daily Command",
+    "url": "/operations/systems"
+  },
+  {
+    "route": "/operations/review",
+    "mode": "mobile",
+    "file": "/Users/youssefmahir/Documents/ChatGPT/ysf/docs/design/screenshots/route-audit-2026-09-21/mobile/06--operations--review.jpg",
+    "stable": true,
+    "ms": 2886,
+    "bodyLength": 556,
+    "buttons": 17,
+    "docWidth": 389,
+    "forms": 0,
+    "h1": [
+      "Operations Review"
+    ],
+    "innerHeight": 843,
+    "innerWidth": 389,
+    "links": 27,
+    "overlay": false,
+    "tables": 0,
+    "tail": "e\n/\nRuns finished\nQuality incidents\nSOP reviews due\n\nCONTINUOUS IMPROVEMENT\n\nKaizen Backlog (0)\n+ New Item\n\nNo continuous improvements recorded. Propose an operational tweak or SOP enhancement.\n\nToday\nTasks\nCalendar\nMore",
+    "title": "Operations · Cadence Review · Daily Command",
+    "url": "/operations/review"
+  },
+  {
+    "route": "/operations/runbooks",
+    "mode": "mobile",
+    "file": "/Users/youssefmahir/Documents/ChatGPT/ysf/docs/design/screenshots/route-audit-2026-09-21/mobile/06--operations--runbooks.jpg",
+    "stable": true,
+    "ms": 1844,
+    "bodyLength": 477,
+    "buttons": 13,
+    "docWidth": 389,
+    "forms": 0,
+    "h1": [
+      "Emergency Runbooks"
+    ],
+    "innerHeight": 843,
+    "innerWidth": 389,
+    "links": 28,
+    "overlay": false,
+    "tables": 0,
+    "tail": "unbooks\nOverview\nSystems\nEmergency Runbooks are unavailable\n\nThis workspace is missing the optional V11 operations schema. Runbook creation will be available after that dependency is installed.\n\nToday\nTasks\nCalendar\nMore",
+    "title": "Operations · Emergency Runbooks · Daily Command",
+    "url": "/operations/runbooks"
+  },
+  {
+    "route": "/operations/runs",
+    "mode": "mobile",
+    "file": "/Users/youssefmahir/Documents/ChatGPT/ysf/docs/design/screenshots/route-audit-2026-09-21/mobile/06--operations--runs.jpg",
+    "stable": true,
+    "ms": 1653,
+    "bodyLength": 444,
+    "buttons": 13,
+    "docWidth": 389,
+    "forms": 0,
+    "h1": [
+      "Process Runs"
+    ],
+    "innerHeight": 843,
+    "innerWidth": 389,
+    "links": 27,
+    "overlay": false,
+    "tables": 0,
+    "tail": "s/Runs\nProcess Runs\n0 runs\nOverview\nProcess Runs are unavailable\n\nThis workspace is missing the optional V11 operations schema. Run history will be available after that dependency is installed.\n\nToday\nTasks\nCalendar\nMore",
+    "title": "Operations · Process Runs · Daily Command",
+    "url": "/operations/runs"
+  },
+  {
+    "route": "/operations/sops",
+    "mode": "mobile",
+    "file": "/Users/youssefmahir/Documents/ChatGPT/ysf/docs/design/screenshots/route-audit-2026-09-21/mobile/06--operations--sops.jpg",
+    "stable": true,
+    "ms": 3188,
+    "bodyLength": 446,
+    "buttons": 13,
+    "docWidth": 389,
+    "forms": 0,
+    "h1": [
+      "SOP Library"
+    ],
+    "innerHeight": 843,
+    "innerWidth": 389,
+    "links": 27,
+    "overlay": false,
+    "tables": 0,
+    "tail": "SOPs\nSOP Library\n0 procedures\nOverview\nSOP Library is unavailable\n\nThis workspace is missing the optional V11 operations schema. Procedures will be available after that dependency is installed.\n\nToday\nTasks\nCalendar\nMore",
+    "title": "Operations · SOP Library · Daily Command",
+    "url": "/operations/sops"
+  },
+  {
+    "route": "/operations/systems",
+    "mode": "mobile",
+    "file": "/Users/youssefmahir/Documents/ChatGPT/ysf/docs/design/screenshots/route-audit-2026-09-21/mobile/06--operations--systems.jpg",
+    "stable": true,
+    "ms": 1730,
+    "bodyLength": 467,
+    "buttons": 13,
+    "docWidth": 389,
+    "forms": 0,
+    "h1": [
+      "Systems Registry"
+    ],
+    "innerHeight": 843,
+    "innerWidth": 389,
+    "links": 28,
+    "overlay": false,
+    "tables": 0,
+    "tail": "try\n0 systems\nOverview\nRunbooks\nSystems Registry is unavailable\n\nThis workspace is missing the optional V11 operations schema. Registration will be available after that dependency is installed.\n\nToday\nTasks\nCalendar\nMore",
+    "title": "Operations · Systems Registry · Daily Command",
+    "url": "/operations/systems"
+  }
+]

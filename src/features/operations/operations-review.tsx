@@ -110,16 +110,22 @@ export function OperationsReview() {
 
   return (
     <main className="domain-page operations-page">
-      <header className="page-header">
+      <header className="task-context-header">
         <div>
-          <p className="eyebrow">Operations · Cadence & Continuous Improvement</p>
-          <h1>Operations Review.</h1>
-          <p>
-            Systematic retrospective of operational performance, defect trends & process evolution
+          <nav className="task-context-header__breadcrumb" aria-label="Breadcrumb">
+            <span>Operations</span>
+            <span>/</span>
+            <span className="current">Review</span>
+          </nav>
+          <div className="task-context-header__title-row">
+            <h1>Operations Review</h1>
+          </div>
+          <p className="task-context-header__description">
+            Cadence &amp; continuous improvement — performance, defect trends &amp; process evolution
           </p>
         </div>
-        <div className="operations-header-actions">
-          <Link href="/operations" className="button button--outline">Overview</Link>
+        <div className="task-context-header__actions">
+          <Link href="/operations" style={{ padding: "0.375rem 0.75rem", fontSize: "0.8125rem", border: "1px solid var(--line)", borderRadius: "var(--radius-surface)", color: "var(--ink)", background: "var(--surface)" }}>Overview</Link>
           <Button intent="brand" onClick={() => setShowModal(true)}>Propose Improvement</Button>
         </div>
       </header>

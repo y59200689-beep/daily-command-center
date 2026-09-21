@@ -80,17 +80,24 @@ export function SystemsRegistry() {
 
   return (
     <main className="domain-page operations-page">
-      <header className="page-header">
+      <header className="task-context-header">
         <div>
-          <p className="eyebrow">Operations · Technical Infrastructure</p>
-          <h1>Systems Registry.</h1>
-          <p>
-            {systems.length} documented internal system{systems.length === 1 ? "" : "s"} & third-party dependency tools
+          <nav className="task-context-header__breadcrumb" aria-label="Breadcrumb">
+            <span>Operations</span>
+            <span>/</span>
+            <span className="current">Systems</span>
+          </nav>
+          <div className="task-context-header__title-row">
+            <h1>Systems Registry</h1>
+            <span className="task-context-header__total-badge">{systems.length} systems</span>
+          </div>
+          <p className="task-context-header__description">
+            Internal systems &amp; third-party dependencies
           </p>
         </div>
-        <div className="operations-header-actions">
-          <Link href="/operations" className="button button--outline">Overview</Link>
-          <Link href="/operations/runbooks" className="button button--outline">Runbooks</Link>
+        <div className="task-context-header__actions">
+          <Link href="/operations">Overview</Link>
+          <Link href="/operations/runbooks">Runbooks</Link>
           {!error && !schemaUnavailable ? <Button intent="brand" onClick={() => setShowModal(true)}>Register System</Button> : null}
         </div>
       </header>

@@ -40,16 +40,25 @@ export function CapacityView() {
   if (schemaUnavailable) return <TeamSchemaUnavailable title="Team Workload & Capacity" description="Objective commitment balance based strictly on active tasks, runs, and delegations." />;
 
   return (
-    <div className="page-shell team-page">
-      <div className="page-header">
+    <div className="domain-page team-page">
+      <header className="task-context-header">
         <div>
-          <p className="eyebrow"><Link href="/team">← Team Command Center</Link></p>
-          <h1>Team Workload & Capacity</h1>
-          <p className="page-description">
+          <nav className="task-context-header__breadcrumb" aria-label="Breadcrumb">
+            <span>Operate</span>
+            <span>/</span>
+            <Link href="/team" style={{ color: "var(--muted)", textDecoration: "none" }}>Team</Link>
+            <span>/</span>
+            <span className="current">Workload & Capacity</span>
+          </nav>
+          <div className="task-context-header__title-row">
+            <h1>Team Workload & Capacity</h1>
+            {summary && <span className="task-context-header__total-badge">{summary.total} active members</span>}
+          </div>
+          <p className="task-context-header__description">
             Objective commitment balance based strictly on active tasks, runs, and delegations.
           </p>
         </div>
-      </div>
+      </header>
 
       {summary && (
         <div className="metric-ledger metric-ledger--four" style={{ margin: "20px 0" }}>

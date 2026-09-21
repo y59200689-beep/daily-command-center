@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useState } from "react";
+import { Icons } from "@/components/icons";
 import { useDeferredEffect } from "@/lib/use-deferred-effect";
 
 type Row = Record<string, unknown> & { id: string };
@@ -55,19 +56,24 @@ export function GrowthHome() {
 
   return (
     <main className="domain-page growth-page">
-      <header className="page-header">
+      <header className="task-context-header growth-context-header">
         <div>
-          <p className="eyebrow">V10 · Growth operating system</p>
-          <h1>Growth.</h1>
+          <div className="task-context-header__path">
+            <Icons.TrendingUp size={15} />
+            <span>Business</span>
+            <Icons.ChevronRight size={13} />
+            <strong>Growth</strong>
+          </div>
+          <h1>Growth</h1>
           <p>
             {opportunities.length} open opportunities
             {pipelineSignals ? ` · Pipeline: ${pipelineSignals}` : ""}
           </p>
         </div>
         <div className="growth-header-actions">
-          <Link href="/growth/pipeline" className="button button--outline">Pipeline</Link>
-          <Link href="/growth/playbooks" className="button button--outline">Playbooks</Link>
-          <Link href="/growth/reviews" className="button button--outline">Reviews</Link>
+          <Link href="/growth/pipeline" className="button button--outline button--neutral">Pipeline</Link>
+          <Link href="/growth/playbooks" className="button button--outline button--neutral">Playbooks</Link>
+          <Link href="/growth/reviews" className="button button--outline button--neutral">Reviews</Link>
           <Link href="/growth/experiments" className="button button--solid button--brand">Experiments</Link>
         </div>
       </header>

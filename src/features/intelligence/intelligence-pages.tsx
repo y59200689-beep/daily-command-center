@@ -142,19 +142,28 @@ export function PlannerPage() {
   if (!plan) return <Loading label="Planning around your real commitments" />;
   return (
     <div className="intelligence-page">
-      <header className="page-header">
+      <header className="task-context-header">
         <div>
-          <p className="eyebrow">Morning planner · {plan.date}</p>
-          <h1>Today’s plan.</h1>
-          <p>{plan.capacity.insight} Nothing changes until you accept.</p>
+          <nav className="task-context-header__breadcrumb" aria-label="Breadcrumb">
+            <span>Intelligence</span>
+            <span>/</span>
+            <span className="current">Morning Planner</span>
+          </nav>
+          <div className="task-context-header__title-row">
+            <h1>Today’s plan.</h1>
+            <span className="task-context-header__total-badge">{plan.date}</span>
+          </div>
+          <p className="task-context-header__description">{plan.capacity.insight} Nothing changes until you accept.</p>
         </div>
-        <Button
-          disabled={saving || !selected.length}
-          intent="brand"
-          onClick={() => void submit("accept")}
-        >
-          {saving ? "Saving…" : "Accept plan"}
-        </Button>
+        <div className="task-context-header__actions">
+          <Button
+            disabled={saving || !selected.length}
+            intent="brand"
+            onClick={() => void submit("accept")}
+          >
+            {saving ? "Saving…" : "Accept plan"}
+          </Button>
+        </div>
       </header>
       <section className="metric-ledger metric-ledger--four">
         <Metric
@@ -288,11 +297,18 @@ export function RisksPage() {
   if (!risks) return <Loading label="Reviewing active risks" />;
   return (
     <div className="intelligence-page">
-      <header className="page-header">
+      <header className="task-context-header">
         <div>
-          <p className="eyebrow">Decision support</p>
-          <h1>Risks.</h1>
-          <p>Calm, evidence-based signals from your current workspace.</p>
+          <nav className="task-context-header__breadcrumb" aria-label="Breadcrumb">
+            <span>Intelligence</span>
+            <span>/</span>
+            <span className="current">Risks</span>
+          </nav>
+          <div className="task-context-header__title-row">
+            <h1>Risks.</h1>
+            <span className="task-context-header__total-badge">{risks.length} signals</span>
+          </div>
+          <p className="task-context-header__description">Calm, evidence-based signals from your current workspace.</p>
         </div>
       </header>
       {risks.length ? (
@@ -398,22 +414,29 @@ export function WeeklyReviewPage() {
     );
   }
   if (error) return <Failure message={error} retry={() => void load()} />;
-  if (schemaUnavailable) return <div className="intelligence-page"><header className="page-header"><div><p className="eyebrow">Weekly executive review</p><h1>This week.</h1><p>What moved, what drifted, and what next week should protect.</p></div></header><section className="data-surface empty-state"><h2>Weekly review is unavailable</h2><p>This workspace is missing one or more optional V8–V13 domain schemas. Review data will be available after those dependencies are installed.</p></section></div>;
+  if (schemaUnavailable) return <div className="intelligence-page"><header className="task-context-header"><div><nav className="task-context-header__breadcrumb" aria-label="Breadcrumb"><span>Intelligence</span><span>/</span><span className="current">Weekly Review</span></nav><div className="task-context-header__title-row"><h1>This week.</h1></div><p className="task-context-header__description">What moved, what drifted, and what next week should protect.</p></div></header><section className="data-surface empty-state"><h2>Weekly review is unavailable</h2><p>This workspace is missing one or more optional V8–V13 domain schemas. Review data will be available after those dependencies are installed.</p></section></div>;
   if (!review) return <Loading label="Preparing your executive review" />;
   const m = review.metrics;
   return (
     <div className="intelligence-page">
-      <header className="page-header">
+      <header className="task-context-header">
         <div>
-          <p className="eyebrow">
-            Weekly executive review · {review.periodStart}—{review.periodEnd}
-          </p>
-          <h1>This week.</h1>
-          <p>What moved, what drifted, and what next week should protect.</p>
+          <nav className="task-context-header__breadcrumb" aria-label="Breadcrumb">
+            <span>Intelligence</span>
+            <span>/</span>
+            <span className="current">Weekly Review</span>
+          </nav>
+          <div className="task-context-header__title-row">
+            <h1>This week.</h1>
+            <span className="task-context-header__total-badge">{review.periodStart}—{review.periodEnd}</span>
+          </div>
+          <p className="task-context-header__description">What moved, what drifted, and what next week should protect.</p>
         </div>
-        <Button intent="brand" disabled={saving} onClick={() => void save()}>
-          {saving ? "Saving…" : "Save review"}
-        </Button>
+        <div className="task-context-header__actions">
+          <Button intent="brand" disabled={saving} onClick={() => void save()}>
+            {saving ? "Saving…" : "Save review"}
+          </Button>
+        </div>
       </header>
       <section className="metric-ledger">
         <Metric value={String(m.tasksCompleted ?? 0)} label="Tasks completed" />
@@ -566,14 +589,21 @@ export function EveningReviewPage() {
   if (!review) return <Loading label="Looking back at today" />;
   return (
     <div className="intelligence-page">
-      <header className="page-header">
+      <header className="task-context-header">
         <div>
-          <p className="eyebrow">Evening review</p>
-          <h1>Close the loop.</h1>
-          <p>
-            {review.completed} of {review.planned} planned items completed ·{" "}
-            {minutesLabel(review.focusMinutes)} focused ·{" "}
-            {review.meetings.length} meetings.
+          <nav className="task-context-header__breadcrumb" aria-label="Breadcrumb">
+            <span>Intelligence</span>
+            <span>/</span>
+            <span className="current">Evening Review</span>
+          </nav>
+          <div className="task-context-header__title-row">
+            <h1>Close the loop.</h1>
+            <span className="task-context-header__total-badge">
+              {review.completed}/{review.planned} completed
+            </span>
+          </div>
+          <p className="task-context-header__description">
+            {minutesLabel(review.focusMinutes)} focused · {review.meetings.length} meetings.
           </p>
         </div>
       </header>
@@ -723,11 +753,18 @@ export function MemoryPage() {
   if (!items) return <Loading label="Loading sourced memory" />;
   return (
     <div className="intelligence-page">
-      <header className="page-header">
+      <header className="task-context-header">
         <div>
-          <p className="eyebrow">Structured memory</p>
-          <h1>What the system knows.</h1>
-          <p>
+          <nav className="task-context-header__breadcrumb" aria-label="Breadcrumb">
+            <span>Intelligence</span>
+            <span>/</span>
+            <span className="current">Memory</span>
+          </nav>
+          <div className="task-context-header__title-row">
+            <h1>What the system knows.</h1>
+            <span className="task-context-header__total-badge">{items.length} items</span>
+          </div>
+          <p className="task-context-header__description">
             User-owned context, with confidence and a path back to its source.
           </p>
         </div>
@@ -899,19 +936,26 @@ export function MeetingBriefPage({ id }: { id: string }) {
   );
   return (
     <div className="intelligence-page">
-      <Link className="back-link" href="/calendar">
-        ← Back to calendar
-      </Link>
-      <header className="page-header">
+      <header className="task-context-header">
         <div>
-          <p className="eyebrow">
-            Meeting brief · {String(brief.evidenceQuality)} evidence
-          </p>
-          <h1>{String(event.title)}</h1>
-          <p>
+          <nav className="task-context-header__breadcrumb" aria-label="Breadcrumb">
+            <span>Intelligence</span>
+            <span>/</span>
+            <Link href="/calendar" style={{ color: "var(--muted)", textDecoration: "none" }}>Calendar</Link>
+            <span>/</span>
+            <span className="current">Meeting Brief</span>
+          </nav>
+          <div className="task-context-header__title-row">
+            <h1>{String(event.title)}</h1>
+            <span className="task-context-header__total-badge">{String(brief.evidenceQuality)} evidence</span>
+          </div>
+          <p className="task-context-header__description">
             {client ? String(client.name) : "No client linked"}
             {project ? ` · ${String(project.name)}` : ""}
           </p>
+        </div>
+        <div className="task-context-header__actions">
+          <Link href="/calendar" className="button button--ghost">← Calendar</Link>
         </div>
       </header>
       {brief.caveat ? (

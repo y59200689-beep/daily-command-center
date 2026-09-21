@@ -43,14 +43,23 @@ export function OwnershipMap() {
   if (schemaUnavailable) return <TeamSchemaUnavailable title="Ownership Map" description="Cross-domain operational accountability without changing database security." />;
 
   return (
-    <div className="page-shell team-page">
-      <div className="page-header">
+    <main className="domain-page team-page">
+      <header className="task-context-header">
         <div>
-          <p className="eyebrow"><Link href="/team">← Team Command Center</Link></p>
-          <h1>Ownership Map</h1>
-          <p className="page-description">Cross-domain operational accountability without changing database security.</p>
+          <nav className="task-context-header__breadcrumb" aria-label="Breadcrumb">
+            <span>Operate</span>
+            <span>/</span>
+            <Link href="/team" style={{ color: "var(--muted)", textDecoration: "none" }}>Team</Link>
+            <span>/</span>
+            <span className="current">Ownership Map</span>
+          </nav>
+          <div className="task-context-header__title-row">
+            <h1>Ownership Map</h1>
+            {items.length > 0 && <span className="task-context-header__total-badge">{items.length} entities</span>}
+          </div>
+          <p className="task-context-header__description">Cross-domain operational accountability without changing database security.</p>
         </div>
-      </div>
+      </header>
 
       {/* FILTER TABS */}
       <div className="pill-tabs" style={{ margin: "20px 0" }}>
@@ -119,6 +128,6 @@ export function OwnershipMap() {
           ))}
         </div>
       )}
-    </div>
+    </main>
   );
 }

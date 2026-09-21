@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { ShoppingBag } from "lucide-react";
 import { Icons } from "@/components/icons";
 import type { CommerceRiskItem } from "@/lib/commerce";
 
@@ -92,6 +93,36 @@ export function CommerceHome() {
 
   return (
     <div className="space-y-8">
+      {/* ClickUp Context Header */}
+      <header className="task-context-header">
+        <div>
+          <nav className="task-context-header__breadcrumb" aria-label="Breadcrumb">
+            <span>Founder</span>
+            <span>/</span>
+            <span className="current">Commerce</span>
+          </nav>
+          <div className="task-context-header__title-row">
+            <h1><ShoppingBag className="w-5 h-5" style={{ display: "inline", verticalAlign: "middle", marginRight: "0.375rem" }} />Commerce</h1>
+            {metrics.reorderNowCount > 0 && (
+              <span className="task-context-header__total-badge" style={{ background: "rgba(239,68,68,.12)", color: "#ef4444", border: "1px solid rgba(239,68,68,.3)" }}>
+                {metrics.reorderNowCount} reorder now
+              </span>
+            )}
+          </div>
+          <p className="task-context-header__description">
+            {data.productsCount} products · {data.suppliersCount} suppliers · {metrics.openDiscrepanciesCount} open discrepancies
+          </p>
+        </div>
+        <div className="task-context-header__actions">
+          <Link href="/commerce/replenishment" className="btn-brand">
+            Replenishment
+          </Link>
+          <Link href="/commerce/purchasing">
+            Purchase Orders
+          </Link>
+        </div>
+      </header>
+
       {/* Top Banner / Next Move */}
       {nextMove && (
         <div

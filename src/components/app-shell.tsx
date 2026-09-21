@@ -14,20 +14,37 @@ import { InboxBadge } from "@/components/inbox-badge";
 import { NotificationCenter } from "@/features/notifications/notification-center";
 
 type NavItem = readonly [string, string, (typeof Icons)[keyof typeof Icons]];
-const primaryItems = [
-  ["Today", "/today", Icons.Zap], ["Inbox", "/inbox", Icons.Inbox],
-  ["Tasks", "/tasks", Icons.ListTodo], ["Calendar", "/calendar", Icons.CalendarDays],
-  ["Projects", "/projects", Icons.BriefcaseBusiness], ["Clients", "/clients", Icons.Users],
-] as const satisfies readonly NavItem[];
+type Area = { label: string; href: string; icon: (typeof Icons)[keyof typeof Icons]; matches: readonly string[]; groups: ReadonlyArray<{ label: string; items: readonly NavItem[] }> };
 
-const groups = [
-  { label: "Plan & execute", items: [["Plan", "/plan", Icons.Target], ["Focus", "/focus", Icons.Focus], ["Follow-ups", "/followups", Icons.MessageSquareText], ["Waiting", "/waiting", Icons.Clock3], ["Approvals", "/approvals", Icons.Check], ["Goals", "/goals", Icons.Target]] },
-  { label: "Business", items: [["Business overview", "/business", Icons.ChartNoAxesCombined], ["Finance", "/finance", Icons.CircleDollarSign], ["Financial control", "/financial-control", Icons.ReceiptText], ["Growth", "/growth", Icons.TrendingUp], ["Pipeline", "/pipeline", Icons.BriefcaseBusiness], ["Leads", "/leads", Icons.Users], ["Proposals", "/proposals", Icons.FileText], ["Services", "/services", Icons.CircleDollarSign], ["Success", "/success", Icons.HeartHandshake], ["Commerce", "/commerce", Icons.Package], ["Founder", "/founder", Icons.Sparkles], ["Campaigns", "/campaigns", Icons.Zap]] },
-  { label: "Operations", items: [["Operations", "/operations", Icons.ListTodo], ["Team", "/team", Icons.Users], ["Control tower", "/control-tower", Icons.Target], ["Analytics", "/analytics", Icons.ChartNoAxesCombined], ["Communication", "/communication", Icons.MessageSquareText], ["Risks", "/risks", Icons.Bell], ["Automations", "/automations", Icons.Zap]] },
-  { label: "Knowledge & life", items: [["Executive", "/executive", Icons.Sparkles], ["Chief of staff", "/chief-of-staff", Icons.ShieldCheck], ["Knowledge", "/knowledge", Icons.BookOpen], ["Watchlist", "/knowledge/watch", Icons.Bell], ["Review", "/knowledge/review", Icons.Check], ["Learning", "/learning", Icons.Lightbulb], ["Memory", "/memory", Icons.BookOpen], ["Decisions", "/decisions", Icons.MessageSquareText], ["Ideas", "/ideas", Icons.Lightbulb], ["Prompts", "/prompts", Icons.Command], ["Notes", "/notes", Icons.FileText], ["Content", "/content", Icons.BookOpen], ["Life", "/life", Icons.BookOpen], ["Fitness", "/fitness", Icons.Dumbbell], ["Travel", "/travel", Icons.CalendarDays], ["Documents", "/documents", Icons.FileText], ["Files", "/files", Icons.Paperclip]] },
-] as const satisfies ReadonlyArray<{ label: string; items: readonly NavItem[] }>;
+const areas = [
+  { label: "Home", href: "/today", icon: Icons.Zap, matches: ["/today", "/inbox", "/tasks", "/calendar", "/projects", "/clients"], groups: [
+    { label: "My work", items: [["Today", "/today", Icons.Zap], ["Inbox", "/inbox", Icons.Inbox], ["Tasks", "/tasks", Icons.ListTodo], ["Calendar", "/calendar", Icons.CalendarDays]] },
+    { label: "Workspace", items: [["Projects", "/projects", Icons.BriefcaseBusiness], ["Clients", "/clients", Icons.Users], ["Files", "/files", Icons.Paperclip]] },
+  ] },
+  { label: "Plan", href: "/plan", icon: Icons.Target, matches: ["/plan", "/focus", "/followups", "/waiting", "/goals", "/review", "/approvals"], groups: [
+    { label: "Planning", items: [["Plan", "/plan", Icons.Target], ["Focus", "/focus", Icons.Focus], ["Goals", "/goals", Icons.Target], ["Approvals", "/approvals", Icons.Check]] },
+    { label: "Follow through", items: [["Follow-ups", "/followups", Icons.MessageSquareText], ["Waiting", "/waiting", Icons.Clock3], ["Reviews", "/review/weekly", Icons.Check]] },
+  ] },
+  { label: "Business", href: "/business", icon: Icons.CircleDollarSign, matches: ["/business", "/finance", "/financial-control", "/growth", "/pipeline", "/leads", "/proposals", "/services", "/success", "/commerce", "/founder", "/campaigns"], groups: [
+    { label: "Revenue", items: [["Business overview", "/business", Icons.ChartNoAxesCombined], ["Growth", "/growth", Icons.TrendingUp], ["Pipeline", "/pipeline", Icons.BriefcaseBusiness], ["Leads", "/leads", Icons.Users], ["Clients", "/clients", Icons.Users]] },
+    { label: "Finance & commerce", items: [["Finance", "/finance", Icons.CircleDollarSign], ["Financial control", "/financial-control", Icons.ReceiptText], ["Commerce", "/commerce", Icons.Package], ["Success", "/success", Icons.HeartHandshake], ["Founder", "/founder", Icons.Sparkles]] },
+  ] },
+  { label: "Operate", href: "/operations", icon: Icons.ListTodo, matches: ["/operations", "/team", "/control-tower", "/analytics", "/communication", "/risks", "/automations", "/meeting"], groups: [
+    { label: "Operations", items: [["Operations", "/operations", Icons.ListTodo], ["Control tower", "/control-tower", Icons.Target], ["Automations", "/automations", Icons.Zap], ["Analytics", "/analytics", Icons.ChartNoAxesCombined]] },
+    { label: "People & process", items: [["Team", "/team", Icons.Users], ["Communication", "/communication", Icons.MessageSquareText], ["Risks", "/risks", Icons.Bell], ["Documents", "/documents", Icons.FileText]] },
+  ] },
+  { label: "Intelligence", href: "/chief-of-staff", icon: Icons.Sparkles, matches: ["/chief-of-staff", "/executive", "/knowledge", "/learning", "/memory", "/strategy", "/portfolio"], groups: [
+    { label: "Command", items: [["Chief of staff", "/chief-of-staff", Icons.ShieldCheck], ["Executive", "/executive", Icons.Sparkles], ["Knowledge", "/knowledge", Icons.BookOpen], ["Watchlist", "/knowledge/watch", Icons.Bell], ["Review", "/knowledge/review", Icons.Check], ["Learning", "/learning", Icons.Lightbulb]] },
+    { label: "Strategy", items: [["Control tower", "/control-tower", Icons.Target], ["Portfolio", "/portfolio", Icons.BriefcaseBusiness], ["Memory", "/memory", Icons.BookOpen], ["Content", "/content", Icons.FileText]] },
+  ] },
+  { label: "Personal", href: "/life", icon: Icons.BookOpen, matches: ["/life", "/fitness", "/travel", "/notes", "/ideas", "/decisions", "/prompts", "/settings"], groups: [
+    { label: "Personal", items: [["Life", "/life", Icons.BookOpen], ["Fitness", "/fitness", Icons.Dumbbell], ["Travel", "/travel", Icons.CalendarDays], ["Notes", "/notes", Icons.FileText]] },
+    { label: "Workspace", items: [["Ideas", "/ideas", Icons.Lightbulb], ["Decisions", "/decisions", Icons.MessageSquareText], ["Prompts", "/prompts", Icons.Command], ["Settings", "/settings", Icons.Settings]] },
+  ] },
+] as const satisfies readonly Area[];
 
-const allItems: NavItem[] = [...primaryItems, ...groups.flatMap((group) => [...group.items])];
+const workspaceAreas: readonly Area[] = areas;
+const allItems: NavItem[] = workspaceAreas.flatMap((area) => area.groups.flatMap((group) => [...group.items]));
 const routeLabels = Object.fromEntries(allItems.map(([label, href]) => [href, label]));
 
 type ShellUser = { name: string; email: string; initials: string };
@@ -45,6 +62,7 @@ function Shell({ children,user }: { children: ReactNode;user:ShellUser }) {
   const accountButtonRef = useRef<HTMLButtonElement>(null);
   const theme = useTheme();
   const dark = theme === "dark";
+  const currentArea = workspaceAreas.find((area) => area.matches.some((href) => pathname === href || pathname.startsWith(`${href}/`))) ?? workspaceAreas[0];
   const currentRoute = Object.keys(routeLabels).sort((a, b) => b.length - a.length).find((href) => pathname === href || pathname.startsWith(`${href}/`));
   const pageTitle = currentRoute ? routeLabels[currentRoute] : "Daily Command";
 
@@ -113,24 +131,30 @@ function Shell({ children,user }: { children: ReactNode;user:ShellUser }) {
   return (
     <div className="app-frame">
       <a className="skip-link" href="#main-content">Skip to content</a>
-      <aside className={`sidebar ${mobileMenu ? "sidebar--open" : ""}`} aria-label="Primary navigation">
-        <div className="brand"><span className="brand__mark"><Icons.Target size={16} strokeWidth={2.2}/></span><span><strong>Daily Command</strong><small>Personal workspace</small></span></div>
-        <button className="sidebar-create" type="button" onClick={() => setCaptureOpen(true)}><Icons.Plus size={16}/><span>Capture anything</span><kbd>C</kbd></button>
+      <aside className="global-rail" aria-label="Global navigation">
+        <Link href="/today" className="rail-brand" aria-label="Daily Command home" title="Daily Command"><Icons.Target size={19} strokeWidth={2.25}/></Link>
+        <nav className="global-rail__nav">
+          {workspaceAreas.map(({ label, href, icon: Icon, matches }) => <Link className={matches.some((match) => pathname === match || pathname.startsWith(`${match}/`)) ? "rail-link rail-link--active" : "rail-link"} href={href} key={label} title={label}><Icon size={18} strokeWidth={1.8}/><span>{label}</span></Link>)}
+        </nav>
+        <div className="global-rail__footer"><Link className={pathname.startsWith("/settings") ? "rail-link rail-link--active" : "rail-link"} href="/settings" title="Settings"><Icons.Settings size={18}/><span>Settings</span></Link></div>
+      </aside>
+      <aside className={`sidebar contextual-sidebar ${mobileMenu ? "sidebar--open" : ""}`} aria-label={`${currentArea.label} navigation`}>
+        <div className="contextual-sidebar__heading"><span className="brand__mark"><Icons.Target size={15} strokeWidth={2.2}/></span><span><strong>{currentArea.label}</strong><small>Daily Command</small></span><button className="icon-button contextual-sidebar__close" aria-label="Close navigation" type="button" onClick={() => setMobileMenu(false)}><Icons.X size={17}/></button></div>
+        <nav className="mobile-area-switcher" aria-label="Workspace areas">
+          {workspaceAreas.map(({ label, href, icon: Icon, matches }) => { const active = matches.some((match) => pathname === match || pathname.startsWith(`${match}/`)); return <Link href={href} key={label} className={active ? "mobile-area-switcher__link is-active" : "mobile-area-switcher__link"} aria-current={active ? "page" : undefined} onClick={() => setMobileMenu(false)}><Icon size={16}/><span>{label}</span></Link>; })}
+        </nav>
+        <button className="sidebar-create" type="button" onClick={() => setCaptureOpen(true)}><Icons.Plus size={16}/><span>New capture</span><kbd>C</kbd></button>
         <nav className="sidebar__nav">
-          <div className="nav-primary">
-            {primaryItems.map(([label, href, Icon]) => <Link className={pathname === href || pathname.startsWith(`${href}/`) ? "nav-link nav-link--active" : "nav-link"} href={href} key={href} onClick={() => setMobileMenu(false)}><Icon size={17} strokeWidth={1.8}/><span>{label}</span>{label === "Inbox" ? <InboxBadge/> : null}</Link>)}
-          </div>
-          <p className="nav-section-label">Workspaces</p>
-          {groups.map((group) => {
+          <div className="contextual-sidebar__quick"><button type="button" onClick={() => setPaletteOpen(true)}><Icons.Search size={15}/><span>Search</span><kbd>⌘K</kbd></button></div>
+          {currentArea.groups.map((group) => {
             const activeGroup = group.items.some(([, href]) => pathname === href || pathname.startsWith(`${href}/`));
             return <details className="nav-group" key={group.label} open={activeGroup}>
               <summary><span>{group.label}</span><Icons.ChevronDown size={13}/></summary>
-              <div>{group.items.map(([label, href, Icon]) => <Link className={pathname === href || pathname.startsWith(`${href}/`) ? "nav-link nav-link--active" : "nav-link"} href={href} key={href} onClick={() => setMobileMenu(false)}><Icon size={16} strokeWidth={1.7} /><span>{label}</span></Link>)}</div>
+              <div>{group.items.map(([label, href, Icon]) => <Link className={pathname === href || pathname.startsWith(`${href}/`) ? "nav-link nav-link--active" : "nav-link"} href={href} key={href} onClick={() => setMobileMenu(false)}><Icon size={16} strokeWidth={1.7} /><span>{label}</span>{label === "Inbox" ? <InboxBadge/> : null}</Link>)}</div>
             </details>;
           })}
         </nav>
         <div className="sidebar__footer">
-          <Link className="nav-link" href="/settings"><Icons.Settings size={16}/><span>Settings</span></Link>
           <button className="nav-link" onClick={toggleTheme}>{dark ? <Icons.Sun size={16}/> : <Icons.Moon size={16}/>}<span>{dark ? "Light mode" : "Dark mode"}</span></button>
         </div>
       </aside>
@@ -155,7 +179,7 @@ function Shell({ children,user }: { children: ReactNode;user:ShellUser }) {
           </div>
           </div>
         </header>
-        <header className="mobile-header"><button className="icon-button" onClick={() => setMobileMenu(true)} aria-label="Open navigation"><Icons.Menu size={20} /></button><span className="mobile-brand">DAILY COMMAND</span><span className="mobile-header__actions"><NotificationCenter mobile/><button className="icon-button" onClick={() => setPaletteOpen(true)} aria-label="Search"><Icons.Search size={19} /></button></span></header>
+        <header className="mobile-header"><button className="icon-button" onClick={() => setMobileMenu(true)} aria-label="Open navigation" aria-expanded={mobileMenu}><Icons.Menu size={20} /></button><span className="mobile-brand"><strong>{currentArea.label}</strong><small>{pageTitle}</small></span><span className="mobile-header__actions"><NotificationCenter mobile/><button className="icon-button" onClick={() => setPaletteOpen(true)} aria-label="Search"><Icons.Search size={19} /></button></span></header>
         <main id="main-content" className="workspace__content">{children}</main>
       </div>
       <nav className="mobile-nav" aria-label="Mobile navigation">
@@ -163,7 +187,7 @@ function Shell({ children,user }: { children: ReactNode;user:ShellUser }) {
         <Link className={pathname === "/tasks" ? "active" : ""} href="/tasks"><Icons.ListTodo size={19} /><span>Tasks</span></Link>
         <button className="capture-button" onClick={() => setCaptureOpen(true)} aria-label="Quick capture"><Icons.Plus size={23} /></button>
         <Link className={pathname === "/calendar" ? "active" : ""} href="/calendar"><Icons.CalendarDays size={19} /><span>Calendar</span></Link>
-        <button onClick={() => setMobileMenu(true)}><Icons.MoreHorizontal size={19} /><span>More</span></button>
+        <button className={mobileMenu ? "active" : ""} onClick={() => setMobileMenu(true)} aria-expanded={mobileMenu}><Icons.MoreHorizontal size={19} /><span>More</span></button>
       </nav>
       <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
       <QuickCapture open={captureOpen} onClose={() => setCaptureOpen(false)} />

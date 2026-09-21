@@ -66,7 +66,22 @@ export function FilesPage({ initialFilters, initialAttachment = "" }: { initialF
   }
 
   return <div className="domain-page files-page">
-    <header className="page-header"><div><p className="eyebrow">Workspace</p><h1>Files</h1><p>Private attachments across your command center, kept with the work they belong to.</p></div></header>
+    <header className="task-context-header">
+      <div>
+        <nav className="task-context-header__breadcrumb" aria-label="Breadcrumb">
+          <span>Workspace</span>
+          <span>/</span>
+          <span className="current">Files</span>
+        </nav>
+        <div className="task-context-header__title-row">
+          <h1>Files</h1>
+          {total > 0 && <span className="task-context-header__total-badge">{total} files</span>}
+        </div>
+        <p className="task-context-header__description">
+          Private attachments across your command center, kept with the work they belong to.
+        </p>
+      </div>
+    </header>
     <div className="file-filters" aria-label="File filters">
       <Filter label="Entity" value={filters.entity} onChange={(value) => change("entity", value)} options={attachmentEntityTypes.map((value) => [value, `${value[0].toUpperCase()}${value.slice(1)}s`])}/>
       <Filter label="Project" value={filters.project} onChange={(value) => change("project", value)} options={projects.map((item) => [item.id, String(item.name ?? item.title)])}/>

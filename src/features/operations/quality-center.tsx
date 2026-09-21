@@ -95,16 +95,23 @@ export function QualityCenter() {
 
   return (
     <main className="domain-page operations-page">
-      <header className="page-header">
+      <header className="task-context-header">
         <div>
-          <p className="eyebrow">Operations · Quality & Reliability</p>
-          <h1>Quality Center.</h1>
-          <p>
-            {incidents.length} logged incident{incidents.length === 1 ? "" : "s"} · Defect tracking, root cause analysis & corrective actions
+          <nav className="task-context-header__breadcrumb" aria-label="Breadcrumb">
+            <span>Operations</span>
+            <span>/</span>
+            <span className="current">Quality</span>
+          </nav>
+          <div className="task-context-header__title-row">
+            <h1>Quality Center</h1>
+            {incidents.length > 0 && <span className="task-context-header__total-badge task-context-header__total-badge--danger">{incidents.length} incidents</span>}
+          </div>
+          <p className="task-context-header__description">
+            Defect tracking, root cause analysis &amp; corrective actions
           </p>
         </div>
-        <div className="operations-header-actions">
-          <Link href="/operations" className="button button--outline">Overview</Link>
+        <div className="task-context-header__actions">
+          <Link href="/operations">Overview</Link>
           <Button intent="brand" onClick={() => setShowModal(true)}>Log Incident</Button>
         </div>
       </header>
@@ -127,7 +134,7 @@ export function QualityCenter() {
                   {inc.resolution_summary ? ` · Resolution: ${String(inc.resolution_summary)}` : ""}
                 </small>
               </div>
-              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              <div className="operations-row__actions">
                 <span className={`operations-badge ${severityBadgeClass(String(inc.severity))}`}>
                   {String(inc.severity)}
                 </span>

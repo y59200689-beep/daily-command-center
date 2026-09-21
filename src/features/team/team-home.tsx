@@ -95,30 +95,35 @@ export function TeamHome() {
   const isEmpty = !data || data.peopleCount === 0;
 
   return (
-    <div className="page-shell team-page">
-      <div className="page-header">
+    <div className="domain-page team-page">
+      <header className="task-context-header team-context-header">
         <div>
-          <p className="eyebrow">V12 Team & Delegation OS</p>
-          <h1>Team Command Center</h1>
-          <p className="page-description">
+          <div className="task-context-header__path">
+            <Icons.Users size={15} />
+            <span>Operate</span>
+            <Icons.ChevronRight size={13} />
+            <strong>Team</strong>
+          </div>
+          <h1>Team</h1>
+          <p>
             Coordinate, delegate, and manage responsibility across people without losing control.
           </p>
         </div>
-        <div className="header-actions">
-          <Link href="/team/people" className="button button--secondary">
-            <Icons.Users size={16} /> Directory
+        <div className="task-context-header__actions">
+          <Link href="/team/people" className="button button--outline button--neutral">
+            <Icons.Users size={14} /> Directory
           </Link>
-          <Link href="/team/delegations" className="button button--secondary">
-            <Icons.ListTodo size={16} /> Delegations
+          <Link href="/team/delegations" className="button button--outline button--neutral">
+            <Icons.ListTodo size={14} /> Delegations
           </Link>
-          <Link href="/team/responsibilities" className="button button--secondary">
-            <Icons.Target size={16} /> Responsibilities
+          <Link href="/team/responsibilities" className="button button--outline button--neutral">
+            <Icons.Target size={14} /> Responsibilities
           </Link>
-          <Link href="/team/delegations?create=1" className="button button--primary">
-            <Icons.Plus size={16} /> New Delegation
+          <Link href="/team/delegations?create=1" className="button button--solid button--brand">
+            <Icons.Plus size={14} /> New delegation
           </Link>
         </div>
-      </div>
+      </header>
 
       {isEmpty ? (
         <div className="data-surface empty-hero">

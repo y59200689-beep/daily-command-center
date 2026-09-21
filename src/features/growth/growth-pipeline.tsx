@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 
 import { useCallback, useState } from "react";
 import { useDeferredEffect } from "@/lib/use-deferred-effect";
@@ -43,15 +44,25 @@ export function GrowthPipeline() {
 
   return (
     <main className="domain-page growth-page">
-      <header className="page-header">
+      <header className="task-context-header">
         <div>
-          <p className="eyebrow">Growth · Pipeline</p>
-          <h1>Deal health.</h1>
-          <p>
-            {String(summary.openCount ?? 0)} open deals ·{" "}
-            {fmt(Number(summary.totalOpenValue ?? 0))} total value ·{" "}
-            Signal: {String(summary.signal ?? "–")}
+          <nav className="task-context-header__breadcrumb" aria-label="Breadcrumb">
+            <span>Business</span>
+            <span>/</span>
+            <Link href="/growth" style={{ color: "var(--muted)", textDecoration: "none" }}>Growth</Link>
+            <span>/</span>
+            <span className="current">Deal Health</span>
+          </nav>
+          <div className="task-context-header__title-row">
+            <h1>Deal Health</h1>
+            {Number(summary.openCount ?? 0) > 0 && <span className="task-context-header__total-badge">{String(summary.openCount)} open deals</span>}
+          </div>
+          <p className="task-context-header__description">
+            {fmt(Number(summary.totalOpenValue ?? 0))} total value · Signal: {String(summary.signal ?? "–")}
           </p>
+        </div>
+        <div className="task-context-header__actions">
+          <Link className="button button--outline" href="/growth">Growth Hub</Link>
         </div>
       </header>
 

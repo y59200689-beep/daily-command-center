@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 
 import { useCallback, useState } from "react";
 import { useDeferredEffect } from "@/lib/use-deferred-effect";
@@ -53,11 +54,23 @@ export function GrowthForecast() {
 
   return (
     <main className="domain-page growth-page">
-      <header className="page-header">
+      <header className="task-context-header">
         <div>
-          <p className="eyebrow">Growth · Forecast</p>
-          <h1>Revenue forecast.</h1>
-          <p>Deterministic bucketing based on stage, probability, and proposal status.</p>
+          <nav className="task-context-header__breadcrumb" aria-label="Breadcrumb">
+            <span>Business</span>
+            <span>/</span>
+            <Link href="/growth" style={{ color: "var(--muted)", textDecoration: "none" }}>Growth</Link>
+            <span>/</span>
+            <span className="current">Forecast</span>
+          </nav>
+          <div className="task-context-header__title-row">
+            <h1>Revenue forecast</h1>
+            <span className="task-context-header__total-badge">{fmt(totalOpen)} pipeline</span>
+          </div>
+          <p className="task-context-header__description">Deterministic bucketing based on stage, probability, and proposal status.</p>
+        </div>
+        <div className="task-context-header__actions">
+          <Link className="button button--outline" href="/growth">Growth Hub</Link>
         </div>
       </header>
 

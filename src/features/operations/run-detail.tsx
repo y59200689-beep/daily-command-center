@@ -194,20 +194,28 @@ export function RunDetail({ id }: RunDetailProps) {
 
   return (
     <main className="domain-page operations-page">
-      <header className="page-header">
+      <header className="task-context-header">
         <div>
-          <p className="eyebrow">
-            <Link href="/operations/runs">Runs</Link> · {String(run.process_templates?.name || "Standard Run")} · Status: {run.status}
-          </p>
-          <h1>{run.title}</h1>
-          <p>
+          <nav className="task-context-header__breadcrumb" aria-label="Breadcrumb">
+            <span>Operations</span>
+            <span>/</span>
+            <Link href="/operations/runs" style={{ color: "var(--muted)", textDecoration: "none" }}>Runs</Link>
+            <span>/</span>
+            <span className="current">{run.title}</span>
+          </nav>
+          <div className="task-context-header__title-row">
+            <h1>{run.title}</h1>
+            <span className="task-context-header__total-badge">{run.status}</span>
+            <span className="operations-badge badge--healthy">{String(run.process_templates?.name || "Standard Run")}</span>
+          </div>
+          <p className="task-context-header__description">
             {completedSteps.length} of {steps.length} steps completed
             {run.started_at ? ` · Started ${new Date(run.started_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}` : ""}
             {run.completed_at ? ` · Completed at ${new Date(run.completed_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}` : ""}
           </p>
         </div>
-        <div className="operations-header-actions">
-          <Link href="/operations/runs" className="button button--outline">Runs List</Link>
+        <div className="task-context-header__actions">
+          <Link href="/operations/runs" className="button button--ghost">← Runs List</Link>
           {run.status === "Blocked" ? (
             <Button intent="brand" onClick={handleUnblockRun}>Unblock Run</Button>
           ) : run.status !== "Completed" ? (

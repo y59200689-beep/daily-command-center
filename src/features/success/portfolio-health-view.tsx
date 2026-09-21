@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Icons } from "@/components/icons";
 import { SuccessSchemaUnavailable } from "./schema-unavailable";
 
 interface PortfolioAccount {
@@ -101,13 +100,29 @@ export function PortfolioHealthView() {
   ) ?? [];
 
   return (
-    <div className="success-page">
-      <div className="page-header" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.75rem" }}>
-        <h1 className="page-title" style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-          <Icons.ShieldCheck size={22} /> Portfolio Health
-        </h1>
-        <Link href="/success" className="btn btn-secondary" style={{ fontSize: "0.8125rem" }}>← Overview</Link>
-      </div>
+    <main className="domain-page success-page">
+      <header className="task-context-header">
+        <div>
+          <nav className="task-context-header__breadcrumb" aria-label="Breadcrumb">
+            <span>Customer Success</span>
+            <span>/</span>
+            <Link href="/success" style={{ color: "var(--muted)", textDecoration: "none" }}>Success Hub</Link>
+            <span>/</span>
+            <span className="current">Portfolio Health</span>
+          </nav>
+          <div className="task-context-header__title-row">
+            <h1>Portfolio Health</h1>
+            <span className="task-context-header__total-badge">
+              {loading ? "Loading…" : `${data?.summary.totalClients ?? 0} accounts`}
+            </span>
+          </div>
+          <p className="task-context-header__description">Aggregate account health, retention stability, and intervention signals across clients.</p>
+        </div>
+        <div className="task-context-header__actions">
+          <Link href="/success">Overview</Link>
+        </div>
+      </header>
+
 
       {loading && <p style={{ color: "var(--text-secondary)", padding: "1rem 0" }}>Loading portfolio…</p>}
       {error && <p style={{ color: "var(--color-red-500)" }}>{error}</p>}
@@ -205,6 +220,6 @@ export function PortfolioHealthView() {
           )}
         </>
       )}
-    </div>
+    </main>
   );
 }

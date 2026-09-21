@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Icons } from "@/components/icons";
 import { SuccessSchemaUnavailable } from "./schema-unavailable";
 
 interface CheckIn {
@@ -62,17 +61,36 @@ export function CheckInsView() {
   }, [status]);
 
   return (
-    <div className="success-page">
-      <div className="page-header" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.75rem" }}>
-        <h1 className="page-title" style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-          <Icons.MessageSquareText size={22} /> Client Check-Ins
-        </h1>
-        <Link href="/success" className="btn btn-secondary" style={{ fontSize: "0.8125rem" }}>← Overview</Link>
-      </div>
+    <main className="domain-page success-page">
+      <header className="task-context-header">
+        <div>
+          <nav className="task-context-header__breadcrumb" aria-label="Breadcrumb">
+            <span>Business</span>
+            <span>/</span>
+            <Link href="/success" style={{ color: "var(--muted)", textDecoration: "none" }}>Customer Success</Link>
+            <span>/</span>
+            <span className="current">Check-Ins</span>
+          </nav>
+          <div className="task-context-header__title-row">
+            <h1>Client Check-Ins</h1>
+            {checkIns.length > 0 && <span className="task-context-header__total-badge">{checkIns.length} check-ins</span>}
+          </div>
+          <p className="task-context-header__description">Regular client check-ins, health pulses, and communication logs.</p>
+        </div>
+        <div className="task-context-header__actions">
+          <Link href="/success">Overview</Link>
+        </div>
+      </header>
 
-      <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", marginBottom: "1.25rem" }}>
+      <div className="filter-bar">
+        <span className="filter-label">Status:</span>
         {STATUS_FILTERS.map((f) => (
-          <button key={f} onClick={() => setStatus(f)} className={`btn ${status === f ? "btn-primary" : "btn-secondary"}`} style={{ fontSize: "0.8rem" }}>
+          <button
+            key={f}
+            type="button"
+            onClick={() => setStatus(f)}
+            className={`filter-pill ${status === f ? "is-active" : ""}`}
+          >
             {f === "all" ? "All" : f}
           </button>
         ))}
@@ -121,6 +139,6 @@ export function CheckInsView() {
           ))}
         </div>
       )}
-    </div>
+    </main>
   );
 }

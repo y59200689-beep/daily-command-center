@@ -61,20 +61,28 @@ export function TeamReview() {
   if (schemaUnavailable) return <TeamSchemaUnavailable title="Team Review" description="Retrospective and coordination review across team commitments and responsibilities." />;
 
   return (
-    <div className="page-shell team-page">
-      <div className="page-header">
+    <main className="domain-page team-page">
+      <header className="task-context-header">
         <div>
-          <p className="eyebrow"><Link href="/team">← Team Command Center</Link></p>
-          <h1>Team Review</h1>
-          <p className="page-description">Retrospective and coordination review across team commitments and responsibilities.</p>
+          <nav className="task-context-header__breadcrumb" aria-label="Breadcrumb">
+            <span>Operate</span>
+            <span>/</span>
+            <Link href="/team" style={{ color: "var(--muted)", textDecoration: "none" }}>Team</Link>
+            <span>/</span>
+            <span className="current">Team Review</span>
+          </nav>
+          <div className="task-context-header__title-row">
+            <h1>Team Review</h1>
+          </div>
+          <p className="task-context-header__description">Retrospective and coordination review across team commitments and responsibilities.</p>
         </div>
-        <div className="header-actions">
+        <div className="task-context-header__actions">
           <div className="pill-tabs">
             <button className={`pill-tab ${period === "week" ? "is-active" : ""}`} onClick={() => { setPeriod("week"); setLoading(true); }}>This Week</button>
             <button className={`pill-tab ${period === "month" ? "is-active" : ""}`} onClick={() => { setPeriod("month"); setLoading(true); }}>This Month</button>
           </div>
         </div>
-      </div>
+      </header>
 
       {loading ? (
         <p className="muted">Preparing review…</p>
@@ -178,6 +186,6 @@ export function TeamReview() {
           </div>
         </div>
       )}
-    </div>
+    </main>
   );
 }

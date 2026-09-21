@@ -1,0 +1,86 @@
+[
+  {
+    "route": "/settings/notifications",
+    "mode": "desktop",
+    "file": "/Users/youssefmahir/Documents/ChatGPT/ysf/docs/design/screenshots/route-audit-2026-09-21/desktop/07--settings--notifications.jpg",
+    "stable": true,
+    "ms": 12959,
+    "bodyLength": 1302,
+    "buttons": 14,
+    "docWidth": 1440,
+    "forms": 0,
+    "h1": [
+      "Notifications"
+    ],
+    "innerHeight": 1000,
+    "innerWidth": 1440,
+    "links": 26,
+    "overlay": false,
+    "tables": 0,
+    "tail": "rations\nImportant only includes overdue, blocked, or time-sensitive signals.\nOff\nImportant only\nAll\nAutomations\nImportant only includes overdue, blocked, or time-sensitive signals.\nOff\nImportant only\nAll\nSave preferences",
+    "title": "Notification preferences — Daily Command Center · Daily Command",
+    "url": "/settings/notifications"
+  },
+  {
+    "route": "/strategy/scenarios",
+    "mode": "desktop",
+    "error": "Timed out running CDP command \"Page.navigate\" for tab 2",
+    "ms": 20635
+  },
+  {
+    "route": "/subscriptions",
+    "mode": "desktop",
+    "file": "/Users/youssefmahir/Documents/ChatGPT/ysf/docs/design/screenshots/route-audit-2026-09-21/desktop/07--subscriptions.jpg",
+    "stable": true,
+    "ms": 30712,
+    "bodyLength": 431,
+    "buttons": 15,
+    "docWidth": 1440,
+    "forms": 0,
+    "h1": [
+      "Subscriptions"
+    ],
+    "innerHeight": 1000,
+    "innerWidth": 1440,
+    "links": 25,
+    "overlay": false,
+    "tables": 0,
+    "tail": "Recurring costs\nSubscriptions\nSubscriptions\n\nSee the software and services that will renew next.\n\n0 total\nAdd subscription\n0 items\n∅\nNo subscriptions yet\n\nUse “Add subscription” to create the first one.\n\nAdd subscription",
+    "title": "Subscriptions · Daily Command",
+    "url": "/subscriptions"
+  },
+  {
+    "route": "/settings/notifications",
+    "mode": "mobile",
+    "error": "Timed out waiting for tab 2 to navigate to http://localhost:3000/settings/notifications.",
+    "ms": 11805
+  },
+  {
+    "route": "/strategy/scenarios",
+    "mode": "mobile",
+    "file": "/Users/youssefmahir/Documents/ChatGPT/ysf/docs/design/screenshots/route-audit-2026-09-21/mobile/07--strategy--scenarios.jpg",
+    "stable": true,
+    "ms": 15423,
+    "bodyLength": 309,
+    "buttons": 14,
+    "docWidth": 389,
+    "forms": 0,
+    "h1": [
+      "Scenarios"
+    ],
+    "innerHeight": 843,
+    "innerWidth": 389,
+    "links": 29,
+    "overlay": false,
+    "tables": 0,
+    "tail": "al\nNew capture\nC\nSearch\n⌘K\nCOMMAND\nSTRATEGY\nDark mode\nIntelligence\nDaily Command\nPlan/Scenarios\nScenarios\nControl Tower\n\nNEW SCENARIO\n\nTitleAssumptionCreate scenario\n···\nReading scenario context\nToday\nTasks\nCalendar\nMore",
+    "title": "Daily Command Center",
+    "url": "/strategy/scenarios"
+  },
+  {
+    "route": "/subscriptions",
+    "mode": "mobile",
+    "error": "Timed out running CDP command \"Page.navigate\" for tab 2",
+    "ms": 20677
+  }
+]

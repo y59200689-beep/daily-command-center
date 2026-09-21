@@ -87,16 +87,23 @@ export function SopLibrary() {
 
   return (
     <main className="domain-page operations-page">
-      <header className="page-header">
+      <header className="task-context-header">
         <div>
-          <p className="eyebrow">Operations · Standard Operating Procedures</p>
-          <h1>SOP Library.</h1>
-          <p>
+          <nav className="task-context-header__breadcrumb" aria-label="Breadcrumb">
+            <span>Operations</span>
+            <span>/</span>
+            <span className="current">SOPs</span>
+          </nav>
+          <div className="task-context-header__title-row">
+            <h1>SOP Library</h1>
+            <span className="task-context-header__total-badge">{sops.length} procedures</span>
+          </div>
+          <p className="task-context-header__description">
             {sops.length} documented procedure{sops.length === 1 ? "" : "s"} across {categories.length || 1} categories
           </p>
         </div>
-        <div className="operations-header-actions">
-          <Link href="/operations" className="button button--outline">Overview</Link>
+        <div className="task-context-header__actions">
+          <Link href="/operations">Overview</Link>
           {!schemaUnavailable ? <Button intent="brand" onClick={() => setShowModal(true)}>New SOP</Button> : null}
         </div>
       </header>

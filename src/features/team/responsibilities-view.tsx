@@ -103,19 +103,28 @@ export function ResponsibilitiesView() {
   };
 
   return (
-    <div className="page-shell team-page">
-      <div className="page-header">
+    <main className="domain-page team-page">
+      <header className="task-context-header">
         <div>
-          <p className="eyebrow"><Link href="/team">← Team Command Center</Link></p>
-          <h1>Responsibility Areas</h1>
-          <p className="page-description">Ongoing organizational responsibilities and backup ownership coverage.</p>
+          <nav className="task-context-header__breadcrumb" aria-label="Breadcrumb">
+            <span>Operate</span>
+            <span>/</span>
+            <Link href="/team" style={{ color: "var(--muted)", textDecoration: "none" }}>Team</Link>
+            <span>/</span>
+            <span className="current">Responsibility Areas</span>
+          </nav>
+          <div className="task-context-header__title-row">
+            <h1>Responsibility Areas</h1>
+            {responsibilities.length > 0 && <span className="task-context-header__total-badge">{responsibilities.length} areas</span>}
+          </div>
+          <p className="task-context-header__description">Ongoing organizational responsibilities and backup ownership coverage.</p>
         </div>
-        <div className="header-actions">
-          <button onClick={() => setCreateOpen(true)} className="button button--primary">
-            <Icons.Plus size={16} /> New Responsibility
+        <div className="task-context-header__actions">
+          <button onClick={() => setCreateOpen(true)} className="button button--solid button--brand">
+            <Icons.Plus size={14} /> New Responsibility
           </button>
         </div>
-      </div>
+      </header>
 
       {/* FILTER */}
       <div className="filter-bar" style={{ display: "flex", gap: "12px", margin: "20px 0" }}>
@@ -253,6 +262,6 @@ export function ResponsibilitiesView() {
           </div>
         </form>
       </Modal>
-    </div>
+    </main>
   );
 }

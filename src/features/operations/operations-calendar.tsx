@@ -42,17 +42,26 @@ export function OperationsCalendar() {
 
   return (
     <main className="domain-page operations-page">
-      <header className="page-header">
+      <header className="task-context-header">
         <div>
-          <p className="eyebrow">Operations · Schedule & Recurring Cadence</p>
-          <h1>Operations Calendar.</h1>
-          <p>
+          <nav className="task-context-header__breadcrumb" aria-label="Breadcrumb">
+            <span>Operations</span>
+            <span>/</span>
+            <Link href="/operations" style={{ color: "var(--muted)", textDecoration: "none" }}>Operations Hub</Link>
+            <span>/</span>
+            <span className="current">Operations Calendar</span>
+          </nav>
+          <div className="task-context-header__title-row">
+            <h1>Operations Calendar</h1>
+            <span className="task-context-header__total-badge">{processes.length} cadence items</span>
+          </div>
+          <p className="task-context-header__description">
             Recurring process execution schedule, scheduled maintenance windows & SOP review deadlines
           </p>
         </div>
-        <div className="operations-header-actions">
-          <Link href="/operations" className="button button--outline">Overview</Link>
-          <Link href="/operations/runs" className="button button--outline">Active Runs</Link>
+        <div className="task-context-header__actions">
+          <Link href="/operations">Overview</Link>
+          <Link href="/operations/runs">Active Runs</Link>
         </div>
       </header>
 

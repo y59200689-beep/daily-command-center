@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useDeferredValue, useEffect, useRef, useState, type ReactNode } from "react";
 import { AttachmentSection } from "@/components/attachment-section";
 import { Icons } from "@/components/icons";
 import { Button } from "@/components/ui/button";
@@ -80,6 +80,8 @@ export function DomainPage({ domain, embedded = false, onMutationSuccess, refres
     const [query, setQuery] = useState("");
     const [statusFilter, setStatusFilter] = useState("open");
     const [priorityFilter, setPriorityFilter] = useState("all");
+    const [taskSort, setTaskSort] = useState("updated");
+    const [taskView, setTaskView] = useState<"list" | "board">("list");
     const [calendarView, setCalendarView] = useState<"month" | "agenda">("month");
     const deferredQuery=useDeferredValue(query);
     const [page,setPage]=useState(1);
@@ -94,7 +96,7 @@ export function DomainPage({ domain, embedded = false, onMutationSuccess, refres
     const { showToast } = useToast();
     const load = useCallback(async () => { if (domain === "assistant" || domain === "settings")
         return; try {
-        setLoading(true);setError("");const params=new URLSearchParams({page:String(page),pageSize:"50"});if(deferredQuery.trim())params.set("q",deferredQuery.trim());const response = await fetch(`/api/entities/${domain}?${params}`, { cache: "no-store" });
+        setLoading(true);setError("");const params=new URLSearchParams({page:String(page),pageSize:"50"});if(deferredQuery.trim())params.set("q",deferredQuery.trim());if(domain==="tasks"){params.set("status",statusFilter);params.set("priority",priorityFilter);params.set("sort",taskSort)}const response = await fetch(`/api/entities/${domain}?${params}`, { cache: "no-store" });
         const data = await response.json();
         if (!response.ok)
             throw new Error(data.error);
@@ -106,20 +108,14 @@ export function DomainPage({ domain, embedded = false, onMutationSuccess, refres
     }
     finally {
         setLoading(false);
-    } }, [domain,deferredQuery,page]);
+    } }, [domain,deferredQuery,page,priorityFilter,statusFilter,taskSort]);
     useDeferredEffect(useCallback(() => { void load(); }, [load]));
     useEffect(() => {
         if (previousRefreshToken.current === refreshToken) return;
         previousRefreshToken.current = refreshToken;
         void load();
     }, [load, refreshToken]);
-    const rows = useMemo(() => records.filter((record) => {
-        if (domain !== "tasks") return true;
-        const status = String(record.status ?? "");
-        const priority = String(record.priority ?? "none");
-        const statusMatches = statusFilter === "all" || statusFilter === "open" && !["completed", "cancelled"].includes(status) || status === statusFilter;
-        return statusMatches && (priorityFilter === "all" || priority === priorityFilter);
-    }), [domain, priorityFilter, records, statusFilter]);
+    const rows = records;
     if (domain === "assistant")
         return <AssistantView config={config}/>;
     if (domain === "settings")
@@ -172,22 +168,95 @@ export function DomainPage({ domain, embedded = false, onMutationSuccess, refres
         showToast("Inbox item cleared."); announceWorkspaceMutation("inbox");
     }
     return <div className={`domain-page ${embedded ? "domain-page--embedded" : ""}`}>
-        {embedded ? <div className="embedded-heading"><div><p className="eyebrow">Manage records</p><h2>{config.title}</h2></div><Button intent="brand" onClick={() => begin()}><Icons.Plus size={16}/>{config.action}</Button></div> : <header className="page-header"><div><p className="eyebrow">{config.eyebrow}</p><h1>{config.title}</h1><p>{config.intro}</p></div><Button intent="brand" onClick={() => begin()}><Icons.Plus size={16}/>{config.action}</Button></header>}
+        {embedded ? <div className="embedded-heading"><div><p className="eyebrow">Manage records</p><h2>{config.title}</h2></div><Button intent="brand" onClick={() => begin()}><Icons.Plus size={16}/>{config.action}</Button></div> : domain === "tasks" ? <header className="task-context-header"><div><div className="task-context-header__path"><Icons.ListTodo size={15}/><span>My work</span><Icons.ChevronRight size={13}/><strong>Tasks</strong></div><h1>Tasks</h1><p>Plan, prioritize, and move work forward.</p></div><div className="task-context-header__actions"><span className="task-total"><strong>{total}</strong> total</span><Button intent="brand" onClick={() => begin()}><Icons.Plus size={16}/>New task</Button></div></header> : <header className="task-context-header domain-context-header"><div><div className="task-context-header__path"><span>{config.eyebrow}</span><Icons.ChevronRight size={13}/><strong>{config.title}</strong></div><h1>{config.title}</h1><p>{config.intro}</p></div><div className="task-context-header__actions"><span className="task-total"><strong>{total}</strong> total</span><Button intent="brand" onClick={() => begin()}><Icons.Plus size={16}/>{config.action}</Button></div></header>}
         {domain === "calendar" ? <CalendarConflicts onEdit={begin} onResolved={load} /> : null}
-        <div className="domain-toolbar"><SearchInput ref={inputRef} id={`${domain}-search`} label={`Search ${domain}`} value={query} onChange={(event) => {setQuery(event.target.value);setPage(1)}} onClear={() => {setQuery("");setPage(1)}} placeholder={`Search ${domain}…`}/><div className="domain-toolbar__controls">{domain === "tasks" ? <><label className="compact-select"><span>Status</span><select aria-label="Filter tasks by status" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}><option value="open">Open</option><option value="all">All</option><option value="inbox">Inbox</option><option value="planned">Planned</option><option value="in_progress">In progress</option><option value="waiting">Waiting</option><option value="blocked">Blocked</option><option value="completed">Completed</option></select></label><label className="compact-select"><span>Priority</span><select aria-label="Filter tasks by priority" value={priorityFilter} onChange={(event) => setPriorityFilter(event.target.value)}><option value="all">All priorities</option><option value="urgent">Urgent</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option><option value="none">No priority</option></select></label></> : null}{domain === "calendar" ? <div className="view-switch" aria-label="Calendar view"><button className={calendarView === "month" ? "active" : ""} onClick={() => setCalendarView("month")}>Month</button><button className={calendarView === "agenda" ? "active" : ""} onClick={() => setCalendarView("agenda")}>Agenda</button></div> : null}<span className="record-count">{total} {total === 1 ? "item" : "items"}</span></div></div>
+        <div className={`domain-toolbar ${domain === "tasks" ? "task-toolbar" : ""}`}><SearchInput ref={inputRef} id={`${domain}-search`} label={`Search ${domain}`} value={query} onChange={(event) => {setQuery(event.target.value);setPage(1)}} onClear={() => {setQuery("");setPage(1)}} placeholder={`Search ${domain}…`}/><div className="domain-toolbar__controls">{domain === "tasks" ? <><div className="view-switch task-view-switch" aria-label="Task view"><button type="button" className={taskView === "list" ? "active" : ""} aria-pressed={taskView === "list"} onClick={() => setTaskView("list")}><Icons.ListTodo size={14}/>List</button><button type="button" className={taskView === "board" ? "active" : ""} aria-pressed={taskView === "board"} onClick={() => setTaskView("board")}><Icons.BriefcaseBusiness size={14}/>Board</button></div><label className="compact-select"><span>Status</span><select aria-label="Filter tasks by status" value={statusFilter} onChange={(event) => {setStatusFilter(event.target.value);setPage(1)}}><option value="open">Open</option><option value="all">All statuses</option><option value="inbox">Inbox</option><option value="planned">Planned</option><option value="in_progress">In progress</option><option value="waiting">Waiting</option><option value="blocked">Blocked</option><option value="completed">Completed</option><option value="cancelled">Cancelled</option></select></label><label className="compact-select"><span>Priority</span><select aria-label="Filter tasks by priority" value={priorityFilter} onChange={(event) => {setPriorityFilter(event.target.value);setPage(1)}}><option value="all">All priorities</option><option value="urgent">Urgent</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option><option value="none">No priority</option></select></label><label className="compact-select"><span>Sort</span><select aria-label="Sort tasks" value={taskSort} onChange={(event) => {setTaskSort(event.target.value);setPage(1)}}><option value="updated">Recently updated</option><option value="due">Due date</option><option value="priority">Priority</option><option value="title">Task name</option></select></label></> : null}{domain === "calendar" ? <div className="view-switch" aria-label="Calendar view"><button className={calendarView === "month" ? "active" : ""} onClick={() => setCalendarView("month")}>Month</button><button className={calendarView === "agenda" ? "active" : ""} onClick={() => setCalendarView("agenda")}>Agenda</button></div> : null}{domain !== "tasks" ? <span className="record-count">{total} {total === 1 ? "item" : "items"}</span> : null}</div></div>
         {error && !open ? <ErrorState error={error} retry={load}/> : null}
-        {loading ? <div className="loading-state" aria-live="polite"><span className="loading-spinner"/><p>Loading {config.title.toLowerCase()}…</p></div> : domain === "projects" ? <ProjectGrid rows={rows} onEdit={begin}/> : domain === "tasks" ? <TaskTable rows={rows} onEdit={begin} onToggle={toggleTask} empty={<EmptyState query={query} title={config.title} action={config.action} clear={() => setQuery("")} create={() => begin()}/>}/> : domain === "inbox" ? <InboxList rows={rows} onEdit={begin} onResolve={resolveInbox} empty={<EmptyState query={query} title={config.title} action={config.action} clear={() => setQuery("")} create={() => begin()}/>}/> : domain === "calendar" ? <CalendarWorkspace rows={rows} view={calendarView} onEdit={begin} empty={<EmptyState query={query} title={config.title} action={config.action} clear={() => setQuery("")} create={() => begin()}/>}/> : <div className="data-surface"><div className="data-header">{config.columns.map((column) => <span key={column}>{column}</span>)}</div>{rows.length ? rows.map((record) => <button className="data-row data-row--button" onClick={() => begin(record)} key={record.id}><strong>{display(record[config.titleField])}</strong><span>{display(record[config.secondary])}</span><span>{display(record[config.tertiary])}</span><Icons.MoreHorizontal size={17}/></button>) : <EmptyState query={query} title={config.title} action={config.action} clear={() => setQuery("")} create={() => begin()}/>}</div>}
+        {loading ? <div className="loading-state" aria-live="polite"><span className="loading-spinner"/><p>Loading {config.title.toLowerCase()}…</p></div> : domain === "projects" ? <ProjectGrid rows={rows} onEdit={begin}/> : domain === "tasks" ? taskView === "list" ? <TaskTable rows={rows} onEdit={begin} onToggle={toggleTask} empty={<EmptyState query={query} title={config.title} action={config.action} clear={() => setQuery("")} create={() => begin()}/>}/> : <TaskBoard rows={rows} onEdit={begin} onToggle={toggleTask} empty={<EmptyState query={query} title={config.title} action={config.action} clear={() => setQuery("")} create={() => begin()}/>}/> : domain === "inbox" ? <InboxList rows={rows} onEdit={begin} onResolve={resolveInbox} empty={<EmptyState query={query} title={config.title} action={config.action} clear={() => setQuery("")} create={() => begin()}/>}/> : domain === "calendar" ? <CalendarWorkspace rows={rows} view={calendarView} onEdit={begin} empty={<EmptyState query={query} title={config.title} action={config.action} clear={() => setQuery("")} create={() => begin()}/>}/> : <StandardTable columns={config.columns} rows={rows} config={config} onEdit={begin} empty={<EmptyState query={query} title={config.title} action={config.action} clear={() => setQuery("")} create={() => begin()}/>}/>}
         {total > 50 || page > 1 ? <nav className="dataset-pagination" aria-label={`${config.title} pagination`}><p className="dataset-note">Showing {rows.length?((page-1)*50)+1:0}–{Math.min(page*50,total)} of {total}</p><div><Button emphasis="ghost" disabled={page===1} onClick={()=>setPage((current)=>Math.max(1,current-1))}>Previous</Button><Button emphasis="ghost" disabled={page*50>=total} onClick={()=>setPage((current)=>current+1)}>Next</Button></div></nav> : null}
-        <Modal open={open} onClose={() => setOpen(false)} title={editing ? `Edit ${config.title.toLowerCase().replace(/s$/, "")}` : config.action} description="Changes are saved to your private workspace.">
+        <Modal open={open} onClose={() => setOpen(false)} variant={domain === "tasks" ? "task" : "default"} title={editing ? domain === "tasks" ? "Task details" : `Edit ${config.title.toLowerCase().replace(/s$/, "")}` : config.action} description={domain === "tasks" ? "Update the work, its urgency, timing, and relationships." : "Changes are saved to your private workspace."}>
             {editing && domain === "calendar" ? <div className="meeting-capture-entry"><Link className="button button--outline button--neutral" href={`/meeting/${editing.id}/capture`}>Capture meeting outcome</Link><Link className="button button--ghost button--neutral" href={`/meeting/${editing.id}`}>Open meeting brief</Link></div> : null}
-            <form className="simple-form" onSubmit={save} noValidate>{config.fields.map((field) => <FormField field={field} value={values[field.key] ?? ""} setValue={(value) => setValues((current) => ({ ...current, [field.key]: value }))} key={field.key}/>)}{error ? <p className="field-error" role="alert">{error}</p> : null}<div className="modal__actions">{editing ? <Button emphasis="danger" onClick={() => void archive(editing)}>{archiveArmed ? "Confirm archive" : "Archive"}</Button> : null}<Button emphasis="ghost" onClick={() => setOpen(false)}>Cancel</Button><Button intent="brand" type="submit" disabled={saving}>{saving ? "Saving…" : "Save changes"}</Button></div></form>
-            {editing && domain in attachmentEntities ? <AttachmentSection entityType={attachmentEntities[domain as keyof typeof attachmentEntities]} entityId={editing.id}/> : null}
+            {domain === "tasks" ? <TaskDetailForm fields={config.fields} values={values} setValues={setValues} editing={editing} saving={saving} error={error} archiveArmed={archiveArmed} onArchive={archive} onClose={() => setOpen(false)} onSubmit={save}/> : <form className="simple-form" onSubmit={save} noValidate>{config.fields.map((field) => <FormField field={field} value={values[field.key] ?? ""} setValue={(value) => setValues((current) => ({ ...current, [field.key]: value }))} key={field.key}/>)}{error ? <p className="field-error" role="alert">{error}</p> : null}<div className="modal__actions">{editing ? <Button emphasis="danger" onClick={() => void archive(editing)}>{archiveArmed ? "Confirm archive" : "Archive"}</Button> : null}<Button emphasis="ghost" onClick={() => setOpen(false)}>Cancel</Button><Button intent="brand" type="submit" disabled={saving}>{saving ? "Saving…" : "Save changes"}</Button></div></form>}
+            {editing && domain in attachmentEntities ? <div className={domain === "tasks" ? "task-related" : ""}><AttachmentSection entityType={attachmentEntities[domain as keyof typeof attachmentEntities]} entityId={editing.id}/></div> : null}
         </Modal>
     </div>;
 }
+function renderCellValue(value: unknown, key: string) {
+    if (value == null || value === "") return <span className="cell-muted">—</span>;
+    const str = String(value);
+    if (key === "status" || key.endsWith("_status") || key === "stage" || key === "potential") {
+        return <span className={`status status--${str}`}>{display(str)}</span>;
+    }
+    if (key === "priority" || key === "impact") {
+        return <span className={`priority priority--${str}`}>{display(str)}</span>;
+    }
+    if (key.includes("date") || key.includes("_at") || key.includes("due") || key.includes("expected") || key.includes("created")) {
+        return <time>{formatDate(str)}</time>;
+    }
+    return <span>{display(str)}</span>;
+}
+function StandardTable({ columns, rows, config, onEdit, empty }: { columns: string[]; rows: DomainRecord[]; config: Config; onEdit: (record: DomainRecord) => void; empty: ReactNode }) {
+    if (!rows.length) return <div className="data-surface">{empty}</div>;
+    return <div className="table-frame domain-list-frame"><table className="work-table domain-list-table"><caption className="sr-only">{config.title} records</caption><thead><tr><th scope="col">{columns[0] ?? "Name"}</th><th scope="col">{columns[1] ?? "Secondary"}</th><th scope="col">{columns[2] ?? "Tertiary"}</th><th scope="col"><span className="sr-only">Actions</span></th></tr></thead><tbody>{rows.map((record) => (<tr key={record.id} onClick={() => onEdit(record)} className="clickable-row"><td><button type="button" className="table-title" onClick={() => onEdit(record)}><strong>{display(record[config.titleField])}</strong>{record.description && config.titleField !== "description" ? <small>{display(record.description)}</small> : null}</button></td><td>{renderCellValue(record[config.secondary], config.secondary)}</td><td>{renderCellValue(record[config.tertiary], config.tertiary)}</td><td><button type="button" className="icon-button" onClick={(e) => { e.stopPropagation(); onEdit(record); }} aria-label={`Open ${display(record[config.titleField])}`}><Icons.MoreHorizontal size={16}/></button></td></tr>))}</tbody></table></div>;
+}
 function TaskTable({ rows, onEdit, onToggle, empty }: { rows: DomainRecord[]; onEdit: (record: DomainRecord) => void; onToggle: (record: DomainRecord) => Promise<void>; empty: ReactNode }) {
     if (!rows.length) return <div className="data-surface">{empty}</div>;
-    return <div className="table-frame"><table className="work-table"><caption className="sr-only">Tasks</caption><thead><tr><th scope="col"><span className="sr-only">Complete</span></th><th scope="col">Task</th><th scope="col">Status</th><th scope="col">Priority</th><th scope="col">Due</th><th scope="col"><span className="sr-only">Actions</span></th></tr></thead><tbody>{rows.map((record) => { const done = record.status === "completed"; return <tr className={done ? "is-complete" : ""} key={record.id}><td><button className="task-check" aria-label={`${done ? "Reopen" : "Complete"} ${record.title}`} onClick={() => void onToggle(record)}>{done ? <Icons.Check size={14}/> : null}</button></td><td><button className="table-title" onClick={() => onEdit(record)}><strong>{display(record.title)}</strong>{record.description ? <small>{display(record.description)}</small> : null}</button></td><td><span className={`status status--${String(record.status ?? "neutral")}`}>{display(record.status)}</span></td><td><span className={`priority priority--${String(record.priority ?? "none")}`}>{display(record.priority)}</span></td><td><time>{formatDate(record.due_date)}</time></td><td><button className="icon-button" onClick={() => onEdit(record)} aria-label={`Edit ${record.title}`}><Icons.MoreHorizontal size={16}/></button></td></tr>; })}</tbody></table></div>;
+    const statuses = ["inbox", "planned", "in_progress", "waiting", "blocked", "completed", "cancelled"];
+    return <div className="table-frame task-list-frame"><table className="work-table task-list-table"><caption className="sr-only">Tasks grouped by status</caption><thead><tr><th scope="col"><span className="sr-only">Complete</span></th><th scope="col">Task</th><th scope="col">Priority</th><th scope="col">Due</th><th scope="col"><span className="sr-only">Actions</span></th></tr></thead>{statuses.map((status) => { const group = rows.filter((record) => String(record.status) === status); if (!group.length) return null; return <tbody key={status}><tr className="task-group-row"><th colSpan={5} scope="rowgroup"><span className={`status status--${status}`}>{display(status)}</span><small>{group.length}</small></th></tr>{group.map((record) => { const done = record.status === "completed"; return <tr className={done ? "is-complete" : ""} key={record.id}><td><button className="task-check" aria-label={`${done ? "Reopen" : "Complete"} ${record.title}`} onClick={() => void onToggle(record)}>{done ? <Icons.Check size={14}/> : null}</button></td><td><button className="table-title" onClick={() => onEdit(record)}><strong>{display(record.title)}</strong>{record.description ? <small>{display(record.description)}</small> : null}</button></td><td><span className={`priority priority--${String(record.priority ?? "none")}`}>{display(record.priority)}</span></td><td><time>{formatDate(record.due_date)}</time></td><td><button className="icon-button" onClick={() => onEdit(record)} aria-label={`Open ${record.title}`}><Icons.MoreHorizontal size={16}/></button></td></tr>; })}</tbody>; })}</table></div>;
+}
+function TaskBoard({ rows, onEdit, onToggle, empty }: { rows: DomainRecord[]; onEdit: (record: DomainRecord) => void; onToggle: (record: DomainRecord) => Promise<void>; empty: ReactNode }) {
+    if (!rows.length) return <div className="data-surface">{empty}</div>;
+    const columns = ["inbox", "planned", "in_progress", "waiting", "blocked", "completed", "cancelled"] as const;
+    return <section className="task-board" aria-label="Task board">
+        {columns.map((status) => {
+            const columnRows = rows.filter((record) => String(record.status) === status);
+            return <section className="task-board__column" key={status}>
+                <header><span className={`status status--${status}`}>{display(status)}</span><small>{columnRows.length}</small></header>
+                <div className="task-board__cards">{columnRows.map((record) => { const done = record.status === "completed"; return <article className="task-card" key={record.id}><div className="task-card__head"><button className="task-check" aria-label={`${done ? "Reopen" : "Complete"} ${record.title}`} onClick={() => void onToggle(record)}>{done ? <Icons.Check size={13}/> : null}</button><button className="task-card__menu" onClick={() => onEdit(record)} aria-label={`Open ${record.title}`}><Icons.MoreHorizontal size={16}/></button></div><button className="task-card__title" onClick={() => onEdit(record)}><strong>{display(record.title)}</strong>{record.description ? <span>{display(record.description)}</span> : null}</button><footer><span className={`priority priority--${String(record.priority ?? "none")}`}>{display(record.priority)}</span>{record.due_date ? <time>{formatDate(record.due_date)}</time> : null}</footer></article>; })}</div>
+            </section>;
+        })}
+    </section>;
+}
+function TaskDetailForm({ fields, values, setValues, editing, saving, error, archiveArmed, onArchive, onClose, onSubmit }: {
+    fields: Field[];
+    values: Record<string, string>;
+    setValues: React.Dispatch<React.SetStateAction<Record<string, string>>>;
+    editing: DomainRecord | null;
+    saving: boolean;
+    error: string;
+    archiveArmed: boolean;
+    onArchive: (record: DomainRecord) => Promise<void>;
+    onClose: () => void;
+    onSubmit: (event: React.FormEvent) => Promise<void>;
+}) {
+    const byKey = Object.fromEntries(fields.map((field) => [field.key, field]));
+    const renderField = (key: string, className?: string) => byKey[key] ? <FormField className={className} field={byKey[key]} value={values[key] ?? ""} setValue={(value) => setValues((current) => ({ ...current, [key]: value }))}/> : null;
+    return <form className="task-detail-workspace" onSubmit={onSubmit} noValidate>
+        <section className="task-detail-main" aria-label="Task content">
+            {renderField("title", "task-title-field")}
+            <div className="task-detail-section-heading"><Icons.FileText size={15}/><div><strong>Description</strong><span>Add the context needed to complete this task.</span></div></div>
+            {renderField("description", "task-description-field")}
+        </section>
+        <aside className="task-detail-metadata" aria-label="Task metadata">
+            <p className="task-detail-label">Task properties</p>
+            <div className="task-detail-property-grid">
+                {renderField("status")}
+                {renderField("priority")}
+                {renderField("due_date")}
+                {renderField("daily_position")}
+                {renderField("project_id")}
+                {renderField("client_id")}
+                {renderField("goal_id")}
+            </div>
+        </aside>
+        {error ? <p className="field-error task-detail-error" role="alert">{error}</p> : null}
+        <div className="modal__actions task-detail-actions">
+            {editing ? <Button emphasis="danger" onClick={() => void onArchive(editing)}>{archiveArmed ? "Confirm archive" : "Archive"}</Button> : null}
+            <span className="task-detail-actions__spacer"/>
+            <Button emphasis="ghost" onClick={onClose}>Cancel</Button>
+            <Button intent="brand" type="submit" disabled={saving}>{saving ? "Saving…" : editing ? "Save changes" : "Create task"}</Button>
+        </div>
+    </form>;
 }
 function InboxList({ rows, onEdit, onResolve, empty }: { rows: DomainRecord[]; onEdit: (record: DomainRecord) => void; onResolve: (record: DomainRecord) => Promise<void>; empty: ReactNode }) {
     if (!rows.length) return <div className="data-surface">{empty}</div>;
@@ -208,14 +277,15 @@ function CalendarWorkspace({ rows, view, onEdit, empty }: { rows: DomainRecord[]
 
 function localDateKey(date: Date) { return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")}`; }
 function formatDate(value: unknown) { if (!value) return "No date"; const date = new Date(`${String(value).slice(0,10)}T12:00:00`); return date.toLocaleDateString([], { month: "short", day: "numeric" }); }
-function FormField({ field, value, setValue }: {
+function FormField({ field, value, setValue, className }: {
     field: Field;
     value: string;
     setValue: (value: string) => void;
+    className?: string;
 }) { const id = `record-${field.key}`; const [relations, setRelations] = useState<DomainRecord[]>([]); useEffect(() => { if (!field.relation)
     return; let active = true; fetch(`/api/entities/${field.relation}`, { cache: "no-store" }).then((response) => response.json()).then((data) => { if (active)
     setRelations(data.records ?? []); }).catch(() => { if (active)
-    setRelations([]); }); return () => { active = false; }; }, [field.relation]); return <div><label htmlFor={id}>{field.label}{!field.required ? <span> Optional</span> : null}</label>{field.type === "textarea" ? <textarea className="resize-none" id={id} rows={4} required={field.required} value={value} onChange={(event) => setValue(event.target.value)}/> : field.type === "select" ? <select id={id} value={value} onChange={(event) => setValue(event.target.value)}>{field.options?.map((option) => <option value={option} key={option}>{display(option)}</option>)}</select> : field.type === "relation" ? <select id={id} value={value} onChange={(event) => setValue(event.target.value)}><option value="">No {field.label.toLowerCase()}</option>{relations.map((record) => <option value={record.id} key={record.id}>{String(record.name ?? record.title)}</option>)}</select> : <input id={id} type={field.type ?? "text"} required={field.required} value={value} onChange={(event) => setValue(event.target.value)}/>}</div>; }
+    setRelations([]); }); return () => { active = false; }; }, [field.relation]); return <div className={className}><label htmlFor={id}>{field.label}{!field.required ? <span> Optional</span> : null}</label>{field.type === "textarea" ? <textarea className="resize-none" id={id} rows={4} required={field.required} value={value} onChange={(event) => setValue(event.target.value)}/> : field.type === "select" ? <select id={id} value={value} onChange={(event) => setValue(event.target.value)}>{field.options?.map((option) => <option value={option} key={option}>{display(option)}</option>)}</select> : field.type === "relation" ? <select id={id} value={value} onChange={(event) => setValue(event.target.value)}><option value="">No {field.label.toLowerCase()}</option>{relations.map((record) => <option value={record.id} key={record.id}>{String(record.name ?? record.title)}</option>)}</select> : <input id={id} type={field.type ?? "text"} required={field.required} value={value} onChange={(event) => setValue(event.target.value)}/>}</div>; }
 function normalizeInput(value: string, field: Field) { if (field.type === "number" || field.key === "daily_position")
     return normalizeOptionalNumberInput(value); if(value==="true"||value==="false")return value==="true"; if (field.type === "datetime-local")
     return value ? new Date(value).toISOString() : null; return value || null; }
@@ -256,8 +326,8 @@ catch {
 finally {
     setBusy(false);
 } }
-    return <div className="domain-page assistant-page"><header className="page-header"><div><p className="eyebrow">{config.eyebrow}</p><h1>{config.title}</h1><p>{config.intro}</p></div><span className="status status--blue"><span className="live-dot"/> Server protected</span></header><div className="assistant-layout"><section className="assistant-thread"><div className="assistant-welcome"><Icons.Sparkles size={22}/><h2>What deserves your attention?</h2><p>I can reason across your private workspace. I will ask before destructive or high-impact changes.</p></div>{messages.map((item, index) => <div key={`${item.user}-${index}`}><p className="user-message">{item.user}</p><div className="assistant-message"><span>AI</span><p>{item.assistant}</p></div></div>)}<form className="assistant-composer" onSubmit={send} noValidate><label className="sr-only" htmlFor="assistant-message">Ask the assistant</label><textarea className="resize-none" id="assistant-message" value={message} onChange={(event) => setMessage(event.target.value)} rows={2} placeholder="What should I work on right now?"/><Button intent="brand" type="submit" disabled={busy}>{busy ? "Thinking…" : "Send"}</Button></form></section><aside className="assistant-suggestions"><p className="eyebrow">Try asking</p>{["What am I forgetting?", "Who should I follow up with?", "Plan tomorrow."].map((prompt) => <button onClick={() => setMessage(prompt)} key={prompt}><strong>{prompt}</strong><span>Uses live workspace data</span></button>)}</aside></div></div>;
+    return <div className="domain-page assistant-page"><header className="task-context-header"><div><nav className="task-context-header__breadcrumb" aria-label="Breadcrumb"><span>Workspace</span><span>/</span><span className="current">{config.title}</span></nav><div className="task-context-header__title-row"><h1>{config.title}</h1><span className="task-context-header__total-badge">AI Assistant</span><span className="status status--blue"><span className="live-dot"/> Server protected</span></div><p className="task-context-header__description">{config.intro}</p></div></header><div className="assistant-layout"><section className="assistant-thread"><div className="assistant-welcome"><Icons.Sparkles size={22}/><h2>What deserves your attention?</h2><p>I can reason across your private workspace. I will ask before destructive or high-impact changes.</p></div>{messages.map((item, index) => <div key={`${item.user}-${index}`}><p className="user-message">{item.user}</p><div className="assistant-message"><span>AI</span><p>{item.assistant}</p></div></div>)}<form className="assistant-composer" onSubmit={send} noValidate><label className="sr-only" htmlFor="assistant-message">Ask the assistant</label><textarea className="resize-none" id="assistant-message" value={message} onChange={(event) => setMessage(event.target.value)} rows={2} placeholder="What should I work on right now?"/><Button intent="brand" type="submit" disabled={busy}>{busy ? "Thinking…" : "Send"}</Button></form></section><aside className="assistant-suggestions"><p className="eyebrow">Try asking</p>{["What am I forgetting?", "Who should I follow up with?", "Plan tomorrow."].map((prompt) => <button onClick={() => setMessage(prompt)} key={prompt}><strong>{prompt}</strong><span>Uses live workspace data</span></button>)}</aside></div></div>;
 }
 function SettingsView({ config }: {
     config: Config;
-}) { return <div className="domain-page"><header className="page-header"><div><p className="eyebrow">{config.eyebrow}</p><h1>{config.title}</h1><p>{config.intro}</p></div></header><div className="data-surface"><Link className="data-row" href="/settings/integrations"><strong>Integrations</strong><span>Calendar, mail, files, code, and fitness services</span><span>Manage</span><Icons.MoreHorizontal size={17}/></Link><Link className="data-row" href="/settings/notifications"><strong>Notifications</strong><span>Control which signals can enter Today</span><span>Manage</span><Icons.MoreHorizontal size={17}/></Link></div></div>; }
+}) { return <div className="domain-page"><header className="task-context-header"><div><nav className="task-context-header__breadcrumb" aria-label="Breadcrumb"><span>Workspace</span><span>/</span><span className="current">{config.title}</span></nav><div className="task-context-header__title-row"><h1>{config.title}</h1></div><p className="task-context-header__description">{config.intro}</p></div></header><div className="data-surface"><Link className="data-row" href="/settings/integrations"><strong>Integrations</strong><span>Calendar, mail, files, code, and fitness services</span><span>Manage</span><Icons.MoreHorizontal size={17}/></Link><Link className="data-row" href="/settings/notifications"><strong>Notifications</strong><span>Control which signals can enter Today</span><span>Manage</span><Icons.MoreHorizontal size={17}/></Link></div></div>; }

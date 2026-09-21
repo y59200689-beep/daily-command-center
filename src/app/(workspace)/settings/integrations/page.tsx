@@ -1,13 +1,19 @@
 import type { Metadata } from "next";
+import { Icons } from "@/components/icons";
 import { GoogleCalendarCard } from "@/features/integrations/google-calendar-card";
 import { IntegrationCard } from "@/features/integrations/integration-card";
 export const metadata: Metadata = { title: "Integrations" };
 export default function IntegrationsPage() {
   return (
-    <div className="domain-page">
-      <header className="page-header">
+    <div className="domain-page settings-page">
+      <header className="task-context-header settings-context-header">
         <div>
-          <p className="eyebrow">Settings · Connections</p>
+          <div className="task-context-header__path">
+            <Icons.Settings size={15} />
+            <span>Settings</span>
+            <Icons.ChevronRight size={13} />
+            <strong>Integrations</strong>
+          </div>
           <h1>Integrations</h1>
           <p>Bring in context without turning the command center into a copy of every service.</p>
         </div>

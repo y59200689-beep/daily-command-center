@@ -36,23 +36,28 @@ export function OperationsHome() {
 
   return (
     <main className="domain-page operations-page">
-      <header className="page-header">
+      <header className="task-context-header">
         <div>
-          <p className="eyebrow">V11 · Operations & SOP Operating System</p>
-          <h1>Operations.</h1>
-          <p>
-            {activeRuns.length} active run{activeRuns.length === 1 ? "" : "s"}
-            {blockedRuns.length > 0 ? ` · ${blockedRuns.length} blocked` : ""}
-            {openIncidents.length > 0 ? ` · ${openIncidents.length} open incident${openIncidents.length === 1 ? "" : "s"}` : ""}
+          <nav className="task-context-header__breadcrumb" aria-label="Breadcrumb">
+            <span>Operate</span>
+            <span>/</span>
+            <span className="current">Operations</span>
+          </nav>
+          <div className="task-context-header__title-row">
+            <h1>Operations</h1>
+            <span className="task-context-header__total-badge">
+              {activeRuns.length} active run{activeRuns.length === 1 ? "" : "s"}
+            </span>
+            {blockedRuns.length > 0 && (
+              <span className="operations-badge badge--incident">{blockedRuns.length} blocked</span>
+            )}
+          </div>
+          <p className="task-context-header__description">
+            Operational cadence, standard procedures, system runbooks, and active incident response.
           </p>
         </div>
-        <div className="operations-header-actions">
-          <Link href="/operations/runs" className="button button--outline">Runs</Link>
-          <Link href="/operations/sops" className="button button--outline">SOPs</Link>
-          <Link href="/operations/processes" className="button button--outline">Processes</Link>
-          <Link href="/operations/quality" className="button button--outline">Quality</Link>
-          <Link href="/operations/systems" className="button button--outline">Systems</Link>
-          <Link href="/operations/review" className="button button--solid button--brand">Review</Link>
+        <div className="task-context-header__actions">
+          <Link href="/operations/review" className="button button--solid button--brand">Review operations</Link>
         </div>
       </header>
 
@@ -74,38 +79,14 @@ export function OperationsHome() {
 
       {/* Operational Subsurfaces Navigation Strip */}
       <nav className="operations-nav-strip" aria-label="Operations surfaces">
-        <Link href="/operations/sops">
-          <span>SOPs</span>
-          <small>Documented operating procedures & versions</small>
-        </Link>
-        <Link href="/operations/processes">
-          <span>Processes</span>
-          <small>Recurring operational templates & cadences</small>
-        </Link>
-        <Link href="/operations/runs">
-          <span>Runs</span>
-          <small>Live execution tracking & step checklists</small>
-        </Link>
-        <Link href="/operations/quality">
-          <span>Quality</span>
-          <small>Incident logs, failure patterns & corrective actions</small>
-        </Link>
-        <Link href="/operations/systems">
-          <span>Systems</span>
-          <small>Internal registry, criticality & blast radius</small>
-        </Link>
-        <Link href="/operations/runbooks">
-          <span>Runbooks</span>
-          <small>Emergency mitigation & recovery guides</small>
-        </Link>
-        <Link href="/operations/review">
-          <span>Review</span>
-          <small>Weekly cadence & continuous improvements</small>
-        </Link>
-        <Link href="/operations/calendar">
-          <span>Calendar</span>
-          <small>Schedule of recurring runs & reviews</small>
-        </Link>
+        <Link href="/operations/runs"><span>Runs</span></Link>
+        <Link href="/operations/processes"><span>Processes</span></Link>
+        <Link href="/operations/sops"><span>SOPs</span></Link>
+        <Link href="/operations/quality"><span>Quality</span></Link>
+        <Link href="/operations/systems"><span>Systems</span></Link>
+        <Link href="/operations/runbooks"><span>Runbooks</span></Link>
+        <Link href="/operations/calendar"><span>Calendar</span></Link>
+        <Link href="/operations/review"><span>Review</span></Link>
       </nav>
 
       <div className="operations-grid">

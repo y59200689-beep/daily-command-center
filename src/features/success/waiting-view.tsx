@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Icons } from "@/components/icons";
 import { SuccessSchemaUnavailable } from "./schema-unavailable";
 
 interface WaitingItem {
@@ -58,26 +57,39 @@ export function WaitingView() {
   const items = tab === "us" ? (data?.waitingOnUs ?? []) : (data?.waitingOnClient ?? []);
 
   return (
-    <div className="success-page">
-      <div className="page-header" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.75rem" }}>
-        <h1 className="page-title" style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-          <Icons.Clock3 size={22} /> Client Waiting State
-        </h1>
-        <Link href="/success" className="btn btn-secondary" style={{ fontSize: "0.8125rem" }}>← Overview</Link>
-      </div>
+    <main className="domain-page success-page">
+      <header className="task-context-header">
+        <div>
+          <nav className="task-context-header__breadcrumb" aria-label="Breadcrumb">
+            <span>Business</span>
+            <span>/</span>
+            <Link href="/success" style={{ color: "var(--muted)", textDecoration: "none" }}>Customer Success</Link>
+            <span>/</span>
+            <span className="current">Waiting State</span>
+          </nav>
+          <div className="task-context-header__title-row">
+            <h1>Client Waiting State</h1>
+            {data && <span className="task-context-header__total-badge">{data.waitingOnUs.length + data.waitingOnClient.length} waiting</span>}
+          </div>
+          <p className="task-context-header__description">Track who is waiting on whom across all active client relationships.</p>
+        </div>
+        <div className="task-context-header__actions">
+          <Link href="/success">Overview</Link>
+        </div>
+      </header>
 
-      <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1.25rem" }}>
+      <div className="view-switch" style={{ marginBottom: "1.25rem" }}>
         <button
+          type="button"
           onClick={() => setTab("us")}
-          className={`btn ${tab === "us" ? "btn-primary" : "btn-secondary"}`}
-          style={{ fontSize: "0.875rem" }}
+          className={tab === "us" ? "is-active" : ""}
         >
           Waiting On Us {data && `(${data.waitingOnUs.length})`}
         </button>
         <button
+          type="button"
           onClick={() => setTab("client")}
-          className={`btn ${tab === "client" ? "btn-primary" : "btn-secondary"}`}
-          style={{ fontSize: "0.875rem" }}
+          className={tab === "client" ? "is-active" : ""}
         >
           Waiting On Client {data && `(${data.waitingOnClient.length})`}
         </button>
@@ -125,6 +137,6 @@ export function WaitingView() {
           ))}
         </div>
       )}
-    </div>
+    </main>
   );
 }

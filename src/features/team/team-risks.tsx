@@ -93,21 +93,34 @@ export function TeamRisks() {
   };
 
   return (
-    <div className="page-shell team-page">
-      <div className="page-header">
+    <main className="domain-page team-page">
+      <header className="task-context-header">
         <div>
-          <p className="eyebrow"><Link href="/team">← Team Command Center</Link></p>
-          <h1>Team Risks & Escalations</h1>
-          <p className="page-description">
+          <nav className="task-context-header__breadcrumb" aria-label="Breadcrumb">
+            <span>Operate</span>
+            <span>/</span>
+            <Link href="/team" style={{ color: "var(--muted)", textDecoration: "none" }}>Team</Link>
+            <span>/</span>
+            <span className="current">Risks & Escalations</span>
+          </nav>
+          <div className="task-context-header__title-row">
+            <h1>Team Risks & Escalations</h1>
+            {(risks.length > 0 || escalations.length > 0) && (
+              <span className="task-context-header__total-badge task-context-header__total-badge--danger">
+                {risks.length + escalations.length} issues
+              </span>
+            )}
+          </div>
+          <p className="task-context-header__description">
             Coordination bottlenecks, single-owner dependencies, and operational escalations.
           </p>
         </div>
-        <div className="header-actions">
-          <button onClick={() => setEscOpen(true)} className="button button--primary">
-            <Icons.Plus size={16} /> Log Escalation
+        <div className="task-context-header__actions">
+          <button onClick={() => setEscOpen(true)} className="button button--solid button--brand">
+            <Icons.Plus size={14} /> Log Escalation
           </button>
         </div>
-      </div>
+      </header>
 
       {loading ? (
         <p className="muted">Loading risks…</p>
@@ -212,6 +225,6 @@ export function TeamRisks() {
           </div>
         </form>
       </Modal>
-    </div>
+    </main>
   );
 }

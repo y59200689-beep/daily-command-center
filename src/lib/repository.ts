@@ -5,11 +5,23 @@ type UntypedClient = SupabaseClient<Record<string, unknown>>;
 type StrategyDomain = "strategic_commitments" | "strategic_milestones" | "planning_periods" | "strategic_scenarios" | "decision_gates";
 const strategyTables: Record<StrategyDomain, string> = { strategic_commitments: "strategic_commitments", strategic_milestones: "strategic_milestones", planning_periods: "planning_periods", strategic_scenarios: "strategic_scenarios", decision_gates: "decision_gates" };
 
-export async function listRecords(client: UntypedClient, userId: string, domain: PersistedDomain, search?: string, page=1, pageSize=50) {
+type ListOptions = { status?: string; priority?: string; sort?: string };
+
+export async function listRecords(client: UntypedClient, userId: string, domain: PersistedDomain, search?: string, page=1, pageSize=50, options?: ListOptions) {
   const config = domainConfig[domain];
   const safePage=Math.max(1,Math.floor(page));const safePageSize=Math.min(100,Math.max(10,Math.floor(pageSize)));const start=(safePage-1)*safePageSize;
-  let query = client.from(config.table).select("*",{count:"exact"}).eq("user_id", userId).is("deleted_at", null).order(config.sort, { ascending: config.sortAscending ?? false }).range(start,start+safePageSize-1);
+  const taskSorts: Record<string, { field: string; ascending: boolean }> = { updated: { field: "updated_at", ascending: false }, due: { field: "due_date", ascending: true }, title: { field: "title", ascending: true }, priority: { field: "priority", ascending: false } };
+  const selectedSort = domain === "tasks" && options?.sort && taskSorts[options.sort] ? taskSorts[options.sort] : { field: config.sort, ascending: config.sortAscending ?? false };
+  let query = client.from(config.table).select("*",{count:"exact"}).eq("user_id", userId).is("deleted_at", null);
   if (search?.trim()) query = query.ilike(config.titleField, `%${search.trim().replaceAll("%", "\\%")}%`);
+  if (domain === "tasks") {
+    const statuses = ["inbox", "planned", "in_progress", "waiting", "blocked", "completed", "cancelled"];
+    const priorities = ["none", "low", "medium", "high", "urgent"];
+    if (options?.status === "open") query = query.not("status", "in", "(completed,cancelled)");
+    else if (options?.status && statuses.includes(options.status)) query = query.eq("status", options.status);
+    if (options?.priority && priorities.includes(options.priority)) query = query.eq("priority", options.priority);
+  }
+  query = query.order(selectedSort.field, { ascending: selectedSort.ascending, nullsFirst: false }).range(start,start+safePageSize-1);
   const { data, error, count } = await query;
   if (error) throw error;
   return {records:(data ?? []) as DomainRecord[],total:count??0,page:safePage,pageSize:safePageSize};

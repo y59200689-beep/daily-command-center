@@ -132,13 +132,22 @@ export function GrowthReviews() {
 
   return (
     <main className="domain-page growth-page">
-      <header className="page-header">
+      <header className="task-context-header">
         <div>
-          <p className="eyebrow">Growth · Retrospectives & Planning</p>
-          <h1>Growth reviews.</h1>
-          <p>Systematic deal post-mortems, sales targets, and channel intelligence.</p>
+          <nav className="task-context-header__breadcrumb" aria-label="Breadcrumb">
+            <span>Business</span>
+            <span>/</span>
+            <Link href="/growth" style={{ color: "var(--muted)", textDecoration: "none" }}>Growth</Link>
+            <span>/</span>
+            <span className="current">Reviews</span>
+          </nav>
+          <div className="task-context-header__title-row">
+            <h1>Growth reviews</h1>
+            {dealReviews.length > 0 && <span className="task-context-header__total-badge">{dealReviews.length} reviews</span>}
+          </div>
+          <p className="task-context-header__description">Systematic deal post-mortems, sales targets, and channel intelligence.</p>
         </div>
-        <div className="growth-header-actions">
+        <div className="task-context-header__actions">
           <Button intent="brand" onClick={() => setReviewOpen(true)}>Record deal review</Button>
           <Button emphasis="outline" onClick={() => setTargetOpen(true)}>+ Set sales target</Button>
         </div>

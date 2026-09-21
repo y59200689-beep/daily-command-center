@@ -114,16 +114,24 @@ export function OneOnOneView() {
   if (schemaUnavailable) return <TeamSchemaUnavailable title="1:1 Preparation & Follow-through" description="Objective meeting context, open loops, and operational follow-through without subjective employee ranking." />;
 
   return (
-    <div className="page-shell team-page">
-      <div className="page-header">
+    <main className="domain-page team-page">
+      <header className="task-context-header">
         <div>
-          <p className="eyebrow"><Link href="/team">← Team Command Center</Link></p>
-          <h1>1:1 Preparation & Follow-through</h1>
-          <p className="page-description">
+          <nav className="task-context-header__breadcrumb" aria-label="Breadcrumb">
+            <span>Operate</span>
+            <span>/</span>
+            <Link href="/team" style={{ color: "var(--muted)", textDecoration: "none" }}>Team</Link>
+            <span>/</span>
+            <span className="current">1:1 Preparation</span>
+          </nav>
+          <div className="task-context-header__title-row">
+            <h1>1:1 Preparation & Follow-through</h1>
+          </div>
+          <p className="task-context-header__description">
             Objective meeting context, open loops, and operational follow-through without subjective employee ranking.
           </p>
         </div>
-      </div>
+      </header>
 
       {/* PERSON SELECTOR */}
       <div style={{ margin: "20px 0", maxWidth: "340px" }}>
@@ -314,6 +322,6 @@ export function OneOnOneView() {
           </div>
         </div>
       )}
-    </div>
+    </main>
   );
 }

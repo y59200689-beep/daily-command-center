@@ -13,7 +13,11 @@ export async function GET(request: NextRequest, context: { params: Promise<{ dom
     if (!isPersistedDomain(domain)) return NextResponse.json({ error: "Unknown collection." }, { status: 404 });
     const { supabase, userId } = await requireUser();
     const page=Number(request.nextUrl.searchParams.get("page")??1);const pageSize=Number(request.nextUrl.searchParams.get("pageSize")??50);
-    return NextResponse.json(await listRecords(supabase, userId, domain, request.nextUrl.searchParams.get("q") ?? undefined,page,pageSize));
+    return NextResponse.json(await listRecords(supabase, userId, domain, request.nextUrl.searchParams.get("q") ?? undefined,page,pageSize, domain === "tasks" ? {
+      status: request.nextUrl.searchParams.get("status") ?? undefined,
+      priority: request.nextUrl.searchParams.get("priority") ?? undefined,
+      sort: request.nextUrl.searchParams.get("sort") ?? undefined,
+    } : undefined));
   } catch (error) { return apiError(error, "Records could not be loaded."); }
 }
 

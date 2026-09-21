@@ -67,17 +67,24 @@ export function ProcessList() {
 
   return (
     <main className="domain-page operations-page">
-      <header className="page-header">
+      <header className="task-context-header">
         <div>
-          <p className="eyebrow">Operations · Process Templates</p>
-          <h1>Processes.</h1>
-          <p>
-            {processes.length} recurring & repeatable process template{processes.length === 1 ? "" : "s"}
+          <nav className="task-context-header__breadcrumb" aria-label="Breadcrumb">
+            <span>Operations</span>
+            <span>/</span>
+            <span className="current">Processes</span>
+          </nav>
+          <div className="task-context-header__title-row">
+            <h1>Processes</h1>
+            <span className="task-context-header__total-badge">{processes.length} templates</span>
+          </div>
+          <p className="task-context-header__description">
+            Recurring &amp; repeatable process templates
           </p>
         </div>
-        <div className="operations-header-actions">
-          <Link href="/operations" className="button button--outline">Overview</Link>
-          <Link href="/operations/runs" className="button button--outline">All Runs</Link>
+        <div className="task-context-header__actions">
+          <Link href="/operations">Overview</Link>
+          <Link href="/operations/runs">All Runs</Link>
         </div>
       </header>
 
@@ -102,7 +109,7 @@ export function ProcessList() {
                     {String(proc.category || "General")} · Cadence: {String(proc.cadence || "ad-hoc")} · {targetMin}
                   </small>
                 </div>
-                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <div className="operations-row__actions">
                   <span className={`operations-badge ${healthBadgeClass(String(health))}`}>
                     {String(health)}
                     {typeof failureRate === "number" ? ` (${Math.round(failureRate * 100)}% fail)` : ""}

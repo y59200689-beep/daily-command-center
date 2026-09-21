@@ -171,27 +171,38 @@ export function PersonDetail({ id }: PersonDetailProps) {
   }
 
   return (
-    <div className="page-shell team-page">
-      <div className="page-header">
+    <div className="domain-page team-page">
+      <header className="task-context-header">
         <div>
-          <p className="eyebrow"><Link href="/team/people">← People Directory</Link></p>
-          <h1>{person.name}</h1>
-          <p className="page-description">
+          <nav className="task-context-header__breadcrumb" aria-label="Breadcrumb">
+            <span>Operate</span>
+            <span>/</span>
+            <Link href="/team" style={{ color: "var(--muted)", textDecoration: "none" }}>Team</Link>
+            <span>/</span>
+            <Link href="/team/people" style={{ color: "var(--muted)", textDecoration: "none" }}>People</Link>
+            <span>/</span>
+            <span className="current">{person.name}</span>
+          </nav>
+          <div className="task-context-header__title-row">
+            <h1>{person.name}</h1>
+            <span className="task-context-header__total-badge">{person.role_title || "Team Member"}</span>
+          </div>
+          <p className="task-context-header__description">
             {person.role_title || "Team Member"} {person.company_team ? `· ${person.company_team}` : ""}
           </p>
         </div>
-        <div className="header-actions">
-          <button onClick={() => setEditOpen(true)} className="button button--secondary">
+        <div className="task-context-header__actions">
+          <button onClick={() => setEditOpen(true)} className="button button--outline button--neutral">
             Edit
           </button>
-          <Link href={`/team/1on1?person_id=${id}`} className="button button--secondary">
-            <Icons.MessageSquareText size={16} /> 1:1 Prep
+          <Link href={`/team/1on1?person_id=${id}`} className="button button--outline button--neutral">
+            <Icons.MessageSquareText size={14} /> 1:1 Prep
           </Link>
-          <button onClick={() => setDelOpen(true)} className="button button--primary">
-            <Icons.Plus size={16} /> Delegate Work
+          <button onClick={() => setDelOpen(true)} className="button button--solid button--brand">
+            <Icons.Plus size={14} /> Delegate Work
           </button>
         </div>
-      </div>
+      </header>
 
       {/* OVERVIEW CARDS */}
       <div className="team-dashboard-grid" style={{ marginBottom: "24px" }}>

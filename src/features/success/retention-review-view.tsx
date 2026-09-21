@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Icons } from "@/components/icons";
 import { SuccessSchemaUnavailable } from "./schema-unavailable";
 
 interface RetentionReview {
@@ -78,17 +77,41 @@ export function RetentionReviewView() {
   }
 
   return (
-    <div className="success-page">
-      <div className="page-header" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.75rem" }}>
-        <h1 className="page-title" style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-          <Icons.ChartNoAxesCombined size={22} /> Retention Review
-        </h1>
-        <div style={{ display: "flex", gap: "0.5rem" }}>
-          <button onClick={() => setPeriod("week")} className={`btn ${period === "week" ? "btn-primary" : "btn-secondary"}`} style={{ fontSize: "0.8rem" }}>This Week</button>
-          <button onClick={() => setPeriod("month")} className={`btn ${period === "month" ? "btn-primary" : "btn-secondary"}`} style={{ fontSize: "0.8rem" }}>This Month</button>
-          <Link href="/success" className="btn btn-secondary" style={{ fontSize: "0.8125rem" }}>← Overview</Link>
+    <main className="domain-page success-page">
+      <header className="task-context-header">
+        <div>
+          <nav className="task-context-header__breadcrumb" aria-label="Breadcrumb">
+            <span>Business</span>
+            <span>/</span>
+            <Link href="/success" style={{ color: "var(--muted)", textDecoration: "none" }}>Customer Success</Link>
+            <span>/</span>
+            <span className="current">Retention</span>
+          </nav>
+          <div className="task-context-header__title-row">
+            <h1>Retention Review</h1>
+          </div>
+          <p className="task-context-header__description">Client retention, renewal forecasts, and portfolio stability.</p>
         </div>
-      </div>
+        <div className="task-context-header__actions">
+          <div className="view-switch">
+            <button
+              type="button"
+              onClick={() => setPeriod("week")}
+              className={period === "week" ? "is-active" : ""}
+            >
+              This Week
+            </button>
+            <button
+              type="button"
+              onClick={() => setPeriod("month")}
+              className={period === "month" ? "is-active" : ""}
+            >
+              This Month
+            </button>
+          </div>
+          <Link href="/success">Overview</Link>
+        </div>
+      </header>
 
       {loading && <p style={{ color: "var(--text-secondary)" }}>Loading retention review…</p>}
       {error && <p style={{ color: "var(--color-red-500)" }}>{error}</p>}
@@ -198,6 +221,6 @@ export function RetentionReviewView() {
           </div>
         </>
       )}
-    </div>
+    </main>
   );
 }

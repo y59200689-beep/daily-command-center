@@ -142,10 +142,21 @@ export function SuccessHome() {
 
   if (loading) {
     return (
-      <div className="success-page">
-        <div className="page-header">
-          <h1 className="page-title"><Icons.HeartHandshake size={22} /> Customer Success</h1>
-        </div>
+      <div className="domain-page success-page">
+        <header className="task-context-header">
+          <div>
+            <nav className="task-context-header__breadcrumb" aria-label="Breadcrumb">
+              <span>Customer Success</span>
+              <span>/</span>
+              <span className="current">Success Hub</span>
+            </nav>
+            <div className="task-context-header__title-row">
+              <h1>Customer Success</h1>
+              <span className="task-context-header__total-badge">Loading…</span>
+            </div>
+            <p className="task-context-header__description">Client retention, portfolio health, deliverable outcomes, and expansion signals.</p>
+          </div>
+        </header>
         <p style={{ color: "var(--text-secondary)", padding: "2rem 0" }}>Loading overview…</p>
       </div>
     );
@@ -153,12 +164,21 @@ export function SuccessHome() {
 
   if (error) {
     return (
-      <div className="success-page">
-        <div className="page-header">
-          <h1 className="page-title"><Icons.HeartHandshake size={22} /> Customer Success</h1>
-        </div>
-        <p style={{ color: "var(--color-red-500)" }}>{error}</p>
-        <button className="btn btn-secondary" onClick={handleRetry}>Retry</button>
+      <div className="domain-page success-page">
+        <header className="task-context-header">
+          <div>
+            <nav className="task-context-header__breadcrumb" aria-label="Breadcrumb">
+              <span>Customer Success</span>
+              <span>/</span>
+              <span className="current">Success Hub</span>
+            </nav>
+            <div className="task-context-header__title-row">
+              <h1>Customer Success</h1>
+            </div>
+          </div>
+        </header>
+        <p style={{ color: "var(--color-red-500)", margin: "1rem 0" }}>{error}</p>
+        <button className="button button--outline" onClick={handleRetry}>Retry</button>
       </div>
     );
   }
@@ -166,18 +186,27 @@ export function SuccessHome() {
   const m = data?.metrics;
 
   return (
-    <div className="success-page">
-      <div className="page-header" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.75rem" }}>
-        <h1 className="page-title" style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-          <Icons.HeartHandshake size={22} /> Customer Success
-        </h1>
-        <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-          <Link href="/success/portfolio" className="btn btn-secondary" style={{ fontSize: "0.8125rem" }}>Portfolio Health</Link>
-          <Link href="/success/renewals" className="btn btn-secondary" style={{ fontSize: "0.8125rem" }}>Renewals</Link>
-          <Link href="/success/risks" className="btn btn-secondary" style={{ fontSize: "0.8125rem" }}>Risks</Link>
-          <Link href="/success/review" className="btn btn-secondary" style={{ fontSize: "0.8125rem" }}>Retention Review</Link>
+    <div className="domain-page success-page">
+      <header className="task-context-header success-context-header">
+        <div>
+          <div className="task-context-header__path">
+            <Icons.HeartHandshake size={15} />
+            <span>Business</span>
+            <Icons.ChevronRight size={13} />
+            <strong>Customer Success</strong>
+          </div>
+          <h1>Customer Success</h1>
+          <p>
+            Client health, retention risks, renewal pipeline, and check-in momentum.
+          </p>
         </div>
-      </div>
+        <div className="task-context-header__actions">
+          <Link href="/success/portfolio" className="button button--outline button--neutral">Portfolio</Link>
+          <Link href="/success/renewals" className="button button--outline button--neutral">Renewals</Link>
+          <Link href="/success/risks" className="button button--outline button--neutral">Risks</Link>
+          <Link href="/success/review" className="button button--solid button--brand">Retention review</Link>
+        </div>
+      </header>
 
       {/* Next Action Banner */}
       {data?.nextAction && (

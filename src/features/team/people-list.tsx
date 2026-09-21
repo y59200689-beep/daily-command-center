@@ -93,19 +93,28 @@ export function PeopleList() {
   if (schemaUnavailable) return <TeamSchemaUnavailable title="People Directory" description="Collaborators, contractors, and team members you coordinate with." />;
 
   return (
-    <div className="page-shell team-page">
-      <div className="page-header">
+    <main className="domain-page team-page">
+      <header className="task-context-header">
         <div>
-          <p className="eyebrow"><Link href="/team">← Team Command Center</Link></p>
-          <h1>People Directory</h1>
-          <p className="page-description">Collaborators, contractors, and team members you coordinate with.</p>
+          <nav className="task-context-header__breadcrumb" aria-label="Breadcrumb">
+            <span>Operate</span>
+            <span>/</span>
+            <Link href="/team" style={{ color: "var(--muted)", textDecoration: "none" }}>Team</Link>
+            <span>/</span>
+            <span className="current">People Directory</span>
+          </nav>
+          <div className="task-context-header__title-row">
+            <h1>People Directory</h1>
+            {people.length > 0 && <span className="task-context-header__total-badge">{people.length} members</span>}
+          </div>
+          <p className="task-context-header__description">Collaborators, contractors, and team members you coordinate with.</p>
         </div>
-        <div className="header-actions">
-          <button onClick={() => setCreateOpen(true)} className="button button--primary">
-            <Icons.Plus size={16} /> Add Person
+        <div className="task-context-header__actions">
+          <button onClick={() => setCreateOpen(true)} className="button button--solid button--brand">
+            <Icons.Plus size={14} /> Add Person
           </button>
         </div>
-      </div>
+      </header>
 
       {/* FILTERS */}
       <div className="filter-bar" style={{ display: "flex", gap: "12px", flexWrap: "wrap", margin: "20px 0" }}>
@@ -259,6 +268,6 @@ export function PeopleList() {
           </div>
         </form>
       </Modal>
-    </div>
+    </main>
   );
 }

@@ -163,19 +163,28 @@ export function DelegationsView() {
   };
 
   return (
-    <div className="page-shell team-page">
-      <div className="page-header">
+    <main className="domain-page team-page">
+      <header className="task-context-header">
         <div>
-          <p className="eyebrow"><Link href="/team">← Team Command Center</Link></p>
-          <h1>Delegations</h1>
-          <p className="page-description">Manage responsibility for outcomes delegated to people.</p>
+          <nav className="task-context-header__breadcrumb" aria-label="Breadcrumb">
+            <span>Operate</span>
+            <span>/</span>
+            <Link href="/team" style={{ color: "var(--muted)", textDecoration: "none" }}>Team</Link>
+            <span>/</span>
+            <span className="current">Delegations</span>
+          </nav>
+          <div className="task-context-header__title-row">
+            <h1>Delegations</h1>
+            {delegations.length > 0 && <span className="task-context-header__total-badge">{delegations.length} delegations</span>}
+          </div>
+          <p className="task-context-header__description">Manage responsibility for outcomes delegated to people.</p>
         </div>
-        <div className="header-actions">
-          <button onClick={() => setCreateOpen(true)} className="button button--primary">
-            <Icons.Plus size={16} /> New Delegation
+        <div className="task-context-header__actions">
+          <button onClick={() => setCreateOpen(true)} className="button button--solid button--brand">
+            <Icons.Plus size={14} /> New Delegation
           </button>
         </div>
-      </div>
+      </header>
 
       {/* TABS */}
       <div className="pill-tabs" style={{ margin: "20px 0" }}>
@@ -359,6 +368,6 @@ export function DelegationsView() {
           </div>
         </form>
       </Modal>
-    </div>
+    </main>
   );
 }
