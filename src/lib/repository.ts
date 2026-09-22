@@ -17,8 +17,20 @@ export async function listRecords(client: UntypedClient, userId: string, domain:
   if (domain === "tasks") {
     const statuses = ["inbox", "planned", "in_progress", "waiting", "blocked", "completed", "cancelled"];
     const priorities = ["none", "low", "medium", "high", "urgent"];
-    if (options?.status === "open") query = query.not("status", "in", "(completed,cancelled)");
-    else if (options?.status && statuses.includes(options.status)) query = query.eq("status", options.status);
+    const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    if (options?.status === "open") {
+      query = query.neq("status", "cancelled").or(`status.neq.completed,completed_at.gte.${cutoff}`);
+    } else if (options?.status === "still_waiting") {
+      const today = new Date().toISOString().slice(0, 10);
+      query = query.not("status", "in", "(completed,cancelled)").lt("due_date", today);
+    } else if (options?.status && statuses.includes(options.status)) {
+      query = query.eq("status", options.status);
+      if (options.status === "completed") {
+        query = query.gte("completed_at", cutoff);
+      }
+    } else {
+      query = query.or(`status.neq.completed,completed_at.gte.${cutoff}`);
+    }
     if (options?.priority && priorities.includes(options.priority)) query = query.eq("priority", options.priority);
   }
   query = query.order(selectedSort.field, { ascending: selectedSort.ascending, nullsFirst: false }).range(start,start+safePageSize-1);

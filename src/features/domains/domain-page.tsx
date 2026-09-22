@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useCallback, useDeferredValue, useEffect, useRef, useState, type ReactNode } from "react";
+import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { AttachmentSection } from "@/components/attachment-section";
 import { Icons } from "@/components/icons";
 import { Button } from "@/components/ui/button";
@@ -68,6 +68,29 @@ for (const [key, fields] of Object.entries(relationshipFields))
     configs[key as DomainKey].fields.push(...fields);
 const emptyValues = (config: Config) => Object.fromEntries(config.fields.map((field) => [field.key, field.options?.[0] ?? (field.key === "currency" ? "MAD" : field.key === "timezone" ? "Africa/Casablanca" : "")]));
 const display = (value: unknown) => value == null || value === "" ? "—" : String(value).replaceAll("_", " ");
+export function isTaskPastDue(record: DomainRecord): boolean {
+    const status = String(record.status ?? "");
+    if (status === "completed" || status === "cancelled") return false;
+    if (!record.due_date) return false;
+    const dueDateStr = String(record.due_date).slice(0, 10);
+    const now = new Date();
+    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+    if (dueDateStr < todayStr) return true;
+    if (dueDateStr === todayStr && record.due_time) {
+        const [hours, minutes] = String(record.due_time).split(":").map(Number);
+        const taskDue = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours || 0, minutes || 0);
+        return taskDue < now;
+    }
+    return false;
+}
+export function isTaskCompletedExpired(record: DomainRecord): boolean {
+    if (record.status !== "completed") return false;
+    const time = record.completed_at
+        ? new Date(String(record.completed_at)).getTime()
+        : (record.updated_at ? new Date(String(record.updated_at)).getTime() : null);
+    if (!time || isNaN(time)) return false;
+    return Date.now() - time > 24 * 60 * 60 * 1000;
+}
 export function DomainPage({ domain, embedded = false, onMutationSuccess, refreshToken }: {
     domain: DomainKey;
     embedded?: boolean;
@@ -117,30 +140,57 @@ export function DomainPage({ domain, embedded = false, onMutationSuccess, refres
         previousRefreshToken.current = refreshToken;
         void load();
     }, [load, refreshToken]);
-    const rows = records;
+    const rows = useMemo(() => {
+        if (domain !== "tasks") return records;
+        return records.filter((record) => !isTaskCompletedExpired(record));
+    }, [records, domain]);
     if (domain === "assistant")
         return <AssistantView config={config}/>;
     if (domain === "settings")
         return <SettingsView config={config}/>;
-    function begin(record?: DomainRecord) { setError(""); setArchiveArmed(false); setDeleteArmed(false); setEditing(record ?? null); setValues(record ? Object.fromEntries(config.fields.map((field) => [field.key, toInputValue(record[field.key], field.type)])) : emptyValues(config)); setOpen(true); }
-    async function save(event: React.FormEvent) { event.preventDefault(); setSaving(true); setError(""); try {
-        const body = Object.fromEntries(config.fields.map((field) => [field.key, normalizeInput(values[field.key], field)]).filter(([, value]) => value !== ""));
-        const response = await fetch(`/api/entities/${domain}${editing ? `/${editing.id}` : ""}`, { method: editing ? "PATCH" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-        const data = await response.json();
-        if (!response.ok)
-            throw new Error(data.error);
-        setRecords((current) => editing ? current.map((item) => item.id === editing.id ? data.record : item) : [data.record, ...current]);if(!editing)setTotal((current)=>current+1);
-        await onMutationSuccess?.();
-        if(domain!=="assistant"&&domain!=="settings")announceWorkspaceMutation(domain);
-        setOpen(false);
-        showToast(editing ? "Changes saved." : "Record saved.");
+    function begin(record?: DomainRecord, defaultValues?: Record<string, string>) {
+        setError("");
+        setArchiveArmed(false);
+        setDeleteArmed(false);
+        setEditing(record ?? null);
+        if (record) {
+            setValues(Object.fromEntries(config.fields.map((field) => [field.key, toInputValue(record[field.key], field.type)])));
+        } else {
+            const initial = emptyValues(config);
+            if (defaultValues) {
+                Object.assign(initial, defaultValues);
+            }
+            setValues(initial);
+        }
+        setOpen(true);
     }
-    catch (reason) {
-        setError(reason instanceof Error ? reason.message : "Record could not be saved.");
+    async function save(event: React.FormEvent) {
+        event.preventDefault();
+        setSaving(true);
+        setError("");
+        try {
+            const body = Object.fromEntries(config.fields.map((field) => [field.key, normalizeInput(values[field.key], field)]).filter(([, value]) => value !== ""));
+            if (domain === "tasks" && body.status === "completed" && !body.completed_at) {
+                body.completed_at = new Date().toISOString();
+            }
+            const response = await fetch(`/api/entities/${domain}${editing ? `/${editing.id}` : ""}`, { method: editing ? "PATCH" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+            const data = await response.json();
+            if (!response.ok)
+                throw new Error(data.error);
+            setRecords((current) => editing ? current.map((item) => item.id === editing.id ? data.record : item) : [data.record, ...current]);
+            if(!editing) setTotal((current)=>current+1);
+            await onMutationSuccess?.();
+            if(domain!=="assistant"&&domain!=="settings")announceWorkspaceMutation(domain);
+            setOpen(false);
+            showToast(editing ? "Changes saved." : "Record saved.");
+        }
+        catch (reason) {
+            setError(reason instanceof Error ? reason.message : "Record could not be saved.");
+        }
+        finally {
+            setSaving(false);
+        }
     }
-    finally {
-        setSaving(false);
-    } }
     async function archive(record: DomainRecord) { if (!archiveArmed) { setArchiveArmed(true); setDeleteArmed(false); showToast(`Click Archive again to confirm archiving “${display(record[config.titleField])}”.`, "warning"); return; } const response = await fetch(`/api/entities/${domain}/${record.id}`, { method: "DELETE" }); if (response.ok) {
         setRecords((current) => current.filter((item) => item.id !== record.id));
         setTotal((current)=>Math.max(0,current-1));
@@ -175,10 +225,24 @@ export function DomainPage({ domain, embedded = false, onMutationSuccess, refres
         announceWorkspaceMutation("tasks");
     }
     async function moveTask(record: DomainRecord, newStatus: string, targetIndex?: number) {
-        if (record.status === newStatus && targetIndex === undefined) return;
+        let targetStatus = newStatus;
+        let newDueDate = record.due_date;
+
+        if (newStatus === "still_waiting") {
+            targetStatus = "waiting";
+            if (!isTaskPastDue(record)) {
+                const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000);
+                newDueDate = `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, "0")}-${String(yesterday.getDate()).padStart(2, "0")}`;
+            }
+        } else if (isTaskPastDue(record)) {
+            const today = new Date();
+            newDueDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+        }
+
+        if (record.status === targetStatus && newDueDate === record.due_date && targetIndex === undefined) return;
         const prevRecords = [...records];
         const prevStatus = String(record.status ?? "");
-        const completed = newStatus === "completed";
+        const completed = targetStatus === "completed";
 
         // Optimistically update records in state
         setRecords((current) => {
@@ -186,14 +250,15 @@ export function DomainPage({ domain, embedded = false, onMutationSuccess, refres
             if (!item) return current;
             const updatedItem: DomainRecord = {
                 ...item,
-                status: newStatus,
+                status: targetStatus,
+                due_date: newDueDate,
                 completed_at: completed ? new Date().toISOString() : (prevStatus === "completed" ? null : item.completed_at),
             };
             const without = current.filter((r) => r.id !== record.id);
             if (targetIndex !== undefined && targetIndex >= 0) {
                 const targetIndices = without
                     .map((r, idx) => ({ id: r.id, status: r.status, idx }))
-                    .filter((r) => r.status === newStatus);
+                    .filter((r) => r.status === targetStatus);
                 if (targetIndex < targetIndices.length) {
                     const insertAt = targetIndices[targetIndex].idx;
                     const copy = [...without];
@@ -209,17 +274,23 @@ export function DomainPage({ domain, embedded = false, onMutationSuccess, refres
             return [updatedItem, ...without];
         });
 
-        if (prevStatus !== newStatus) {
-            showToast(`Moved to ${display(newStatus)}.`);
+        const movedLabel = newStatus === "still_waiting" ? "Still Waiting" : display(targetStatus);
+        if (prevStatus !== targetStatus) {
+            showToast(`Moved to ${movedLabel}.`);
+        }
+
+        const patchBody: Record<string, unknown> = {
+            status: targetStatus,
+            completed_at: completed ? new Date().toISOString() : (prevStatus === "completed" ? null : record.completed_at),
+        };
+        if (newDueDate !== record.due_date) {
+            patchBody.due_date = newDueDate;
         }
 
         const response = await fetch(`/api/entities/tasks/${record.id}`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                status: newStatus,
-                completed_at: completed ? new Date().toISOString() : (prevStatus === "completed" ? null : record.completed_at),
-            }),
+            body: JSON.stringify(patchBody),
         });
         const data = await response.json();
         if (!response.ok) {
@@ -263,12 +334,21 @@ export function DomainPage({ domain, embedded = false, onMutationSuccess, refres
             announceWorkspaceMutation(mutationTarget);
         }
     }
+    function handleAddTaskInStatus(status: string) {
+        if (status === "still_waiting") {
+            const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000);
+            const yDateStr = `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, "0")}-${String(yesterday.getDate()).padStart(2, "0")}`;
+            begin(undefined, { status: "waiting", due_date: yDateStr });
+        } else {
+            begin(undefined, { status });
+        }
+    }
     return <div className={`domain-page ${embedded ? "domain-page--embedded" : ""}`}>
         {embedded ? <div className="embedded-heading"><div><p className="eyebrow">Manage records</p><h2>{config.title}</h2></div><Button intent="brand" onClick={() => begin()}><Icons.Plus size={16}/>{config.action}</Button></div> : domain === "tasks" ? <header className="task-context-header"><div><div className="task-context-header__path"><Icons.ListTodo size={15}/><span>My work</span><Icons.ChevronRight size={13}/><strong>Tasks</strong></div><h1>Tasks</h1><p>Plan, prioritize, and move work forward.</p></div><div className="task-context-header__actions"><span className="task-total"><strong>{total}</strong> total</span><Button intent="brand" onClick={() => begin()}><Icons.Plus size={16}/>New task</Button></div></header> : <header className="task-context-header domain-context-header"><div><div className="task-context-header__path"><span>{config.eyebrow}</span><Icons.ChevronRight size={13}/><strong>{config.title}</strong></div><h1>{config.title}</h1><p>{config.intro}</p></div><div className="task-context-header__actions"><span className="task-total"><strong>{total}</strong> total</span><Button intent="brand" onClick={() => begin()}><Icons.Plus size={16}/>{config.action}</Button></div></header>}
         {domain === "calendar" ? <CalendarConflicts onEdit={begin} onResolved={load} /> : null}
-        <div className={`domain-toolbar ${domain === "tasks" ? "task-toolbar" : ""}`}><SearchInput ref={inputRef} id={`${domain}-search`} label={`Search ${domain}`} value={query} onChange={(event) => {setQuery(event.target.value);setPage(1)}} onClear={() => {setQuery("");setPage(1)}} placeholder={`Search ${domain}…`}/><div className="domain-toolbar__controls">{domain === "tasks" ? <><div className="view-switch task-view-switch" aria-label="Task view"><button type="button" className={taskView === "list" ? "active" : ""} aria-pressed={taskView === "list"} onClick={() => setTaskView("list")}><Icons.ListTodo size={14}/>List</button><button type="button" className={taskView === "board" ? "active" : ""} aria-pressed={taskView === "board"} onClick={() => setTaskView("board")}><Icons.BriefcaseBusiness size={14}/>Board</button></div><label className="compact-select"><span>Status</span><select aria-label="Filter tasks by status" value={statusFilter} onChange={(event) => {setStatusFilter(event.target.value);setPage(1)}}><option value="open">Open</option><option value="all">All statuses</option><option value="inbox">Inbox</option><option value="planned">Planned</option><option value="in_progress">In progress</option><option value="waiting">Waiting</option><option value="blocked">Blocked</option><option value="completed">Completed</option><option value="cancelled">Cancelled</option></select></label><label className="compact-select"><span>Priority</span><select aria-label="Filter tasks by priority" value={priorityFilter} onChange={(event) => {setPriorityFilter(event.target.value);setPage(1)}}><option value="all">All priorities</option><option value="urgent">Urgent</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option><option value="none">No priority</option></select></label><label className="compact-select"><span>Sort</span><select aria-label="Sort tasks" value={taskSort} onChange={(event) => {setTaskSort(event.target.value);setPage(1)}}><option value="updated">Recently updated</option><option value="due">Due date</option><option value="priority">Priority</option><option value="title">Task name</option></select></label></> : null}{domain === "calendar" ? <div className="view-switch" aria-label="Calendar view"><button className={calendarView === "month" ? "active" : ""} onClick={() => setCalendarView("month")}>Month</button><button className={calendarView === "agenda" ? "active" : ""} onClick={() => setCalendarView("agenda")}>Agenda</button></div> : null}{domain !== "tasks" ? <span className="record-count">{total} {total === 1 ? "item" : "items"}</span> : null}</div></div>
+        <div className={`domain-toolbar ${domain === "tasks" ? "task-toolbar" : ""}`}><SearchInput ref={inputRef} id={`${domain}-search`} label={`Search ${domain}`} value={query} onChange={(event) => {setQuery(event.target.value);setPage(1)}} onClear={() => {setQuery("");setPage(1)}} placeholder={`Search ${domain}…`}/><div className="domain-toolbar__controls">{domain === "tasks" ? <><div className="view-switch task-view-switch" aria-label="Task view"><button type="button" className={taskView === "list" ? "active" : ""} aria-pressed={taskView === "list"} onClick={() => setTaskView("list")}><Icons.ListTodo size={14}/>List</button><button type="button" className={taskView === "board" ? "active" : ""} aria-pressed={taskView === "board"} onClick={() => setTaskView("board")}><Icons.BriefcaseBusiness size={14}/>Board</button></div><label className="compact-select"><span>Status</span><select aria-label="Filter tasks by status" value={statusFilter} onChange={(event) => {setStatusFilter(event.target.value);setPage(1)}}><option value="open">Open</option><option value="all">All statuses</option><option value="inbox">Inbox</option><option value="planned">Planned</option><option value="in_progress">In progress</option><option value="waiting">Waiting</option><option value="still_waiting">Still Waiting</option><option value="blocked">Blocked</option><option value="completed">Completed</option><option value="cancelled">Cancelled</option></select></label><label className="compact-select"><span>Priority</span><select aria-label="Filter tasks by priority" value={priorityFilter} onChange={(event) => {setPriorityFilter(event.target.value);setPage(1)}}><option value="all">All priorities</option><option value="urgent">Urgent</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option><option value="none">No priority</option></select></label><label className="compact-select"><span>Sort</span><select aria-label="Sort tasks" value={taskSort} onChange={(event) => {setTaskSort(event.target.value);setPage(1)}}><option value="updated">Recently updated</option><option value="due">Due date</option><option value="priority">Priority</option><option value="title">Task name</option></select></label></> : null}{domain === "calendar" ? <div className="view-switch" aria-label="Calendar view"><button className={calendarView === "month" ? "active" : ""} onClick={() => setCalendarView("month")}>Month</button><button className={calendarView === "agenda" ? "active" : ""} onClick={() => setCalendarView("agenda")}>Agenda</button></div> : null}{domain !== "tasks" ? <span className="record-count">{total} {total === 1 ? "item" : "items"}</span> : null}</div></div>
         {error && !open ? <ErrorState error={error} retry={load}/> : null}
-        {loading ? <div className="loading-state" aria-live="polite"><span className="loading-spinner"/><p>Loading {config.title.toLowerCase()}…</p></div> : domain === "projects" ? <ProjectGrid rows={rows} onEdit={begin}/> : domain === "tasks" ? taskView === "list" ? <TaskTable rows={rows} onEdit={begin} onToggle={toggleTask} empty={<EmptyState query={query} title={config.title} action={config.action} clear={() => setQuery("")} create={() => begin()}/>}/> : <TaskBoard rows={rows} onEdit={begin} onToggle={toggleTask} onMoveTask={moveTask} empty={<EmptyState query={query} title={config.title} action={config.action} clear={() => setQuery("")} create={() => begin()}/>}/> : domain === "inbox" ? <InboxList rows={rows} onEdit={begin} onResolve={resolveInbox} empty={<EmptyState query={query} title={config.title} action={config.action} clear={() => setQuery("")} create={() => begin()}/>}/> : domain === "calendar" ? <CalendarWorkspace rows={rows} view={calendarView} onEdit={begin} empty={<EmptyState query={query} title={config.title} action={config.action} clear={() => setQuery("")} create={() => begin()}/>}/> : <StandardTable columns={config.columns} rows={rows} config={config} onEdit={begin} empty={<EmptyState query={query} title={config.title} action={config.action} clear={() => setQuery("")} create={() => begin()}/>}/>}
+        {loading ? <div className="loading-state" aria-live="polite"><span className="loading-spinner"/><p>Loading {config.title.toLowerCase()}…</p></div> : domain === "projects" ? <ProjectGrid rows={rows} onEdit={begin}/> : domain === "tasks" ? taskView === "list" ? <TaskTable rows={rows} onEdit={begin} onToggle={toggleTask} empty={<EmptyState query={query} title={config.title} action={config.action} clear={() => setQuery("")} create={() => begin()}/>}/> : <TaskBoard rows={rows} onEdit={begin} onToggle={toggleTask} onMoveTask={moveTask} onAddTaskInStatus={handleAddTaskInStatus} empty={<EmptyState query={query} title={config.title} action={config.action} clear={() => setQuery("")} create={() => begin()}/>}/> : domain === "inbox" ? <InboxList rows={rows} onEdit={begin} onResolve={resolveInbox} empty={<EmptyState query={query} title={config.title} action={config.action} clear={() => setQuery("")} create={() => begin()}/>}/> : domain === "calendar" ? <CalendarWorkspace rows={rows} view={calendarView} onEdit={begin} empty={<EmptyState query={query} title={config.title} action={config.action} clear={() => setQuery("")} create={() => begin()}/>}/> : <StandardTable columns={config.columns} rows={rows} config={config} onEdit={begin} empty={<EmptyState query={query} title={config.title} action={config.action} clear={() => setQuery("")} create={() => begin()}/>}/>}
         {total > 50 || page > 1 ? <nav className="dataset-pagination" aria-label={`${config.title} pagination`}><p className="dataset-note">Showing {rows.length?((page-1)*50)+1:0}–{Math.min(page*50,total)} of {total}</p><div><Button emphasis="ghost" disabled={page===1} onClick={()=>setPage((current)=>Math.max(1,current-1))}>Previous</Button><Button emphasis="ghost" disabled={page*50>=total} onClick={()=>setPage((current)=>current+1)}>Next</Button></div></nav> : null}
         <Modal open={open} onClose={() => setOpen(false)} variant={domain === "tasks" ? "task" : "default"} title={editing ? domain === "tasks" ? "Task details" : `Edit ${config.title.toLowerCase().replace(/s$/, "")}` : config.action} description={domain === "tasks" ? "Update the work, its urgency, timing, and relationships." : "Changes are saved to your private workspace."}>
             {editing && domain === "calendar" ? <div className="meeting-capture-entry"><Link className="button button--outline button--neutral" href={`/meeting/${editing.id}/capture`}>Capture meeting outcome</Link><Link className="button button--ghost button--neutral" href={`/meeting/${editing.id}`}>Open meeting brief</Link></div> : null}
@@ -287,6 +367,10 @@ export function DomainPage({ domain, embedded = false, onMutationSuccess, refres
                     onClose={() => setOpen(false)}
                     onSubmit={save}
                     attachments={editing && domain in attachmentEntities ? <AttachmentSection entityType={attachmentEntities[domain as keyof typeof attachmentEntities]} entityId={editing.id}/> : null}
+                    onProgressLogged={(updated) => {
+                        setRecords((current) => current.map((r) => r.id === updated.id ? { ...r, ...updated } : r));
+                        if (editing && updated.id === editing.id) setEditing({ ...editing, ...updated });
+                    }}
                 />
             ) : (
                 <>
@@ -331,8 +415,13 @@ function StandardTable({ columns, rows, config, onEdit, empty }: { columns: stri
 }
 function TaskTable({ rows, onEdit, onToggle, empty }: { rows: DomainRecord[]; onEdit: (record: DomainRecord) => void; onToggle: (record: DomainRecord) => Promise<void>; empty: ReactNode }) {
     if (!rows.length) return <div className="data-surface">{empty}</div>;
-    const statuses = ["inbox", "planned", "in_progress", "waiting", "blocked", "completed", "cancelled"];
-    return <div className="table-frame task-list-frame"><table className="work-table task-list-table"><caption className="sr-only">Tasks grouped by status</caption><thead><tr><th scope="col"><span className="sr-only">Complete</span></th><th scope="col">Task</th><th scope="col">Priority</th><th scope="col">Due</th><th scope="col"><span className="sr-only">Actions</span></th></tr></thead>{statuses.map((status) => { const group = rows.filter((record) => String(record.status) === status); if (!group.length) return null; return <tbody key={status}><tr className="task-group-row"><th colSpan={5} scope="rowgroup"><span className={`status status--${status}`}>{display(status)}</span><small>{group.length}</small></th></tr>{group.map((record) => { const done = record.status === "completed"; return <tr className={done ? "is-complete" : ""} key={record.id}><td><button className="task-check" aria-label={`${done ? "Reopen" : "Complete"} ${record.title}`} onClick={() => void onToggle(record)}>{done ? <Icons.Check size={14}/> : null}</button></td><td><button className="table-title" onClick={() => onEdit(record)}><strong>{display(record.title)}</strong>{record.description ? <small>{display(record.description)}</small> : null}</button></td><td><span className={`priority priority--${String(record.priority ?? "none")}`}>{display(record.priority)}</span></td><td><time>{formatDate(record.due_date)}</time></td><td><button className="icon-button" onClick={() => onEdit(record)} aria-label={`Open ${record.title}`}><Icons.MoreHorizontal size={16}/></button></td></tr>; })}</tbody>; })}</table></div>;
+    const statuses = ["inbox", "planned", "in_progress", "waiting", "still_waiting", "blocked", "completed", "cancelled"];
+    return <div className="table-frame task-list-frame"><table className="work-table task-list-table"><caption className="sr-only">Tasks grouped by status</caption><thead><tr><th scope="col"><span className="sr-only">Complete</span></th><th scope="col">Task</th><th scope="col">Priority</th><th scope="col">Due</th><th scope="col"><span className="sr-only">Actions</span></th></tr></thead>{statuses.map((status) => {
+        const group = status === "still_waiting"
+            ? rows.filter((record) => isTaskPastDue(record))
+            : rows.filter((record) => String(record.status) === status && !isTaskPastDue(record));
+        if (!group.length) return null;
+        return <tbody key={status}><tr className="task-group-row"><th colSpan={5} scope="rowgroup"><span className={`status status--${status}`}>{status === "still_waiting" ? "Still Waiting" : display(status)}</span><small>{group.length}</small></th></tr>{group.map((record) => { const done = record.status === "completed"; return <tr className={done ? "is-complete" : ""} key={record.id}><td><button className="task-check" aria-label={`${done ? "Reopen" : "Complete"} ${record.title}`} onClick={() => void onToggle(record)}>{done ? <Icons.Check size={14}/> : null}</button></td><td><button className="table-title" onClick={() => onEdit(record)}><strong>{display(record.title)}</strong>{record.description ? <small>{display(record.description)}</small> : null}</button></td><td><span className={`priority priority--${String(record.priority ?? "none")}`}>{display(record.priority)}</span></td><td><time>{formatDate(record.due_date)}</time></td><td><button className="icon-button" onClick={() => onEdit(record)} aria-label={`Open ${record.title}`}><Icons.MoreHorizontal size={16}/></button></td></tr>; })}</tbody>; })}</table></div>;
 }
 const COLUMN_COLORS_KEY = "dcc-task-column-colors";
 
@@ -457,16 +546,18 @@ function TaskBoard({
     onEdit,
     onToggle,
     onMoveTask,
+    onAddTaskInStatus,
     empty
 }: {
     rows: DomainRecord[];
     onEdit: (record: DomainRecord) => void;
     onToggle: (record: DomainRecord) => Promise<void>;
     onMoveTask: (record: DomainRecord, newStatus: string, targetIndex?: number) => Promise<void>;
+    onAddTaskInStatus: (status: string) => void;
     empty: ReactNode;
 }) {
     if (!rows.length) return <div className="data-surface">{empty}</div>;
-    const columns = ["inbox", "planned", "in_progress", "waiting", "blocked", "completed", "cancelled"] as const;
+    const columns = ["inbox", "planned", "in_progress", "waiting", "still_waiting", "blocked", "completed", "cancelled"] as const;
 
     const [columnColors, setColumnColors] = useState<Record<string, string>>({});
     const [openPaletteStatus, setOpenPaletteStatus] = useState<string | null>(null);
@@ -566,8 +657,10 @@ function TaskBoard({
 
     return <section className="task-board" aria-label="Task board">
         {columns.map((status) => {
-            const columnRows = rows.filter((record) => String(record.status) === status);
-            const customColor = columnColors[status];
+            const columnRows = status === "still_waiting"
+                ? rows.filter((record) => isTaskPastDue(record))
+                : rows.filter((record) => String(record.status) === status && !isTaskPastDue(record));
+            const customColor = columnColors[status] ?? (status === "still_waiting" ? "#E5484D" : undefined);
             const columnStyle = customColor ? {
                 backgroundColor: `color-mix(in srgb, ${customColor} 7.5%, var(--surface-2))`,
                 borderColor: `color-mix(in srgb, ${customColor} 24%, var(--line))`
@@ -602,19 +695,32 @@ function TaskBoard({
                     }
                 }}
                 onDrop={(e) => handleColumnDrop(e, status)}
+                onClick={(e) => {
+                    const target = e.target as HTMLElement;
+                    if (
+                        !target.closest(".task-card") &&
+                        !target.closest(".task-board__title-anchor") &&
+                        !target.closest(".task-board__column-add-btn")
+                    ) {
+                        onAddTaskInStatus(status);
+                    }
+                }}
             >
                 <header>
                     <div className="task-board__title-anchor">
                         <button
                             type="button"
                             className="task-board__title-btn"
-                            onClick={() => setOpenPaletteStatus(openPaletteStatus === status ? null : status)}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setOpenPaletteStatus(openPaletteStatus === status ? null : status);
+                            }}
                             title="Click to customize column color"
                             aria-expanded={openPaletteStatus === status}
                         >
                             <span className={`status status--${status}`} style={badgeStyle}>
                                 {customColor ? <span className="status-color-dot" style={{ backgroundColor: customColor }} /> : null}
-                                {display(status)}
+                                {status === "still_waiting" ? "Still Waiting" : display(status)}
                                 <Icons.Palette size={10} className="task-board__title-palette-icon" />
                             </span>
                         </button>
@@ -628,13 +734,33 @@ function TaskBoard({
                             />
                         )}
                     </div>
-                    <small>{columnRows.length}</small>
+                    <div className="task-board__header-actions">
+                        <small>{columnRows.length}</small>
+                        <button
+                            type="button"
+                            className="task-board__column-add-btn"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onAddTaskInStatus(status);
+                            }}
+                            title={`Add task to ${status === "still_waiting" ? "Still Waiting" : display(status)}`}
+                            aria-label={`Add task to ${status === "still_waiting" ? "Still Waiting" : display(status)}`}
+                        >
+                            <Icons.Plus size={11} />
+                        </button>
+                    </div>
                 </header>
-                <div className="task-board__cards">
+                <div
+                    className="task-board__cards"
+                    onClick={(e) => {
+                        const target = e.target as HTMLElement;
+                        if (!target.closest(".task-card")) {
+                            onAddTaskInStatus(status);
+                        }
+                    }}
+                >
                     {columnRows.length === 0 ? (
-                        <div className={`task-board__empty-dropzone ${isColDragOver ? "is-active" : ""}`}>
-                            <span>Drop tasks here</span>
-                        </div>
+                        <div className={`task-board__empty-area ${isColDragOver ? "is-drag-over" : ""}`} />
                     ) : (
                         columnRows.map((record) => {
                             const done = record.status === "completed";
@@ -645,6 +771,10 @@ function TaskBoard({
                                 className={`task-card ${isBeingDragged ? "is-dragging" : ""}`}
                                 key={record.id}
                                 draggable
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onEdit(record);
+                                }}
                                 onDragStart={(e) => handleDragStart(e, record.id)}
                                 onDragEnd={handleDragEnd}
                                 onDragOver={(e) => handleCardDragOver(e, status, record.id)}
@@ -684,17 +814,46 @@ function TaskBoard({
                                 </div>
                                 <button
                                     className="task-card__title"
-                                    onClick={() => onEdit(record)}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        onEdit(record);
+                                    }}
                                 >
                                     <strong>{display(record.title)}</strong>
                                     {record.description ? <span>{display(record.description)}</span> : null}
                                 </button>
+                                {/* Mini progress bar for goal tasks */}
+                                {record.target_count != null && Number(record.target_count) > 0 && (
+                                    <div className="task-card__progress-wrap">
+                                        <div
+                                            className="task-card__progress"
+                                            role="progressbar"
+                                            aria-valuenow={Math.min(100, (Number(record.current_count ?? 0) / Number(record.target_count)) * 100)}
+                                            aria-valuemin={0}
+                                            aria-valuemax={100}
+                                        >
+                                            <div
+                                                className="task-card__progress-fill"
+                                                style={{ width: `${Math.min(100, (Number(record.current_count ?? 0) / Number(record.target_count)) * 100)}%` }}
+                                            />
+                                        </div>
+                                        <span className="task-card__progress-label">
+                                            {Number(record.current_count ?? 0).toLocaleString()} / {Number(record.target_count).toLocaleString()}
+                                        </span>
+                                    </div>
+                                )}
                                 <footer>
                                     <span className={`priority priority--${String(record.priority ?? "none")}`}>
                                         {display(record.priority)}
                                     </span>
                                     {record.due_date ? <time>{formatDate(record.due_date)}</time> : null}
+                                    {record.recurrence_frequency ? (
+                                        <span className="task-card__repeat-badge" title={`Repeats: ${String(record.recurrence_frequency)}`}>
+                                            <Icons.RotateCcw size={10}/>
+                                        </span>
+                                    ) : null}
                                 </footer>
+
                                 {isOverThisCard && dropPosition === "after" && (
                                     <span className="task-card__drop-indicator task-card__drop-indicator--bottom" />
                                 )}
@@ -857,7 +1016,21 @@ function QuickCreateRelationModal({
     );
 }
 
-function TaskDetailForm({ fields, values, setValues, editing, saving, error, archiveArmed, deleteArmed, onArchive, onDelete, onClose, onSubmit, attachments }: {
+const RECURRENCE_OPTIONS = [
+    { value: "", label: "Does not repeat" },
+    { value: "daily", label: "Every day" },
+    { value: "weekly", label: "Every week" },
+    { value: "monthly", label: "Every month" },
+    { value: "mon", label: "Every Monday" },
+    { value: "tue", label: "Every Tuesday" },
+    { value: "wed", label: "Every Wednesday" },
+    { value: "thu", label: "Every Thursday" },
+    { value: "fri", label: "Every Friday" },
+    { value: "sat", label: "Every Saturday" },
+    { value: "sun", label: "Every Sunday" },
+];
+
+function TaskDetailForm({ fields, values, setValues, editing, saving, error, archiveArmed, deleteArmed, onArchive, onDelete, onClose, onSubmit, attachments, onProgressLogged }: {
     fields: Field[];
     values: Record<string, string>;
     setValues: React.Dispatch<React.SetStateAction<Record<string, string>>>;
@@ -871,9 +1044,57 @@ function TaskDetailForm({ fields, values, setValues, editing, saving, error, arc
     onClose: () => void;
     onSubmit: (event: React.FormEvent) => Promise<void>;
     attachments?: ReactNode;
+    onProgressLogged?: (record: DomainRecord) => void;
 }) {
     const byKey = Object.fromEntries(fields.map((field) => [field.key, field]));
     const renderField = (key: string, className?: string, placeholder?: string) => byKey[key] ? <FormField className={className} field={byKey[key]} value={values[key] ?? ""} placeholder={placeholder} setValue={(value) => setValues((current) => ({ ...current, [key]: value }))}/> : null;
+
+    // Recurrence state
+    const recurrence = values["recurrence_frequency"] ?? "";
+    const isRecurring = recurrence !== "" && recurrence !== "null";
+
+    // Goal task state
+    const targetCount = parseFloat(values["target_count"] ?? "") || null;
+    const currentCount = parseFloat(values["current_count"] ?? "") || 0;
+    const dailyTarget = parseFloat(values["daily_target"] ?? "") || null;
+    const isGoalTask = targetCount != null && targetCount > 0;
+    const progressPct = isGoalTask ? Math.min(100, (currentCount / targetCount) * 100) : 0;
+
+    // Inline progress log
+    const [logAmount, setLogAmount] = useState("");
+    const [logSaving, setLogSaving] = useState(false);
+    const [logError, setLogError] = useState("");
+    const [showGoalPanel, setShowGoalPanel] = useState(isGoalTask);
+
+    async function handleLogProgress(e: React.FormEvent) {
+        e.preventDefault();
+        const amount = parseFloat(logAmount);
+        if (!editing || isNaN(amount) || amount <= 0) { setLogError("Enter a positive number."); return; }
+        setLogSaving(true); setLogError("");
+        try {
+            const res = await fetch(`/api/tasks/${editing.id}/progress`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ amount }),
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error ?? "Progress could not be recorded.");
+            setLogAmount("");
+            // Update local values to reflect new count
+            const rec = data.record as DomainRecord;
+            setValues((current) => ({
+                ...current,
+                current_count: String(rec.current_count ?? "0"),
+                status: String(rec.status ?? current.status),
+            }));
+            onProgressLogged?.(rec);
+        } catch (err) {
+            setLogError(err instanceof Error ? err.message : "Error recording progress.");
+        } finally {
+            setLogSaving(false);
+        }
+    }
+
     return <form className="task-detail-workspace" onSubmit={onSubmit} noValidate>
         <section className="task-detail-main" aria-label="Task content">
             <div className="task-title-field">
@@ -893,7 +1114,99 @@ function TaskDetailForm({ fields, values, setValues, editing, saving, error, arc
             </div>
             <div className="task-detail-section-heading"><Icons.FileText size={15}/><div><strong>Description</strong><span>Add the context needed to complete this task.</span></div></div>
             {renderField("description", "task-description-field", "Add notes, checklist, links, or context…")}
+
+            {/* ── Goal Task Panel ─────────────────────────────────── */}
+            <div className="task-detail-section-heading task-detail-section-heading--toggle">
+                <Icons.Target size={15}/>
+                <div><strong>Goal progress</strong><span>Track a cumulative target for this task.</span></div>
+                <button
+                    type="button"
+                    className={`task-panel-toggle ${showGoalPanel ? "is-active" : ""}`}
+                    onClick={() => setShowGoalPanel((v) => !v)}
+                    aria-expanded={showGoalPanel}
+                >
+                    {showGoalPanel ? "Hide" : "Set up"}
+                </button>
+            </div>
+            {showGoalPanel && (
+                <div className="task-goal-panel">
+                    <div className="task-goal-fields">
+                        <label className="task-goal-field-label">
+                            <span>Target total</span>
+                            <input
+                                type="number"
+                                min="1"
+                                step="any"
+                                className="task-goal-input"
+                                placeholder="e.g. 1000"
+                                value={values["target_count"] ?? ""}
+                                onChange={(e) => setValues((c) => ({ ...c, target_count: e.target.value }))}
+                            />
+                        </label>
+                        <label className="task-goal-field-label">
+                            <span>Daily target</span>
+                            <input
+                                type="number"
+                                min="1"
+                                step="any"
+                                className="task-goal-input"
+                                placeholder="e.g. 20"
+                                value={values["daily_target"] ?? ""}
+                                onChange={(e) => setValues((c) => ({ ...c, daily_target: e.target.value }))}
+                            />
+                        </label>
+                    </div>
+
+                    {/* Progress bar — only visible when editing an existing goal task */}
+                    {editing && isGoalTask && (
+                        <div className="task-goal-progress-section">
+                            <div className="task-goal-progress-header">
+                                <span className="task-goal-progress-label">
+                                    <strong>{currentCount.toLocaleString()}</strong>
+                                    <span> / {targetCount!.toLocaleString()}</span>
+                                </span>
+                                <span className="task-goal-progress-pct">{Math.round(progressPct)}%</span>
+                            </div>
+                            <div className="task-progress-bar" role="progressbar" aria-valuenow={progressPct} aria-valuemin={0} aria-valuemax={100}>
+                                <div className="task-progress-bar__fill" style={{ width: `${progressPct}%` }} />
+                            </div>
+                            {dailyTarget && (
+                                <p className="task-goal-daily-hint">
+                                    At {dailyTarget.toLocaleString()} per day — {Math.ceil((targetCount! - currentCount) / dailyTarget)} days remaining
+                                </p>
+                            )}
+                            {/* Inline log */}
+                            {values["status"] !== "completed" && (
+                                <div className="task-goal-log-row" onSubmit={handleLogProgress}>
+                                    <input
+                                        type="number"
+                                        min="0.01"
+                                        step="any"
+                                        className="task-goal-log-input"
+                                        placeholder={dailyTarget ? `Log amount (target: ${dailyTarget})` : "Enter amount"}
+                                        value={logAmount}
+                                        onChange={(e) => { setLogAmount(e.target.value); setLogError(""); }}
+                                    />
+                                    <button
+                                        type="button"
+                                        className="task-goal-log-btn"
+                                        disabled={logSaving || !logAmount}
+                                        onClick={(e) => void handleLogProgress(e as unknown as React.FormEvent)}
+                                    >
+                                        {logSaving ? "Saving…" : "Log progress"}
+                                    </button>
+                                </div>
+                            )}
+                            {logError ? <p className="field-error" role="alert">{logError}</p> : null}
+                            {values["status"] === "completed" && progressPct >= 100 && (
+                                <p className="task-goal-complete-note">🎉 Target reached! Task marked as completed.</p>
+                            )}
+                        </div>
+                    )}
+                </div>
+            )}
         </section>
+
         <aside className="task-detail-metadata" aria-label="Task metadata">
             <p className="task-detail-label">Task properties</p>
             <div className="task-detail-property-grid">
@@ -905,7 +1218,41 @@ function TaskDetailForm({ fields, values, setValues, editing, saving, error, arc
                 {renderField("client_id")}
                 {renderField("goal_id")}
             </div>
+
+            {/* ── Recurrence Panel ───────────────────────────────── */}
+            <div className="task-recurrence-panel">
+                <label className="task-recurrence-toggle-row">
+                    <div className="task-recurrence-toggle-label">
+                        <Icons.RotateCcw size={13}/>
+                        <span>Repeat</span>
+                    </div>
+                    <input
+                        type="checkbox"
+                        className="task-recurrence-checkbox sr-only"
+                        id="recurrence-toggle"
+                        checked={isRecurring}
+                        onChange={(e) => setValues((c) => ({ ...c, recurrence_frequency: e.target.checked ? "daily" : "" }))}
+                    />
+                    <label htmlFor="recurrence-toggle" className="task-recurrence-switch" aria-label="Toggle recurrence"/>
+                </label>
+                {isRecurring && (
+                    <div className="task-recurrence-freq">
+                        <select
+                            className="task-recurrence-select"
+                            value={recurrence}
+                            onChange={(e) => setValues((c) => ({ ...c, recurrence_frequency: e.target.value }))}
+                            aria-label="Recurrence frequency"
+                        >
+                            {RECURRENCE_OPTIONS.filter((o) => o.value !== "").map((o) => (
+                                <option key={o.value} value={o.value}>{o.label}</option>
+                            ))}
+                        </select>
+                        <p className="task-recurrence-hint">A new task will be created automatically when this one is completed.</p>
+                    </div>
+                )}
+            </div>
         </aside>
+
         {attachments ? <div className="task-related">{attachments}</div> : null}
         {error ? <p className="field-error task-detail-error" role="alert">{error}</p> : null}
         <div className="modal__actions task-detail-actions">
@@ -927,6 +1274,7 @@ function TaskDetailForm({ fields, values, setValues, editing, saving, error, arc
         </div>
     </form>;
 }
+
 function InboxList({ rows, onEdit, onResolve, empty }: { rows: DomainRecord[]; onEdit: (record: DomainRecord) => void; onResolve: (record: DomainRecord) => Promise<void>; empty: ReactNode }) {
     if (!rows.length) return <div className="data-surface">{empty}</div>;
     const unprocessed = rows.filter((record) => record.status !== "processed" && record.status !== "archived");
