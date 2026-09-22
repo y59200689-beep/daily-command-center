@@ -161,11 +161,37 @@ export function DomainPage({ domain, embedded = false, onMutationSuccess, refres
         announceWorkspaceMutation("tasks");
     }
     async function resolveInbox(record: DomainRecord) {
+        const detectedType = String(record.detected_type ?? "inbox");
+        const rawText = String(record.raw_text ?? "");
+        // Create the real record based on detected_type before marking as processed
+        if (detectedType === "task") {
+            const taskRes = await fetch("/api/entities/tasks", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ title: rawText, status: "inbox", priority: "none", created_by: "user" }) });
+            if (!taskRes.ok) { const d = await taskRes.json(); showToast(d.error ?? "Task could not be created.", "error"); return; }
+        } else if (detectedType === "note") {
+            const noteRes = await fetch("/api/entities/notes", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ title: rawText.slice(0, 120), content: rawText, category: "note", created_by: "user" }) });
+            if (!noteRes.ok) { const d = await noteRes.json(); showToast(d.error ?? "Note could not be created.", "error"); return; }
+        } else if (detectedType === "idea") {
+            const ideaRes = await fetch("/api/entities/ideas", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ title: rawText, status: "captured" }) });
+            if (!ideaRes.ok) { const d = await ideaRes.json(); showToast(d.error ?? "Idea could not be created.", "error"); return; }
+        } else if (detectedType === "decision") {
+            const decRes = await fetch("/api/entities/decisions", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ title: rawText.slice(0, 120), decision: rawText, decision_date: new Date().toISOString().slice(0, 10) }) });
+            if (!decRes.ok) { const d = await decRes.json(); showToast(d.error ?? "Decision could not be created.", "error"); return; }
+        } else if (detectedType === "follow-up") {
+            const fuRes = await fetch("/api/entities/followups", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ title: rawText, status: "open" }) });
+            if (!fuRes.ok) { const d = await fuRes.json(); showToast(d.error ?? "Follow-up could not be created.", "error"); return; }
+        }
+        // Mark inbox item as processed
         const response = await fetch(`/api/entities/inbox/${record.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: "processed" }) });
         const data = await response.json();
         if (!response.ok) { showToast(data.error ?? "Inbox item could not be cleared.", "error"); return; }
         setRecords((current) => current.map((item) => item.id === record.id ? data.record : item));
-        showToast("Inbox item cleared."); announceWorkspaceMutation("inbox");
+        const label = detectedType === "task" ? "Task created from inbox." : detectedType === "note" ? "Note created from inbox." : detectedType === "idea" ? "Idea created from inbox." : detectedType === "decision" ? "Decision created from inbox." : detectedType === "follow-up" ? "Follow-up created from inbox." : "Inbox item cleared.";
+        showToast(label);
+        announceWorkspaceMutation("inbox");
+        if (["task", "note", "idea", "decision", "follow-up"].includes(detectedType)) {
+            const mutationTarget = detectedType === "task" ? "tasks" : detectedType === "note" ? "notes" : detectedType === "idea" ? "ideas" : detectedType === "decision" ? "decisions" : "followups";
+            announceWorkspaceMutation(mutationTarget);
+        }
     }
     return <div className={`domain-page ${embedded ? "domain-page--embedded" : ""}`}>
         {embedded ? <div className="embedded-heading"><div><p className="eyebrow">Manage records</p><h2>{config.title}</h2></div><Button intent="brand" onClick={() => begin()}><Icons.Plus size={16}/>{config.action}</Button></div> : domain === "tasks" ? <header className="task-context-header"><div><div className="task-context-header__path"><Icons.ListTodo size={15}/><span>My work</span><Icons.ChevronRight size={13}/><strong>Tasks</strong></div><h1>Tasks</h1><p>Plan, prioritize, and move work forward.</p></div><div className="task-context-header__actions"><span className="task-total"><strong>{total}</strong> total</span><Button intent="brand" onClick={() => begin()}><Icons.Plus size={16}/>New task</Button></div></header> : <header className="task-context-header domain-context-header"><div><div className="task-context-header__path"><span>{config.eyebrow}</span><Icons.ChevronRight size={13}/><strong>{config.title}</strong></div><h1>{config.title}</h1><p>{config.intro}</p></div><div className="task-context-header__actions"><span className="task-total"><strong>{total}</strong> total</span><Button intent="brand" onClick={() => begin()}><Icons.Plus size={16}/>{config.action}</Button></div></header>}
