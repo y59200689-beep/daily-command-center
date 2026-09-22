@@ -313,6 +313,14 @@ body { background: var(--canvas); font-size: 13px; letter-spacing: -.005em; }
 .work-table .status { font-weight:650; }
 .task-board { display:grid; grid-auto-flow:column; grid-auto-columns:minmax(248px,1fr); gap:12px; overflow-x:auto; padding:2px 0 14px; scrollbar-gutter:stable; }
 .task-board__column { min-height:420px; padding:10px; border:1px solid var(--line); border-radius:8px; background:var(--surface-2); }
+/* Per-status column tints */
+.task-board__column[data-status="inbox"]       { background:color-mix(in srgb,#5B5BD6 6%,var(--surface-2)); border-color:color-mix(in srgb,#5B5BD6 20%,var(--line)); }
+.task-board__column[data-status="planned"]     { background:color-mix(in srgb,#4f91f5 6%,var(--surface-2)); border-color:color-mix(in srgb,#4f91f5 20%,var(--line)); }
+.task-board__column[data-status="in_progress"] { background:color-mix(in srgb,#f59e0b 6%,var(--surface-2)); border-color:color-mix(in srgb,#f59e0b 24%,var(--line)); }
+.task-board__column[data-status="waiting"]     { background:color-mix(in srgb,#f59e0b 4%,var(--surface-2)); border-color:color-mix(in srgb,#f59e0b 14%,var(--line)); }
+.task-board__column[data-status="blocked"]     { background:color-mix(in srgb,#e5484d 5%,var(--surface-2)); border-color:color-mix(in srgb,#e5484d 22%,var(--line)); }
+.task-board__column[data-status="completed"]   { background:color-mix(in srgb,#287A55 5%,var(--surface-2)); border-color:color-mix(in srgb,#287A55 20%,var(--line)); }
+.task-board__column[data-status="cancelled"]   { background:color-mix(in srgb,#888 4%,var(--surface-2)); border-color:var(--line); }
 .task-board__column > header { display:flex; align-items:center; justify-content:space-between; min-height:28px; margin-bottom:9px; }
 .task-board__column > header small { display:grid; place-items:center; min-width:20px; height:20px; border-radius:5px; color:var(--muted); background:var(--surface); font:600 9px var(--font-geist-mono); }
 .task-board__cards { display:grid; gap:8px; }
@@ -399,9 +407,18 @@ body { background: var(--canvas); font-size: 13px; letter-spacing: -.005em; }
 .task-detail-workspace input,.task-detail-workspace select { min-height:36px; padding:8px 10px; }
 .task-detail-workspace textarea { min-height:170px; padding:12px; resize:none; line-height:1.55; }
 .task-detail-workspace input:focus,.task-detail-workspace textarea:focus,.task-detail-workspace select:focus { border-color:var(--attention); box-shadow:0 0 0 3px var(--attention-soft); }
-.task-title-field label { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); }
-.task-title-field input { min-height:48px; padding:5px 0 12px; border:0; border-bottom:1px solid var(--line); border-radius:0; font-size:19px; font-weight:680; letter-spacing:-.02em; }
-.task-title-field input:focus { border-bottom-color:var(--attention); box-shadow:none; }
+.task-title-field { margin-bottom: 16px; }
+.task-title-field label { display: flex; align-items: center; justify-content: space-between; margin: 0 0 6px; color: var(--muted); font-size: 10px; font-weight: 650; text-transform: uppercase; letter-spacing: .06em; }
+.task-title-field .task-title-required { color: var(--attention); font-size: 9px; font-weight: 600; letter-spacing: normal; text-transform: none; background: var(--attention-soft); padding: 1px 6px; border-radius: 4px; }
+.task-title-field input { min-height: 48px; padding: 10px 14px; border: 1px solid var(--line-strong); border-radius: var(--radius-control); background: var(--surface-2); font-size: 16px; font-weight: 600; letter-spacing: -.015em; color: var(--ink); transition: all .15s ease; }
+.task-title-field input::placeholder { color: var(--faint); font-weight: 450; opacity: .9; }
+.task-title-field input:hover { border-color: color-mix(in srgb, var(--attention) 45%, var(--line-strong)); }
+.task-title-field input:focus { background: var(--surface); border-color: var(--attention); box-shadow: 0 0 0 3px var(--attention-soft); }
+.field-label-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.field-label-row label { margin-bottom: 0 !important; }
+.field-inline-create-btn { display: inline-flex; align-items: center; gap: 3px; border: 0; padding: 2px 6px; border-radius: 4px; background: transparent; color: var(--attention); font-size: 10px; font-weight: 620; cursor: pointer; transition: all .12s ease; }
+.field-inline-create-btn:hover { background: var(--attention-soft); }
+.task-destructive-actions { display: flex; align-items: center; gap: 8px; }
 .task-detail-section-heading { display:flex; align-items:flex-start; gap:9px; margin:22px 0 10px; }
 .task-detail-section-heading svg { margin-top:1px; color:var(--muted); }
 .task-detail-section-heading strong,.task-detail-section-heading span { display:block; }
@@ -415,6 +432,39 @@ body { background: var(--canvas); font-size: 13px; letter-spacing: -.005em; }
 .domain-related-attachments { padding:18px 0 0; border-top:1px solid var(--line); }
 .task-detail-actions { grid-column:1/-1; position:sticky; bottom:0; z-index:10; display:flex; align-items:center; margin:0; padding:12px 18px; border-top:1px solid var(--line); background:var(--surface); box-shadow:0 -4px 14px rgba(0,0,0,.04); }
 .task-detail-actions__spacer { flex:1; }
+
+.date-picker-wrap { position: relative; width: 100%; }
+.date-picker-trigger { width: 100%; min-height: 36px; display: flex; align-items: center; gap: 8px; padding: 6px 10px; border: 1px solid var(--line-strong); border-radius: var(--radius-control); background: var(--surface); color: var(--ink); font-size: 12px; font-weight: 500; text-align: left; cursor: pointer; transition: border-color .15s ease, box-shadow .15s ease, background-color .15s ease; }
+.date-picker-trigger:hover { border-color: color-mix(in srgb, var(--attention) 40%, var(--line-strong)); }
+.date-picker-trigger.is-open, .date-picker-trigger:focus-visible { border-color: var(--attention); outline: 0; box-shadow: 0 0 0 3px var(--attention-soft); }
+.date-picker-trigger__icon { display: flex; align-items: center; color: var(--muted); flex-shrink: 0; }
+.date-picker-trigger__label { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--ink); }
+.date-picker-trigger__label.is-placeholder { color: var(--faint); font-weight: 400; }
+.date-picker-trigger__clear { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; margin-left: auto; border: 0; border-radius: 4px; background: transparent; color: var(--muted); cursor: pointer; flex-shrink: 0; transition: background .12s, color .12s; }
+.date-picker-trigger__clear:hover { background: var(--surface-3); color: var(--danger); }
+.date-picker-trigger__chevron { color: var(--faint); margin-left: auto; flex-shrink: 0; }
+.date-picker-popover { position: absolute; top: calc(100% + 6px); left: 0; z-index: 80; width: 280px; padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); box-shadow: 0 16px 36px -4px rgba(0,0,0,0.22), 0 0 0 1px var(--line); animation: datePickerFadeIn .12s cubic-bezier(0.16, 1, 0.3, 1); }
+@media (max-width: 480px) { .date-picker-popover { left: auto; right: 0; width: 270px; } }
+@keyframes datePickerFadeIn { from { opacity: 0; transform: translateY(-4px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+.date-picker-presets { display: flex; flex-wrap: wrap; gap: 4px; padding-bottom: 8px; margin-bottom: 8px; border-bottom: 1px solid var(--line); }
+.date-picker-presets button { padding: 3px 7px; border: 1px solid var(--line); border-radius: 5px; background: var(--surface-2); color: var(--muted); font-size: 10px; font-weight: 580; cursor: pointer; transition: all .12s; }
+.date-picker-presets button:hover { background: var(--attention-soft); border-color: var(--attention); color: var(--attention); }
+.date-picker-preset--clear:hover { background: color-mix(in srgb, var(--danger) 12%, transparent) !important; border-color: var(--danger) !important; color: var(--danger) !important; }
+.date-picker-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.date-picker-nav-btn { display: flex; align-items: center; justify-content: center; width: 26px; height: 26px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface-2); color: var(--ink); cursor: pointer; transition: background .12s; }
+.date-picker-nav-btn:hover { background: var(--surface-3); color: var(--attention); }
+.date-picker-month-title { border: 0; background: transparent; color: var(--ink); font-size: 12px; cursor: pointer; padding: 3px 8px; border-radius: 6px; transition: background .12s; }
+.date-picker-month-title:hover { background: var(--surface-2); }
+.date-picker-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 10px; font-weight: 600; color: var(--faint); margin-bottom: 4px; }
+.date-picker-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+.date-picker-cell { position: relative; aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 0; border-radius: 6px; background: transparent; color: var(--ink); font-size: 11px; font-weight: 500; cursor: pointer; transition: all .1s; }
+.date-picker-cell:hover { background: var(--surface-2); color: var(--attention); }
+.date-picker-cell.is-outside { color: var(--faint); opacity: .38; }
+.date-picker-cell.is-outside:hover { opacity: .75; background: var(--surface-2); }
+.date-picker-cell.is-today:not(.is-selected) { font-weight: 700; color: var(--attention); }
+.date-picker-today-dot { position: absolute; bottom: 2px; width: 3px; height: 3px; border-radius: 50%; background: var(--attention); }
+.date-picker-cell.is-selected { background: var(--attention) !important; color: #fff !important; font-weight: 700; box-shadow: 0 2px 6px color-mix(in srgb, var(--attention) 45%, transparent); }
+.date-picker-cell.is-selected .date-picker-today-dot { background: #fff; }
 
 .operations-page { gap:16px; }
 .operations-page > .page-header { min-height:94px; padding:6px 0 16px; }

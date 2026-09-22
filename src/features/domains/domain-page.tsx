@@ -11,6 +11,7 @@ import type { DomainRecord, PersistedDomain } from "@/lib/domains";
 import { normalizeOptionalNumberInput } from "@/lib/numeric-input";
 import { useDeferredEffect } from "@/lib/use-deferred-effect";
 import { announceWorkspaceMutation } from "@/lib/workspace-mutations";
+import { DatePicker } from "@/components/ui/date-picker";
 import { CalendarConflicts } from "@/features/calendar/calendar-conflicts";
 type DomainKey = PersistedDomain | "assistant" | "settings";
 const attachmentEntities = { tasks: "task", projects: "project", clients: "client", notes: "note", content: "content", decisions: "decision", invoices: "invoice" } as const;
@@ -91,6 +92,7 @@ export function DomainPage({ domain, embedded = false, onMutationSuccess, refres
     const [values, setValues] = useState<Record<string, string>>(emptyValues(config));
     const [saving, setSaving] = useState(false);
     const [archiveArmed, setArchiveArmed] = useState(false);
+    const [deleteArmed, setDeleteArmed] = useState(false);
     const inputRef = useRef<HTMLInputElement>(null);
     const previousRefreshToken = useRef(refreshToken);
     const { showToast } = useToast();
@@ -120,7 +122,7 @@ export function DomainPage({ domain, embedded = false, onMutationSuccess, refres
         return <AssistantView config={config}/>;
     if (domain === "settings")
         return <SettingsView config={config}/>;
-    function begin(record?: DomainRecord) { setError(""); setArchiveArmed(false); setEditing(record ?? null); setValues(record ? Object.fromEntries(config.fields.map((field) => [field.key, toInputValue(record[field.key], field.type)])) : emptyValues(config)); setOpen(true); }
+    function begin(record?: DomainRecord) { setError(""); setArchiveArmed(false); setDeleteArmed(false); setEditing(record ?? null); setValues(record ? Object.fromEntries(config.fields.map((field) => [field.key, toInputValue(record[field.key], field.type)])) : emptyValues(config)); setOpen(true); }
     async function save(event: React.FormEvent) { event.preventDefault(); setSaving(true); setError(""); try {
         const body = Object.fromEntries(config.fields.map((field) => [field.key, normalizeInput(values[field.key], field)]).filter(([, value]) => value !== ""));
         const response = await fetch(`/api/entities/${domain}${editing ? `/${editing.id}` : ""}`, { method: editing ? "PATCH" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
@@ -139,7 +141,7 @@ export function DomainPage({ domain, embedded = false, onMutationSuccess, refres
     finally {
         setSaving(false);
     } }
-    async function archive(record: DomainRecord) { if (!archiveArmed) { setArchiveArmed(true); showToast(`Click Archive again to confirm archiving “${display(record[config.titleField])}”.`, "warning"); return; } const response = await fetch(`/api/entities/${domain}/${record.id}`, { method: "DELETE" }); if (response.ok) {
+    async function archive(record: DomainRecord) { if (!archiveArmed) { setArchiveArmed(true); setDeleteArmed(false); showToast(`Click Archive again to confirm archiving “${display(record[config.titleField])}”.`, "warning"); return; } const response = await fetch(`/api/entities/${domain}/${record.id}`, { method: "DELETE" }); if (response.ok) {
         setRecords((current) => current.filter((item) => item.id !== record.id));
         setTotal((current)=>Math.max(0,current-1));
         await onMutationSuccess?.();
@@ -150,6 +152,18 @@ export function DomainPage({ domain, embedded = false, onMutationSuccess, refres
     else {
         const data = await response.json();
         setError(data.error ?? "Record could not be archived.");
+    } }
+    async function removePermanent(record: DomainRecord) { if (!deleteArmed) { setDeleteArmed(true); setArchiveArmed(false); showToast(`Click "Confirm permanent delete" to delete “${display(record[config.titleField])}”.`, "warning"); return; } const response = await fetch(`/api/entities/${domain}/${record.id}?permanent=true`, { method: "DELETE" }); if (response.ok) {
+        setRecords((current) => current.filter((item) => item.id !== record.id));
+        setTotal((current)=>Math.max(0,current-1));
+        await onMutationSuccess?.();
+        if(domain!=="assistant"&&domain!=="settings")announceWorkspaceMutation(domain);
+        setOpen(false);
+        showToast("Permanently deleted.");
+    }
+    else {
+        const data = await response.json();
+        setError(data.error ?? "Record could not be deleted.");
     } }
     async function toggleTask(record: DomainRecord) {
         const completed = record.status === "completed";
@@ -211,7 +225,9 @@ export function DomainPage({ domain, embedded = false, onMutationSuccess, refres
                     saving={saving}
                     error={error}
                     archiveArmed={archiveArmed}
+                    deleteArmed={deleteArmed}
                     onArchive={archive}
+                    onDelete={removePermanent}
                     onClose={() => setOpen(false)}
                     onSubmit={save}
                     attachments={editing && domain in attachmentEntities ? <AttachmentSection entityType={attachmentEntities[domain as keyof typeof attachmentEntities]} entityId={editing.id}/> : null}
@@ -222,7 +238,13 @@ export function DomainPage({ domain, embedded = false, onMutationSuccess, refres
                         {config.fields.map((field) => <FormField field={field} value={values[field.key] ?? ""} setValue={(value) => setValues((current) => ({ ...current, [field.key]: value }))} key={field.key}/>)}
                         {error ? <p className="field-error" role="alert">{error}</p> : null}
                         <div className="modal__actions">
-                            {editing ? <Button emphasis="danger" onClick={() => void archive(editing)}>{archiveArmed ? "Confirm archive" : "Archive"}</Button> : null}
+                            {editing ? (
+                                <div className="task-destructive-actions">
+                                    <Button emphasis="danger" type="button" onClick={() => void removePermanent(editing)}>{deleteArmed ? "Confirm delete" : "Delete"}</Button>
+                                    <Button emphasis="outline" type="button" onClick={() => void archive(editing)}>{archiveArmed ? "Confirm archive" : "Archive"}</Button>
+                                </div>
+                            ) : null}
+                            <span className="task-detail-actions__spacer"/>
                             <Button emphasis="ghost" onClick={() => setOpen(false)}>Cancel</Button>
                             <Button intent="brand" type="submit" disabled={saving}>{saving ? "Saving…" : "Save changes"}</Button>
                         </div>
@@ -262,14 +284,165 @@ function TaskBoard({ rows, onEdit, onToggle, empty }: { rows: DomainRecord[]; on
     return <section className="task-board" aria-label="Task board">
         {columns.map((status) => {
             const columnRows = rows.filter((record) => String(record.status) === status);
-            return <section className="task-board__column" key={status}>
+            return <section className="task-board__column" data-status={status} key={status}>
                 <header><span className={`status status--${status}`}>{display(status)}</span><small>{columnRows.length}</small></header>
                 <div className="task-board__cards">{columnRows.map((record) => { const done = record.status === "completed"; return <article className="task-card" key={record.id}><div className="task-card__head"><button className="task-check" aria-label={`${done ? "Reopen" : "Complete"} ${record.title}`} onClick={() => void onToggle(record)}>{done ? <Icons.Check size={13}/> : null}</button><button className="task-card__menu" onClick={() => onEdit(record)} aria-label={`Open ${record.title}`}><Icons.MoreHorizontal size={16}/></button></div><button className="task-card__title" onClick={() => onEdit(record)}><strong>{display(record.title)}</strong>{record.description ? <span>{display(record.description)}</span> : null}</button><footer><span className={`priority priority--${String(record.priority ?? "none")}`}>{display(record.priority)}</span>{record.due_date ? <time>{formatDate(record.due_date)}</time> : null}</footer></article>; })}</div>
             </section>;
         })}
     </section>;
 }
-function TaskDetailForm({ fields, values, setValues, editing, saving, error, archiveArmed, onArchive, onClose, onSubmit, attachments }: {
+function QuickCreateRelationModal({
+    open,
+    onClose,
+    relation,
+    label,
+    onCreated,
+}: {
+    open: boolean;
+    onClose: () => void;
+    relation: Field["relation"];
+    label: string;
+    onCreated: (record: DomainRecord) => void;
+}) {
+    const [name, setName] = useState("");
+    const [secondary, setSecondary] = useState("");
+    const [saving, setSaving] = useState(false);
+    const [error, setError] = useState("");
+
+    useEffect(() => {
+        if (open) {
+            setName("");
+            setSecondary(relation === "goals" ? "quarter" : "");
+            setError("");
+        }
+    }, [open, relation]);
+
+    if (!open || !relation) return null;
+
+    async function handleSubmit(e: React.FormEvent) {
+        e.preventDefault();
+        const trimmed = name.trim();
+        if (!trimmed) {
+            setError("Title or name is required.");
+            return;
+        }
+        setSaving(true);
+        setError("");
+        try {
+            const body: Record<string, unknown> = {};
+            if (relation === "goals") {
+                body.title = trimmed;
+                body.period = secondary || "quarter";
+                body.status = "active";
+            } else if (relation === "projects") {
+                body.name = trimmed;
+                if (secondary.trim()) body.description = secondary.trim();
+                body.status = "active";
+            } else if (relation === "clients") {
+                body.name = trimmed;
+                if (secondary.trim()) body.company = secondary.trim();
+                body.status = "active";
+            } else {
+                body.name = trimmed;
+                body.title = trimmed;
+            }
+
+            const response = await fetch(`/api/entities/${relation}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(body),
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error ?? "Failed to create.");
+            onCreated(data.record);
+            onClose();
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "Could not create record.");
+        } finally {
+            setSaving(false);
+        }
+    }
+
+    return (
+        <Modal
+            open={open}
+            onClose={onClose}
+            title={`New ${label}`}
+            description={`Create a new ${label.toLowerCase()} directly without leaving this page.`}
+        >
+            <form className="simple-form" onSubmit={handleSubmit} noValidate>
+                <div>
+                    <label htmlFor="quick-relation-name">
+                        {relation === "goals" ? "Goal title" : `${label} name`} <span>Required</span>
+                    </label>
+                    <input
+                        id="quick-relation-name"
+                        type="text"
+                        autoFocus
+                        required
+                        value={name}
+                        placeholder={
+                            relation === "goals"
+                                ? "e.g., Reach $20k MRR"
+                                : relation === "projects"
+                                ? "e.g., Client Brand Redesign"
+                                : "e.g., Acme Studio"
+                        }
+                        onChange={(e) => setName(e.target.value)}
+                    />
+                </div>
+
+                {relation === "goals" ? (
+                    <div>
+                        <label htmlFor="quick-relation-period">Period</label>
+                        <select
+                            id="quick-relation-period"
+                            value={secondary}
+                            onChange={(e) => setSecondary(e.target.value)}
+                        >
+                            <option value="quarter">Quarter</option>
+                            <option value="month">Month</option>
+                            <option value="week">Week</option>
+                        </select>
+                    </div>
+                ) : relation === "clients" ? (
+                    <div>
+                        <label htmlFor="quick-relation-company">Company <span>Optional</span></label>
+                        <input
+                            id="quick-relation-company"
+                            type="text"
+                            value={secondary}
+                            placeholder="e.g., Acme Corp"
+                            onChange={(e) => setSecondary(e.target.value)}
+                        />
+                    </div>
+                ) : relation === "projects" ? (
+                    <div>
+                        <label htmlFor="quick-relation-desc">Description <span>Optional</span></label>
+                        <textarea
+                            id="quick-relation-desc"
+                            rows={3}
+                            value={secondary}
+                            placeholder="Brief context or milestone"
+                            onChange={(e) => setSecondary(e.target.value)}
+                        />
+                    </div>
+                ) : null}
+
+                {error ? <p className="field-error" role="alert">{error}</p> : null}
+
+                <div className="modal__actions">
+                    <Button emphasis="ghost" type="button" onClick={onClose}>Cancel</Button>
+                    <Button intent="brand" type="submit" disabled={saving}>
+                        {saving ? "Creating…" : `Create & select ${label.toLowerCase()}`}
+                    </Button>
+                </div>
+            </form>
+        </Modal>
+    );
+}
+
+function TaskDetailForm({ fields, values, setValues, editing, saving, error, archiveArmed, deleteArmed, onArchive, onDelete, onClose, onSubmit, attachments }: {
     fields: Field[];
     values: Record<string, string>;
     setValues: React.Dispatch<React.SetStateAction<Record<string, string>>>;
@@ -277,18 +450,34 @@ function TaskDetailForm({ fields, values, setValues, editing, saving, error, arc
     saving: boolean;
     error: string;
     archiveArmed: boolean;
+    deleteArmed: boolean;
     onArchive: (record: DomainRecord) => Promise<void>;
+    onDelete: (record: DomainRecord) => Promise<void>;
     onClose: () => void;
     onSubmit: (event: React.FormEvent) => Promise<void>;
     attachments?: ReactNode;
 }) {
     const byKey = Object.fromEntries(fields.map((field) => [field.key, field]));
-    const renderField = (key: string, className?: string) => byKey[key] ? <FormField className={className} field={byKey[key]} value={values[key] ?? ""} setValue={(value) => setValues((current) => ({ ...current, [key]: value }))}/> : null;
+    const renderField = (key: string, className?: string, placeholder?: string) => byKey[key] ? <FormField className={className} field={byKey[key]} value={values[key] ?? ""} placeholder={placeholder} setValue={(value) => setValues((current) => ({ ...current, [key]: value }))}/> : null;
     return <form className="task-detail-workspace" onSubmit={onSubmit} noValidate>
         <section className="task-detail-main" aria-label="Task content">
-            {renderField("title", "task-title-field")}
+            <div className="task-title-field">
+                <label htmlFor="record-title">
+                    <span>Task Name</span>
+                    <span className="task-title-required">Required</span>
+                </label>
+                <input
+                    id="record-title"
+                    type="text"
+                    required
+                    autoFocus={!editing}
+                    value={values["title"] ?? ""}
+                    placeholder="What needs to be done? (Write task name here…)"
+                    onChange={(e) => setValues((current) => ({ ...current, title: e.target.value }))}
+                />
+            </div>
             <div className="task-detail-section-heading"><Icons.FileText size={15}/><div><strong>Description</strong><span>Add the context needed to complete this task.</span></div></div>
-            {renderField("description", "task-description-field")}
+            {renderField("description", "task-description-field", "Add notes, checklist, links, or context…")}
         </section>
         <aside className="task-detail-metadata" aria-label="Task metadata">
             <p className="task-detail-label">Task properties</p>
@@ -305,9 +494,20 @@ function TaskDetailForm({ fields, values, setValues, editing, saving, error, arc
         {attachments ? <div className="task-related">{attachments}</div> : null}
         {error ? <p className="field-error task-detail-error" role="alert">{error}</p> : null}
         <div className="modal__actions task-detail-actions">
-            {editing ? <Button emphasis="danger" onClick={() => void onArchive(editing)}>{archiveArmed ? "Confirm archive" : "Archive"}</Button> : null}
+            {editing ? (
+                <div className="task-destructive-actions">
+                    <Button emphasis="danger" type="button" onClick={() => void onDelete(editing)} title="Permanently delete this task">
+                        <Icons.Trash2 size={13}/>
+                        <span>{deleteArmed ? "Confirm permanent delete" : "Delete"}</span>
+                    </Button>
+                    <Button emphasis="outline" type="button" onClick={() => void onArchive(editing)} title="Archive this task">
+                        <Icons.Archive size={13}/>
+                        <span>{archiveArmed ? "Confirm archive" : "Archive"}</span>
+                    </Button>
+                </div>
+            ) : null}
             <span className="task-detail-actions__spacer"/>
-            <Button emphasis="ghost" onClick={onClose}>Cancel</Button>
+            <Button emphasis="ghost" type="button" onClick={onClose}>Cancel</Button>
             <Button intent="brand" type="submit" disabled={saving}>{saving ? "Saving…" : editing ? "Save changes" : "Create task"}</Button>
         </div>
     </form>;
@@ -331,15 +531,126 @@ function CalendarWorkspace({ rows, view, onEdit, empty }: { rows: DomainRecord[]
 
 function localDateKey(date: Date) { return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")}`; }
 function formatDate(value: unknown) { if (!value) return "No date"; const date = new Date(`${String(value).slice(0,10)}T12:00:00`); return date.toLocaleDateString([], { month: "short", day: "numeric" }); }
-function FormField({ field, value, setValue, className }: {
+function FormField({ field, value, setValue, className, placeholder }: {
     field: Field;
     value: string;
     setValue: (value: string) => void;
     className?: string;
-}) { const id = `record-${field.key}`; const [relations, setRelations] = useState<DomainRecord[]>([]); useEffect(() => { if (!field.relation)
-    return; let active = true; fetch(`/api/entities/${field.relation}`, { cache: "no-store" }).then((response) => response.json()).then((data) => { if (active)
-    setRelations(data.records ?? []); }).catch(() => { if (active)
-    setRelations([]); }); return () => { active = false; }; }, [field.relation]); return <div className={className}><label htmlFor={id}>{field.label}{!field.required ? <span> Optional</span> : null}</label>{field.type === "textarea" ? <textarea className="resize-none" id={id} rows={4} required={field.required} value={value} onChange={(event) => setValue(event.target.value)}/> : field.type === "select" ? <select id={id} value={value} onChange={(event) => setValue(event.target.value)}>{field.options?.map((option) => <option value={option} key={option}>{display(option)}</option>)}</select> : field.type === "relation" ? <select id={id} value={value} onChange={(event) => setValue(event.target.value)}><option value="">No {field.label.toLowerCase()}</option>{relations.map((record) => <option value={record.id} key={record.id}>{String(record.name ?? record.title)}</option>)}</select> : <input id={id} type={field.type ?? "text"} required={field.required} value={value} onChange={(event) => setValue(event.target.value)}/>}</div>; }
+    placeholder?: string;
+}) {
+    const id = `record-${field.key}`;
+    const [relations, setRelations] = useState<DomainRecord[]>([]);
+    const [quickModalOpen, setQuickModalOpen] = useState(false);
+    const { showToast } = useToast();
+
+    useEffect(() => {
+        if (!field.relation) return;
+        let active = true;
+        fetch(`/api/entities/${field.relation}`, { cache: "no-store" })
+            .then((response) => response.json())
+            .then((data) => {
+                if (active) setRelations(data.records ?? []);
+            })
+            .catch(() => {
+                if (active) setRelations([]);
+            });
+        return () => { active = false; };
+    }, [field.relation]);
+
+    return (
+        <div className={className}>
+            {field.type === "relation" ? (
+                <div className="field-label-row">
+                    <label htmlFor={id}>
+                        {field.label}{!field.required ? <span> Optional</span> : null}
+                    </label>
+                    <button
+                        type="button"
+                        className="field-inline-create-btn"
+                        onClick={() => setQuickModalOpen(true)}
+                        title={`Create new ${field.label.toLowerCase()}`}
+                    >
+                        <Icons.Plus size={11} />
+                        <span>New</span>
+                    </button>
+                </div>
+            ) : (
+                <label htmlFor={id}>
+                    {field.label}{!field.required ? <span> Optional</span> : null}
+                </label>
+            )}
+
+            {field.type === "textarea" ? (
+                <textarea
+                    className="resize-none"
+                    id={id}
+                    rows={4}
+                    required={field.required}
+                    value={value}
+                    placeholder={placeholder}
+                    onChange={(event) => setValue(event.target.value)}
+                />
+            ) : field.type === "select" ? (
+                <select id={id} value={value} onChange={(event) => setValue(event.target.value)}>
+                    {field.options?.map((option) => (
+                        <option value={option} key={option}>{display(option)}</option>
+                    ))}
+                </select>
+            ) : field.type === "relation" ? (
+                <>
+                    <select
+                        id={id}
+                        value={value}
+                        onChange={(event) => {
+                            if (event.target.value === "__create_new__") {
+                                setQuickModalOpen(true);
+                            } else {
+                                setValue(event.target.value);
+                            }
+                        }}
+                    >
+                        <option value="">No {field.label.toLowerCase()}</option>
+                        {relations.map((record) => (
+                            <option value={record.id} key={record.id}>
+                                {String(record.name ?? record.title)}
+                            </option>
+                        ))}
+                        <option value="__create_new__">+ Create new {field.label.toLowerCase()}…</option>
+                    </select>
+                    <QuickCreateRelationModal
+                        open={quickModalOpen}
+                        onClose={() => setQuickModalOpen(false)}
+                        relation={field.relation}
+                        label={field.label}
+                        onCreated={(record) => {
+                            setRelations((current) => [record, ...current]);
+                            setValue(record.id);
+                            showToast(`Created & selected ${String(record.name ?? record.title)}.`);
+                            if (field.relation) announceWorkspaceMutation(field.relation);
+                        }}
+                    />
+                </>
+            ) : field.type === "date" ? (
+                <DatePicker
+                    id={id}
+                    value={value}
+                    placeholder={placeholder || `Select ${field.label.toLowerCase()}`}
+                    required={field.required}
+                    onChange={setValue}
+                />
+            ) : (
+                <input
+                    id={id}
+                    type={field.type ?? "text"}
+                    required={field.required}
+                    value={value}
+                    placeholder={placeholder}
+                    onChange={(event) => setValue(event.target.value)}
+                />
+            )}
+        </div>
+    );
+}
 function normalizeInput(value: string, field: Field) { if (field.type === "number" || field.key === "daily_position")
     return normalizeOptionalNumberInput(value); if(value==="true"||value==="false")return value==="true"; if (field.type === "datetime-local")
     return value ? new Date(value).toISOString() : null; return value || null; }
