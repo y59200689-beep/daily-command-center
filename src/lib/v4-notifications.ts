@@ -28,7 +28,7 @@ export function notificationRoute(type: string, entityType?: string | null, enti
   if (entityType === "research_finding") return entityId ? `/knowledge/findings/${entityId}` : "/knowledge";
   if (entityType === "watch_entity") return "/knowledge/watch";
   const routes: Record<string, string> = { task: "/tasks", client: "/clients", content: "/content", decision: "/decisions", subscription: "/finance", followup: "/followups", executive_cluster: "/executive", executive_change: "/executive" };
-  return routes[entityType ?? ""] ?? "/today";
+  return routes[entityType ?? ""] ?? "/inbox";
 }
 export function preferenceAllows(enabled: boolean | null | undefined, minimum: string | null | undefined, severity: NotificationSeverity) {
   if (enabled === false) return false; return level[severity] >= level[(minimum === "low" ? "info" : minimum === "medium" ? "attention" : minimum === "high" ? "important" : "critical") as NotificationSeverity];
