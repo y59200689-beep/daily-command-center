@@ -98,6 +98,12 @@ function prepareRecord(domain: PersistedDomain,input:Record<string,unknown>){
     if(Object.hasOwn(prepared,"distance_km"))prepared.distance_meters=prepared.distance_km == null?null:Number(prepared.distance_km)*1000;
     if(Object.hasOwn(prepared,"external_id"))prepared.external_activity_id=prepared.external_id??null;
   }
+  if(domain==="tasks"){
+    if(prepared.recurrence_frequency==null)delete prepared.recurrence_frequency;
+    if(prepared.target_count==null)delete prepared.target_count;
+    if(prepared.daily_target==null)delete prepared.daily_target;
+    if(prepared.current_count==null)delete prepared.current_count;
+  }
   return prepared;
 }
 

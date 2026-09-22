@@ -46,6 +46,7 @@ type TodayData = {
   date: string;
   profile: { display_name?: string; timezone?: string } | null;
   priorities: Item[];
+  todayTasks?: Item[];
   inboxCount: number;
   events: Item[];
   nextEvent: Item | null;
@@ -326,6 +327,56 @@ export function TodayDashboard() {
               </Link>
             </div>
           )}
+
+          {(() => {
+            const priorityIds = new Set(data.priorities.map((p) => p.id));
+            const remaining = (data.todayTasks ?? []).filter((t) => !priorityIds.has(t.id));
+            if (!remaining.length) return null;
+            return (
+              <div style={{ marginTop: "32px" }}>
+                <div className="section-heading">
+                  <div>
+                    <p className="eyebrow">Scheduled for today</p>
+                    <h2>Additional tasks today ({remaining.length})</h2>
+                  </div>
+                  <Link href="/tasks">View all tasks →</Link>
+                </div>
+                <div className="priority-list">
+                  {remaining.map((task, idx) => (
+                    <article
+                      className={`priority-row ${task.status === "completed" ? "priority-row--done" : ""}`}
+                      key={task.id}
+                    >
+                      <span className="priority-number">
+                        {String(data.priorities.length + idx + 1).padStart(2, "0")}
+                      </span>
+                      <button
+                        className="task-check"
+                        aria-label={`${task.status === "completed" ? "Reopen" : "Complete"} ${task.title}`}
+                        onClick={() => void complete(task)}
+                      >
+                        {task.status === "completed" ? (
+                          <Icons.Check size={16} />
+                        ) : null}
+                      </button>
+                      <div className="priority-copy">
+                        <h3>{String(task.title)}</h3>
+                        <p>
+                          {String(task.status).replaceAll("_", " ")}{" "}
+                          {task.estimated_minutes ? (
+                            <>· {minutesLabel(Number(task.estimated_minutes))}</>
+                          ) : null}
+                        </p>
+                      </div>
+                      <Link className="row-action" href={`/focus?task=${task.id}`}>
+                        Focus <span>→</span>
+                      </Link>
+                    </article>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
         </section>
       ) : (
         <ContextTab
