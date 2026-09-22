@@ -102,14 +102,15 @@ export function DatePicker({
     setViewDate(new Date(today.getFullYear(), today.getMonth(), 1));
   }
 
-  // Calculate calendar grid for current viewDate
-  // Starts on Monday
   const firstDayOfMonth = new Date(year, month, 1);
   const startDayOfWeek = (firstDayOfMonth.getDay() + 6) % 7; // 0 for Monday, 6 for Sunday
   const startDate = new Date(year, month, 1 - startDayOfWeek);
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const totalSlotsNeeded = startDayOfWeek + daysInMonth;
+  const slotCount = totalSlotsNeeded <= 28 ? 28 : totalSlotsNeeded <= 35 ? 35 : 42;
 
   const days: Date[] = [];
-  for (let i = 0; i < 42; i++) {
+  for (let i = 0; i < slotCount; i++) {
     const d = new Date(startDate);
     d.setDate(startDate.getDate() + i);
     days.push(d);
@@ -182,7 +183,7 @@ export function DatePicker({
             <button type="button" onClick={() => setQuick(0)}>Today</button>
             <button type="button" onClick={() => setQuick(1)}>Tomorrow</button>
             <button type="button" onClick={setNextMonday}>Next Mon</button>
-            <button type="button" onClick={() => setQuick(7)}>In 1 week</button>
+            <button type="button" onClick={() => setQuick(7)}>+1 Week</button>
             {value ? (
               <button type="button" className="date-picker-preset--clear" onClick={handleClear}>
                 Clear

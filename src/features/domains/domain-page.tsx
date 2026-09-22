@@ -278,14 +278,203 @@ function TaskTable({ rows, onEdit, onToggle, empty }: { rows: DomainRecord[]; on
     const statuses = ["inbox", "planned", "in_progress", "waiting", "blocked", "completed", "cancelled"];
     return <div className="table-frame task-list-frame"><table className="work-table task-list-table"><caption className="sr-only">Tasks grouped by status</caption><thead><tr><th scope="col"><span className="sr-only">Complete</span></th><th scope="col">Task</th><th scope="col">Priority</th><th scope="col">Due</th><th scope="col"><span className="sr-only">Actions</span></th></tr></thead>{statuses.map((status) => { const group = rows.filter((record) => String(record.status) === status); if (!group.length) return null; return <tbody key={status}><tr className="task-group-row"><th colSpan={5} scope="rowgroup"><span className={`status status--${status}`}>{display(status)}</span><small>{group.length}</small></th></tr>{group.map((record) => { const done = record.status === "completed"; return <tr className={done ? "is-complete" : ""} key={record.id}><td><button className="task-check" aria-label={`${done ? "Reopen" : "Complete"} ${record.title}`} onClick={() => void onToggle(record)}>{done ? <Icons.Check size={14}/> : null}</button></td><td><button className="table-title" onClick={() => onEdit(record)}><strong>{display(record.title)}</strong>{record.description ? <small>{display(record.description)}</small> : null}</button></td><td><span className={`priority priority--${String(record.priority ?? "none")}`}>{display(record.priority)}</span></td><td><time>{formatDate(record.due_date)}</time></td><td><button className="icon-button" onClick={() => onEdit(record)} aria-label={`Open ${record.title}`}><Icons.MoreHorizontal size={16}/></button></td></tr>; })}</tbody>; })}</table></div>;
 }
+const COLUMN_COLORS_KEY = "dcc-task-column-colors";
+
+const COLUMN_PALETTE_PRESETS = [
+    { name: "Indigo", hex: "#5B5BD6" },
+    { name: "Blue", hex: "#3B82F6" },
+    { name: "Sky", hex: "#0EA5E9" },
+    { name: "Cyan", hex: "#06B6D4" },
+    { name: "Teal", hex: "#14B8A6" },
+    { name: "Emerald", hex: "#10B981" },
+    { name: "Green", hex: "#22C55E" },
+    { name: "Lime", hex: "#84CC16" },
+    { name: "Amber", hex: "#F59E0B" },
+    { name: "Orange", hex: "#F97316" },
+    { name: "Coral", hex: "#FF6B6B" },
+    { name: "Crimson", hex: "#E5484D" },
+    { name: "Pink", hex: "#EC4899" },
+    { name: "Purple", hex: "#8B5CF6" },
+    { name: "Slate", hex: "#64748B" },
+    { name: "Zinc", hex: "#71717A" },
+];
+
+function ColumnColorPalette({
+    status,
+    currentColor,
+    onSelect,
+    onReset,
+    onClose,
+}: {
+    status: string;
+    currentColor?: string;
+    onSelect: (hex: string) => void;
+    onReset: () => void;
+    onClose: () => void;
+}) {
+    const popoverRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        function handleClickOutside(e: MouseEvent) {
+            if (popoverRef.current && !popoverRef.current.contains(e.target as Node)) {
+                onClose();
+            }
+        }
+        function handleKeyDown(e: KeyboardEvent) {
+            if (e.key === "Escape") onClose();
+        }
+        document.addEventListener("mousedown", handleClickOutside);
+        document.addEventListener("keydown", handleKeyDown);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+            document.removeEventListener("keydown", handleKeyDown);
+        };
+    }, [onClose]);
+
+    return (
+        <div className="task-board__palette-popover" ref={popoverRef} role="dialog" aria-label={`Color palette for ${display(status)}`}>
+            <div className="task-board__palette-header">
+                <div className="task-board__palette-title">
+                    <Icons.Palette size={12} />
+                    <span>Column color</span>
+                    <span className="task-board__palette-status-pill">{display(status)}</span>
+                </div>
+                <button type="button" className="task-board__palette-close" onClick={onClose} aria-label="Close color palette">
+                    <Icons.X size={12} />
+                </button>
+            </div>
+
+            <div className="task-board__palette-grid">
+                {COLUMN_PALETTE_PRESETS.map((item) => {
+                    const isSelected = currentColor?.toLowerCase() === item.hex.toLowerCase();
+                    return (
+                        <button
+                            key={item.hex}
+                            type="button"
+                            className={`task-board__palette-swatch ${isSelected ? "is-active" : ""}`}
+                            style={{ backgroundColor: item.hex }}
+                            onClick={() => {
+                                onSelect(item.hex);
+                                onClose();
+                            }}
+                            title={item.name}
+                            aria-label={`Select ${item.name}`}
+                        >
+                            {isSelected ? <Icons.Check size={11} strokeWidth={3} className="task-board__swatch-check" /> : null}
+                        </button>
+                    );
+                })}
+            </div>
+
+            <div className="task-board__palette-footer">
+                <label className="task-board__palette-custom-btn" title="Pick custom color">
+                    <span className="task-board__palette-rainbow-dot" style={currentColor ? { backgroundColor: currentColor } : undefined} />
+                    <span>Custom</span>
+                    <input
+                        type="color"
+                        value={currentColor || "#5B5BD6"}
+                        onChange={(e) => onSelect(e.target.value)}
+                        className="sr-only"
+                    />
+                </label>
+
+                <button
+                    type="button"
+                    className="task-board__palette-reset-btn"
+                    onClick={() => {
+                        onReset();
+                        onClose();
+                    }}
+                    disabled={!currentColor}
+                    title="Reset to default color"
+                >
+                    <Icons.RotateCcw size={11} />
+                    <span>Reset</span>
+                </button>
+            </div>
+        </div>
+    );
+}
+
 function TaskBoard({ rows, onEdit, onToggle, empty }: { rows: DomainRecord[]; onEdit: (record: DomainRecord) => void; onToggle: (record: DomainRecord) => Promise<void>; empty: ReactNode }) {
     if (!rows.length) return <div className="data-surface">{empty}</div>;
     const columns = ["inbox", "planned", "in_progress", "waiting", "blocked", "completed", "cancelled"] as const;
+
+    const [columnColors, setColumnColors] = useState<Record<string, string>>({});
+    const [openPaletteStatus, setOpenPaletteStatus] = useState<string | null>(null);
+
+    useEffect(() => {
+        try {
+            const saved = localStorage.getItem(COLUMN_COLORS_KEY);
+            if (saved) {
+                setColumnColors(JSON.parse(saved));
+            }
+        } catch {}
+    }, []);
+
+    const handleSelectColor = (status: string, hex: string) => {
+        setColumnColors((prev) => {
+            const next = { ...prev, [status]: hex };
+            try {
+                localStorage.setItem(COLUMN_COLORS_KEY, JSON.stringify(next));
+            } catch {}
+            return next;
+        });
+    };
+
+    const handleResetColor = (status: string) => {
+        setColumnColors((prev) => {
+            const next = { ...prev };
+            delete next[status];
+            try {
+                localStorage.setItem(COLUMN_COLORS_KEY, JSON.stringify(next));
+            } catch {}
+            return next;
+        });
+    };
+
     return <section className="task-board" aria-label="Task board">
         {columns.map((status) => {
             const columnRows = rows.filter((record) => String(record.status) === status);
-            return <section className="task-board__column" data-status={status} key={status}>
-                <header><span className={`status status--${status}`}>{display(status)}</span><small>{columnRows.length}</small></header>
+            const customColor = columnColors[status];
+            const columnStyle = customColor ? {
+                backgroundColor: `color-mix(in srgb, ${customColor} 7.5%, var(--surface-2))`,
+                borderColor: `color-mix(in srgb, ${customColor} 24%, var(--line))`
+            } : undefined;
+            const badgeStyle = customColor ? {
+                backgroundColor: `color-mix(in srgb, ${customColor} 14%, var(--surface-2))`,
+                color: customColor,
+                borderColor: `color-mix(in srgb, ${customColor} 32%, transparent)`
+            } : undefined;
+
+            return <section className="task-board__column" data-status={status} key={status} style={columnStyle}>
+                <header>
+                    <div className="task-board__title-anchor">
+                        <button
+                            type="button"
+                            className="task-board__title-btn"
+                            onClick={() => setOpenPaletteStatus(openPaletteStatus === status ? null : status)}
+                            title="Click to customize column color"
+                            aria-expanded={openPaletteStatus === status}
+                        >
+                            <span className={`status status--${status}`} style={badgeStyle}>
+                                {customColor ? <span className="status-color-dot" style={{ backgroundColor: customColor }} /> : null}
+                                {display(status)}
+                                <Icons.Palette size={10} className="task-board__title-palette-icon" />
+                            </span>
+                        </button>
+                        {openPaletteStatus === status && (
+                            <ColumnColorPalette
+                                status={status}
+                                currentColor={customColor}
+                                onSelect={(hex) => handleSelectColor(status, hex)}
+                                onReset={() => handleResetColor(status)}
+                                onClose={() => setOpenPaletteStatus(null)}
+                            />
+                        )}
+                    </div>
+                    <small>{columnRows.length}</small>
+                </header>
                 <div className="task-board__cards">{columnRows.map((record) => { const done = record.status === "completed"; return <article className="task-card" key={record.id}><div className="task-card__head"><button className="task-check" aria-label={`${done ? "Reopen" : "Complete"} ${record.title}`} onClick={() => void onToggle(record)}>{done ? <Icons.Check size={13}/> : null}</button><button className="task-card__menu" onClick={() => onEdit(record)} aria-label={`Open ${record.title}`}><Icons.MoreHorizontal size={16}/></button></div><button className="task-card__title" onClick={() => onEdit(record)}><strong>{display(record.title)}</strong>{record.description ? <span>{display(record.description)}</span> : null}</button><footer><span className={`priority priority--${String(record.priority ?? "none")}`}>{display(record.priority)}</span>{record.due_date ? <time>{formatDate(record.due_date)}</time> : null}</footer></article>; })}</div>
             </section>;
         })}
