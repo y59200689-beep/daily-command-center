@@ -94,3 +94,9 @@ export async function archiveRecord(client: UntypedClient, userId: string, domai
   if (error) throw error;
   return Boolean(data);
 }
+
+export async function deleteRecord(client: UntypedClient, userId: string, domain: PersistedDomain, id: string) {
+  const { data, error } = await client.from(domainConfig[domain].table).delete().eq("id", id).eq("user_id", userId).select("id").maybeSingle();
+  if (error) throw error;
+  return Boolean(data);
+}
