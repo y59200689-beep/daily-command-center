@@ -174,6 +174,62 @@ export function DomainPage({ domain, embedded = false, onMutationSuccess, refres
         showToast(completed ? "Task reopened." : "Task completed.");
         announceWorkspaceMutation("tasks");
     }
+    async function moveTask(record: DomainRecord, newStatus: string, targetIndex?: number) {
+        if (record.status === newStatus && targetIndex === undefined) return;
+        const prevRecords = [...records];
+        const prevStatus = String(record.status ?? "");
+        const completed = newStatus === "completed";
+
+        // Optimistically update records in state
+        setRecords((current) => {
+            const item = current.find((r) => r.id === record.id);
+            if (!item) return current;
+            const updatedItem: DomainRecord = {
+                ...item,
+                status: newStatus,
+                completed_at: completed ? new Date().toISOString() : (prevStatus === "completed" ? null : item.completed_at),
+            };
+            const without = current.filter((r) => r.id !== record.id);
+            if (targetIndex !== undefined && targetIndex >= 0) {
+                const targetIndices = without
+                    .map((r, idx) => ({ id: r.id, status: r.status, idx }))
+                    .filter((r) => r.status === newStatus);
+                if (targetIndex < targetIndices.length) {
+                    const insertAt = targetIndices[targetIndex].idx;
+                    const copy = [...without];
+                    copy.splice(insertAt, 0, updatedItem);
+                    return copy;
+                } else if (targetIndices.length > 0) {
+                    const insertAfter = targetIndices[targetIndices.length - 1].idx + 1;
+                    const copy = [...without];
+                    copy.splice(insertAfter, 0, updatedItem);
+                    return copy;
+                }
+            }
+            return [updatedItem, ...without];
+        });
+
+        if (prevStatus !== newStatus) {
+            showToast(`Moved to ${display(newStatus)}.`);
+        }
+
+        const response = await fetch(`/api/entities/tasks/${record.id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                status: newStatus,
+                completed_at: completed ? new Date().toISOString() : (prevStatus === "completed" ? null : record.completed_at),
+            }),
+        });
+        const data = await response.json();
+        if (!response.ok) {
+            setRecords(prevRecords);
+            showToast(data.error ?? "Failed to move task.", "error");
+            return;
+        }
+        setRecords((current) => current.map((item) => item.id === record.id ? data.record : item));
+        announceWorkspaceMutation("tasks");
+    }
     async function resolveInbox(record: DomainRecord) {
         const detectedType = String(record.detected_type ?? "inbox");
         const rawText = String(record.raw_text ?? "");
@@ -212,7 +268,7 @@ export function DomainPage({ domain, embedded = false, onMutationSuccess, refres
         {domain === "calendar" ? <CalendarConflicts onEdit={begin} onResolved={load} /> : null}
         <div className={`domain-toolbar ${domain === "tasks" ? "task-toolbar" : ""}`}><SearchInput ref={inputRef} id={`${domain}-search`} label={`Search ${domain}`} value={query} onChange={(event) => {setQuery(event.target.value);setPage(1)}} onClear={() => {setQuery("");setPage(1)}} placeholder={`Search ${domain}…`}/><div className="domain-toolbar__controls">{domain === "tasks" ? <><div className="view-switch task-view-switch" aria-label="Task view"><button type="button" className={taskView === "list" ? "active" : ""} aria-pressed={taskView === "list"} onClick={() => setTaskView("list")}><Icons.ListTodo size={14}/>List</button><button type="button" className={taskView === "board" ? "active" : ""} aria-pressed={taskView === "board"} onClick={() => setTaskView("board")}><Icons.BriefcaseBusiness size={14}/>Board</button></div><label className="compact-select"><span>Status</span><select aria-label="Filter tasks by status" value={statusFilter} onChange={(event) => {setStatusFilter(event.target.value);setPage(1)}}><option value="open">Open</option><option value="all">All statuses</option><option value="inbox">Inbox</option><option value="planned">Planned</option><option value="in_progress">In progress</option><option value="waiting">Waiting</option><option value="blocked">Blocked</option><option value="completed">Completed</option><option value="cancelled">Cancelled</option></select></label><label className="compact-select"><span>Priority</span><select aria-label="Filter tasks by priority" value={priorityFilter} onChange={(event) => {setPriorityFilter(event.target.value);setPage(1)}}><option value="all">All priorities</option><option value="urgent">Urgent</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option><option value="none">No priority</option></select></label><label className="compact-select"><span>Sort</span><select aria-label="Sort tasks" value={taskSort} onChange={(event) => {setTaskSort(event.target.value);setPage(1)}}><option value="updated">Recently updated</option><option value="due">Due date</option><option value="priority">Priority</option><option value="title">Task name</option></select></label></> : null}{domain === "calendar" ? <div className="view-switch" aria-label="Calendar view"><button className={calendarView === "month" ? "active" : ""} onClick={() => setCalendarView("month")}>Month</button><button className={calendarView === "agenda" ? "active" : ""} onClick={() => setCalendarView("agenda")}>Agenda</button></div> : null}{domain !== "tasks" ? <span className="record-count">{total} {total === 1 ? "item" : "items"}</span> : null}</div></div>
         {error && !open ? <ErrorState error={error} retry={load}/> : null}
-        {loading ? <div className="loading-state" aria-live="polite"><span className="loading-spinner"/><p>Loading {config.title.toLowerCase()}…</p></div> : domain === "projects" ? <ProjectGrid rows={rows} onEdit={begin}/> : domain === "tasks" ? taskView === "list" ? <TaskTable rows={rows} onEdit={begin} onToggle={toggleTask} empty={<EmptyState query={query} title={config.title} action={config.action} clear={() => setQuery("")} create={() => begin()}/>}/> : <TaskBoard rows={rows} onEdit={begin} onToggle={toggleTask} empty={<EmptyState query={query} title={config.title} action={config.action} clear={() => setQuery("")} create={() => begin()}/>}/> : domain === "inbox" ? <InboxList rows={rows} onEdit={begin} onResolve={resolveInbox} empty={<EmptyState query={query} title={config.title} action={config.action} clear={() => setQuery("")} create={() => begin()}/>}/> : domain === "calendar" ? <CalendarWorkspace rows={rows} view={calendarView} onEdit={begin} empty={<EmptyState query={query} title={config.title} action={config.action} clear={() => setQuery("")} create={() => begin()}/>}/> : <StandardTable columns={config.columns} rows={rows} config={config} onEdit={begin} empty={<EmptyState query={query} title={config.title} action={config.action} clear={() => setQuery("")} create={() => begin()}/>}/>}
+        {loading ? <div className="loading-state" aria-live="polite"><span className="loading-spinner"/><p>Loading {config.title.toLowerCase()}…</p></div> : domain === "projects" ? <ProjectGrid rows={rows} onEdit={begin}/> : domain === "tasks" ? taskView === "list" ? <TaskTable rows={rows} onEdit={begin} onToggle={toggleTask} empty={<EmptyState query={query} title={config.title} action={config.action} clear={() => setQuery("")} create={() => begin()}/>}/> : <TaskBoard rows={rows} onEdit={begin} onToggle={toggleTask} onMoveTask={moveTask} empty={<EmptyState query={query} title={config.title} action={config.action} clear={() => setQuery("")} create={() => begin()}/>}/> : domain === "inbox" ? <InboxList rows={rows} onEdit={begin} onResolve={resolveInbox} empty={<EmptyState query={query} title={config.title} action={config.action} clear={() => setQuery("")} create={() => begin()}/>}/> : domain === "calendar" ? <CalendarWorkspace rows={rows} view={calendarView} onEdit={begin} empty={<EmptyState query={query} title={config.title} action={config.action} clear={() => setQuery("")} create={() => begin()}/>}/> : <StandardTable columns={config.columns} rows={rows} config={config} onEdit={begin} empty={<EmptyState query={query} title={config.title} action={config.action} clear={() => setQuery("")} create={() => begin()}/>}/>}
         {total > 50 || page > 1 ? <nav className="dataset-pagination" aria-label={`${config.title} pagination`}><p className="dataset-note">Showing {rows.length?((page-1)*50)+1:0}–{Math.min(page*50,total)} of {total}</p><div><Button emphasis="ghost" disabled={page===1} onClick={()=>setPage((current)=>Math.max(1,current-1))}>Previous</Button><Button emphasis="ghost" disabled={page*50>=total} onClick={()=>setPage((current)=>current+1)}>Next</Button></div></nav> : null}
         <Modal open={open} onClose={() => setOpen(false)} variant={domain === "tasks" ? "task" : "default"} title={editing ? domain === "tasks" ? "Task details" : `Edit ${config.title.toLowerCase().replace(/s$/, "")}` : config.action} description={domain === "tasks" ? "Update the work, its urgency, timing, and relationships." : "Changes are saved to your private workspace."}>
             {editing && domain === "calendar" ? <div className="meeting-capture-entry"><Link className="button button--outline button--neutral" href={`/meeting/${editing.id}/capture`}>Capture meeting outcome</Link><Link className="button button--ghost button--neutral" href={`/meeting/${editing.id}`}>Open meeting brief</Link></div> : null}
@@ -396,12 +452,28 @@ function ColumnColorPalette({
     );
 }
 
-function TaskBoard({ rows, onEdit, onToggle, empty }: { rows: DomainRecord[]; onEdit: (record: DomainRecord) => void; onToggle: (record: DomainRecord) => Promise<void>; empty: ReactNode }) {
+function TaskBoard({
+    rows,
+    onEdit,
+    onToggle,
+    onMoveTask,
+    empty
+}: {
+    rows: DomainRecord[];
+    onEdit: (record: DomainRecord) => void;
+    onToggle: (record: DomainRecord) => Promise<void>;
+    onMoveTask: (record: DomainRecord, newStatus: string, targetIndex?: number) => Promise<void>;
+    empty: ReactNode;
+}) {
     if (!rows.length) return <div className="data-surface">{empty}</div>;
     const columns = ["inbox", "planned", "in_progress", "waiting", "blocked", "completed", "cancelled"] as const;
 
     const [columnColors, setColumnColors] = useState<Record<string, string>>({});
     const [openPaletteStatus, setOpenPaletteStatus] = useState<string | null>(null);
+    const [draggingId, setDraggingId] = useState<string | null>(null);
+    const [dragOverStatus, setDragOverStatus] = useState<string | null>(null);
+    const [dragOverCardId, setDragOverCardId] = useState<string | null>(null);
+    const [dropPosition, setDropPosition] = useState<"before" | "after" | null>(null);
 
     useEffect(() => {
         try {
@@ -433,6 +505,65 @@ function TaskBoard({ rows, onEdit, onToggle, empty }: { rows: DomainRecord[]; on
         });
     };
 
+    const handleDragStart = (e: React.DragEvent, recordId: string) => {
+        e.dataTransfer.setData("text/plain", recordId);
+        e.dataTransfer.effectAllowed = "move";
+        setDraggingId(recordId);
+    };
+
+    const handleDragEnd = () => {
+        setDraggingId(null);
+        setDragOverStatus(null);
+        setDragOverCardId(null);
+        setDropPosition(null);
+    };
+
+    const handleColumnDragOver = (e: React.DragEvent, status: string) => {
+        if (!draggingId) return;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
+        if (dragOverStatus !== status) setDragOverStatus(status);
+    };
+
+    const handleColumnDrop = (e: React.DragEvent, status: string) => {
+        e.preventDefault();
+        const droppedId = e.dataTransfer.getData("text/plain") || draggingId;
+        handleDragEnd();
+        if (!droppedId) return;
+        const task = rows.find((r) => r.id === droppedId);
+        if (!task) return;
+        void onMoveTask(task, status);
+    };
+
+    const handleCardDragOver = (e: React.DragEvent, status: string, cardId: string) => {
+        if (!draggingId || draggingId === cardId) return;
+        e.preventDefault();
+        e.stopPropagation();
+        e.dataTransfer.dropEffect = "move";
+        const rect = e.currentTarget.getBoundingClientRect();
+        const midY = rect.top + rect.height / 2;
+        const pos = e.clientY < midY ? "before" : "after";
+        if (dragOverStatus !== status) setDragOverStatus(status);
+        if (dragOverCardId !== cardId || dropPosition !== pos) {
+            setDragOverCardId(cardId);
+            setDropPosition(pos);
+        }
+    };
+
+    const handleCardDrop = (e: React.DragEvent, status: string, targetCardId: string, columnRows: DomainRecord[]) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const droppedId = e.dataTransfer.getData("text/plain") || draggingId;
+        const currentPos = dropPosition;
+        handleDragEnd();
+        if (!droppedId) return;
+        const task = rows.find((r) => r.id === droppedId);
+        if (!task) return;
+        const cardIndex = columnRows.findIndex((r) => r.id === targetCardId);
+        const targetIndex = currentPos === "after" ? cardIndex + 1 : cardIndex;
+        void onMoveTask(task, status, targetIndex);
+    };
+
     return <section className="task-board" aria-label="Task board">
         {columns.map((status) => {
             const columnRows = rows.filter((record) => String(record.status) === status);
@@ -447,7 +578,31 @@ function TaskBoard({ rows, onEdit, onToggle, empty }: { rows: DomainRecord[]; on
                 borderColor: `color-mix(in srgb, ${customColor} 32%, transparent)`
             } : undefined;
 
-            return <section className="task-board__column" data-status={status} key={status} style={columnStyle}>
+            const isColDragOver = dragOverStatus === status && !!draggingId;
+
+            return <section
+                className={`task-board__column ${isColDragOver ? "is-drag-over" : ""}`}
+                data-status={status}
+                key={status}
+                style={columnStyle}
+                onDragOver={(e) => handleColumnDragOver(e, status)}
+                onDragEnter={(e) => {
+                    if (draggingId) {
+                        e.preventDefault();
+                        setDragOverStatus(status);
+                    }
+                }}
+                onDragLeave={(e) => {
+                    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                        if (dragOverStatus === status) {
+                            setDragOverStatus(null);
+                            setDragOverCardId(null);
+                            setDropPosition(null);
+                        }
+                    }
+                }}
+                onDrop={(e) => handleColumnDrop(e, status)}
+            >
                 <header>
                     <div className="task-board__title-anchor">
                         <button
@@ -475,7 +630,78 @@ function TaskBoard({ rows, onEdit, onToggle, empty }: { rows: DomainRecord[]; on
                     </div>
                     <small>{columnRows.length}</small>
                 </header>
-                <div className="task-board__cards">{columnRows.map((record) => { const done = record.status === "completed"; return <article className="task-card" key={record.id}><div className="task-card__head"><button className="task-check" aria-label={`${done ? "Reopen" : "Complete"} ${record.title}`} onClick={() => void onToggle(record)}>{done ? <Icons.Check size={13}/> : null}</button><button className="task-card__menu" onClick={() => onEdit(record)} aria-label={`Open ${record.title}`}><Icons.MoreHorizontal size={16}/></button></div><button className="task-card__title" onClick={() => onEdit(record)}><strong>{display(record.title)}</strong>{record.description ? <span>{display(record.description)}</span> : null}</button><footer><span className={`priority priority--${String(record.priority ?? "none")}`}>{display(record.priority)}</span>{record.due_date ? <time>{formatDate(record.due_date)}</time> : null}</footer></article>; })}</div>
+                <div className="task-board__cards">
+                    {columnRows.length === 0 ? (
+                        <div className={`task-board__empty-dropzone ${isColDragOver ? "is-active" : ""}`}>
+                            <span>Drop tasks here</span>
+                        </div>
+                    ) : (
+                        columnRows.map((record) => {
+                            const done = record.status === "completed";
+                            const isBeingDragged = draggingId === record.id;
+                            const isOverThisCard = dragOverCardId === record.id;
+
+                            return <article
+                                className={`task-card ${isBeingDragged ? "is-dragging" : ""}`}
+                                key={record.id}
+                                draggable
+                                onDragStart={(e) => handleDragStart(e, record.id)}
+                                onDragEnd={handleDragEnd}
+                                onDragOver={(e) => handleCardDragOver(e, status, record.id)}
+                                onDrop={(e) => handleCardDrop(e, status, record.id, columnRows)}
+                            >
+                                {isOverThisCard && dropPosition === "before" && (
+                                    <span className="task-card__drop-indicator task-card__drop-indicator--top" />
+                                )}
+                                <div className="task-card__head">
+                                    <div className="task-card__head-left">
+                                        <button
+                                            className="task-check"
+                                            aria-label={`${done ? "Reopen" : "Complete"} ${record.title}`}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                void onToggle(record);
+                                            }}
+                                            draggable={false}
+                                        >
+                                            {done ? <Icons.Check size={13}/> : null}
+                                        </button>
+                                        <span className="task-card__grip" title="Drag to move task">
+                                            <Icons.GripVertical size={13}/>
+                                        </span>
+                                    </div>
+                                    <button
+                                        className="task-card__menu"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            onEdit(record);
+                                        }}
+                                        aria-label={`Open ${record.title}`}
+                                        draggable={false}
+                                    >
+                                        <Icons.MoreHorizontal size={16}/>
+                                    </button>
+                                </div>
+                                <button
+                                    className="task-card__title"
+                                    onClick={() => onEdit(record)}
+                                >
+                                    <strong>{display(record.title)}</strong>
+                                    {record.description ? <span>{display(record.description)}</span> : null}
+                                </button>
+                                <footer>
+                                    <span className={`priority priority--${String(record.priority ?? "none")}`}>
+                                        {display(record.priority)}
+                                    </span>
+                                    {record.due_date ? <time>{formatDate(record.due_date)}</time> : null}
+                                </footer>
+                                {isOverThisCard && dropPosition === "after" && (
+                                    <span className="task-card__drop-indicator task-card__drop-indicator--bottom" />
+                                )}
+                            </article>;
+                        })
+                    )}
+                </div>
             </section>;
         })}
     </section>;
