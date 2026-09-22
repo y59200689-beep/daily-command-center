@@ -257,12 +257,14 @@ body { background: var(--canvas); font-size: 13px; letter-spacing: -.005em; }
 .global-rail__nav { display:grid; gap:2px; }
 .global-rail__footer { margin-top:auto; }
 
-.contextual-sidebar { left:60px; width:248px; padding:13px 10px 10px; background:var(--sidebar); }
+.contextual-sidebar { left:60px; width:248px; padding:13px 10px 10px; background:var(--sidebar); transition:transform .22s cubic-bezier(.16,1,.3,1),opacity .2s ease,visibility .22s ease; }
 .contextual-sidebar__heading { min-height:38px; display:grid; grid-template-columns:28px minmax(0,1fr) 28px; align-items:center; gap:8px; padding:0 4px 8px; }
 .contextual-sidebar__heading .brand__mark { width:26px; height:26px; border-radius:7px; background:var(--attention-soft); color:var(--attention); }
 .contextual-sidebar__heading strong,.contextual-sidebar__heading small { display:block; }
 .contextual-sidebar__heading strong { font-size:12px; line-height:1.2; }
 .contextual-sidebar__heading small { margin-top:2px; color:var(--faint); font-size:9px; }
+.contextual-sidebar__collapse { display:grid; place-items:center; width:28px; height:28px; border-radius:6px; color:var(--muted); border:0; background:transparent; cursor:pointer; transition:background .15s ease,color .15s ease; }
+.contextual-sidebar__collapse:hover { background:var(--surface-2); color:var(--ink); }
 .contextual-sidebar__more { width:28px; height:28px; color:var(--muted); }
 .contextual-sidebar .sidebar-create { min-height:34px; margin:4px 2px 10px; border-color:var(--line); font-size:10px; box-shadow:none; }
 .contextual-sidebar .sidebar-create:hover { border-color:color-mix(in srgb,var(--attention) 45%,var(--line)); background:var(--attention-soft); }
@@ -276,14 +278,24 @@ body { background: var(--canvas); font-size: 13px; letter-spacing: -.005em; }
 .contextual-sidebar .nav-link--active { color:var(--attention); background:var(--attention-soft); box-shadow:inset 2px 0 var(--attention); }
 .contextual-sidebar .sidebar__footer { padding:8px 2px 0; }
 
-.workspace { margin-left:308px; }
+.workspace { margin-left:308px; transition:margin-left .22s cubic-bezier(.16,1,.3,1); }
 .desktop-topbar { height:50px; grid-template-columns:minmax(160px,1fr) minmax(260px,430px) minmax(160px,1fr); padding:0 18px; background:color-mix(in srgb,var(--surface) 96%,transparent); }
+.topbar-left { display:flex; align-items:center; gap:8px; min-width:0; }
+.topbar-sidebar-toggle { width:30px; height:30px; border-radius:6px; color:var(--muted); background:transparent; border:1px solid transparent; display:grid; place-items:center; flex-shrink:0; cursor:pointer; transition:background .15s ease,color .15s ease,border-color .15s ease; }
+.topbar-sidebar-toggle:hover { background:var(--surface-2); color:var(--ink); border-color:var(--line); }
 .topbar-context { font-size:10px; }.topbar-search { height:32px; border-radius:6px; background:var(--surface-2); font-size:10px; }.topbar-actions .icon-button { width:32px; height:32px; }.profile-button { min-width:38px; }
 .workspace__content { max-width:1640px; padding:22px clamp(20px,3vw,44px) 64px; }
 .page-header,.detail-header { padding:5px 0 18px; }.page-header h1,.detail-header h1 { font-size:clamp(23px,2.5vw,32px); }
 .data-surface,.table-frame,.calendar-board,.inbox-list { border-color:var(--line); border-radius:8px; box-shadow:none; }.work-table th { background:var(--surface-2); }.data-row:hover,.work-table tbody tr:hover { background:var(--attention-soft); }
 
-@media (max-width: 920px) { .global-rail { display:none; }.contextual-sidebar { left:0; transform:translateX(-102%); }.contextual-sidebar.sidebar--open { transform:translateX(0); }.contextual-sidebar__close { display:grid; }.workspace { margin-left:0; } }
+@media (min-width: 921px) {
+  .app-frame--sidebar-collapsed .contextual-sidebar { transform:translateX(calc(-100% - 64px)); opacity:0; visibility:hidden; pointer-events:none; }
+  .app-frame--sidebar-collapsed .workspace { margin-left:60px; }
+  .app-frame--sidebar-collapsed .topbar-sidebar-toggle { background:var(--surface-2); color:var(--attention); border-color:var(--line); }
+  .app-frame--sidebar-collapsed .topbar-sidebar-toggle:hover { background:var(--attention-soft); color:var(--attention-hover); border-color:var(--attention); }
+}
+
+@media (max-width: 920px) { .global-rail { display:none; }.contextual-sidebar { left:0; transform:translateX(-102%); }.contextual-sidebar.sidebar--open { transform:translateX(0); }.contextual-sidebar__collapse { display:none; }.contextual-sidebar__close { display:grid; }.workspace { margin-left:0; } }
 @media (max-width: 767px) { .global-rail { display:none; }.contextual-sidebar { left:0; z-index:40; }.workspace { margin-left:0; }.contextual-sidebar__heading { padding-top:2px; }.sidebar-scrim { z-index:35; } }
 
 /* Tasks is a dedicated work surface, not a generic collection. */

@@ -58,6 +58,7 @@ function Shell({ children,user }: { children: ReactNode;user:ShellUser }) {
   const [mobileMenu, setMobileMenu] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const accountRef = useRef<HTMLDivElement>(null);
   const accountButtonRef = useRef<HTMLButtonElement>(null);
   const theme = useTheme();
@@ -65,6 +66,37 @@ function Shell({ children,user }: { children: ReactNode;user:ShellUser }) {
   const currentArea = workspaceAreas.find((area) => area.matches.some((href) => pathname === href || pathname.startsWith(`${href}/`))) ?? workspaceAreas[0];
   const currentRoute = Object.keys(routeLabels).sort((a, b) => b.length - a.length).find((href) => pathname === href || pathname.startsWith(`${href}/`));
   const pageTitle = currentRoute ? routeLabels[currentRoute] : "Daily Command";
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("dcc-sidebar-collapsed");
+      if (saved === "true") setSidebarCollapsed(true);
+    } catch {}
+  }, []);
+
+  const toggleSidebar = useCallback(() => {
+    setSidebarCollapsed((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem("dcc-sidebar-collapsed", String(next));
+      } catch {}
+      return next;
+    });
+  }, []);
+
+  const collapseSidebar = useCallback(() => {
+    setSidebarCollapsed(true);
+    try {
+      localStorage.setItem("dcc-sidebar-collapsed", "true");
+    } catch {}
+  }, []);
+
+  const expandSidebar = useCallback(() => {
+    setSidebarCollapsed(false);
+    try {
+      localStorage.setItem("dcc-sidebar-collapsed", "false");
+    } catch {}
+  }, []);
 
   const toggleTheme = useCallback(() => {
     setTheme(dark ? "light" : "dark");
@@ -94,12 +126,22 @@ function Shell({ children,user }: { children: ReactNode;user:ShellUser }) {
       const target = event.target as HTMLElement;
       const typing = target.matches("input, textarea, select, [contenteditable='true']");
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") { event.preventDefault(); setPaletteOpen(true); return; }
+      if ((event.metaKey || event.ctrlKey) && (event.key === "\\" || event.key.toLowerCase() === "b")) {
+        event.preventDefault();
+        toggleSidebar();
+        return;
+      }
+      if (!typing && event.key === "[") {
+        event.preventDefault();
+        toggleSidebar();
+        return;
+      }
       if (!typing && event.key.toLowerCase() === "c") { event.preventDefault(); setCaptureOpen(true); }
       if (!typing && event.key.toLowerCase() === "f") { router.push("/focus"); }
     }
     window.addEventListener("keydown", shortcut);
     return () => window.removeEventListener("keydown", shortcut);
-  }, [router]);
+  }, [router, toggleSidebar]);
 
   useEffect(() => {
     if (!accountOpen) return;
@@ -129,17 +171,48 @@ function Shell({ children,user }: { children: ReactNode;user:ShellUser }) {
   }, [goToLogin]);
 
   return (
-    <div className="app-frame">
+    <div className={`app-frame ${sidebarCollapsed ? "app-frame--sidebar-collapsed" : ""}`}>
       <a className="skip-link" href="#main-content">Skip to content</a>
       <aside className="global-rail" aria-label="Global navigation">
         <Link href="/today" className="rail-brand" aria-label="Daily Command home" title="Daily Command"><Icons.Target size={19} strokeWidth={2.25}/></Link>
         <nav className="global-rail__nav">
-          {workspaceAreas.map(({ label, href, icon: Icon, matches }) => <Link className={matches.some((match) => pathname === match || pathname.startsWith(`${match}/`)) ? "rail-link rail-link--active" : "rail-link"} href={href} key={label} title={label}><Icon size={18} strokeWidth={1.8}/><span>{label}</span></Link>)}
+          {workspaceAreas.map(({ label, href, icon: Icon, matches }) => {
+            const active = matches.some((match) => pathname === match || pathname.startsWith(`${match}/`));
+            return (
+              <Link
+                className={active ? "rail-link rail-link--active" : "rail-link"}
+                href={href}
+                key={label}
+                title={label}
+                onClick={() => {
+                  if (active && sidebarCollapsed) {
+                    expandSidebar();
+                  }
+                }}
+              >
+                <Icon size={18} strokeWidth={1.8}/>
+                <span>{label}</span>
+              </Link>
+            );
+          })}
         </nav>
         <div className="global-rail__footer"><Link className={pathname.startsWith("/settings") ? "rail-link rail-link--active" : "rail-link"} href="/settings" title="Settings"><Icons.Settings size={18}/><span>Settings</span></Link></div>
       </aside>
       <aside className={`sidebar contextual-sidebar ${mobileMenu ? "sidebar--open" : ""}`} aria-label={`${currentArea.label} navigation`}>
-        <div className="contextual-sidebar__heading"><span className="brand__mark"><Icons.Target size={15} strokeWidth={2.2}/></span><span><strong>{currentArea.label}</strong><small>Daily Command</small></span><button className="icon-button contextual-sidebar__close" aria-label="Close navigation" type="button" onClick={() => setMobileMenu(false)}><Icons.X size={17}/></button></div>
+        <div className="contextual-sidebar__heading">
+          <span className="brand__mark"><Icons.Target size={15} strokeWidth={2.2}/></span>
+          <span><strong>{currentArea.label}</strong><small>Daily Command</small></span>
+          <button
+            className="icon-button contextual-sidebar__collapse"
+            type="button"
+            onClick={collapseSidebar}
+            aria-label="Hide sidebar (⌘\)"
+            title="Hide sidebar (⌘\)"
+          >
+            <Icons.PanelLeftClose size={16}/>
+          </button>
+          <button className="icon-button contextual-sidebar__close" aria-label="Close navigation" type="button" onClick={() => setMobileMenu(false)}><Icons.X size={17}/></button>
+        </div>
         <nav className="mobile-area-switcher" aria-label="Workspace areas">
           {workspaceAreas.map(({ label, href, icon: Icon, matches }) => { const active = matches.some((match) => pathname === match || pathname.startsWith(`${match}/`)); return <Link href={href} key={label} className={active ? "mobile-area-switcher__link is-active" : "mobile-area-switcher__link"} aria-current={active ? "page" : undefined} onClick={() => setMobileMenu(false)}><Icon size={16}/><span>{label}</span></Link>; })}
         </nav>
@@ -161,7 +234,19 @@ function Shell({ children,user }: { children: ReactNode;user:ShellUser }) {
       {mobileMenu ? <button className="sidebar-scrim" aria-label="Close navigation" onClick={() => setMobileMenu(false)} /> : null}
       <div className="workspace">
         <header className="desktop-topbar">
-          <div className="topbar-context"><span>Daily Command</span><Icons.ChevronRight size={13}/><strong>{pageTitle}</strong></div>
+          <div className="topbar-left">
+            <button
+              className="icon-button topbar-sidebar-toggle"
+              type="button"
+              onClick={toggleSidebar}
+              title={sidebarCollapsed ? "Show sidebar (⌘\\)" : "Hide sidebar (⌘\\)"}
+              aria-label={sidebarCollapsed ? "Show sidebar" : "Hide sidebar"}
+              aria-expanded={!sidebarCollapsed}
+            >
+              {sidebarCollapsed ? <Icons.PanelLeftOpen size={16} /> : <Icons.PanelLeftClose size={16} />}
+            </button>
+            <div className="topbar-context"><span>Daily Command</span><Icons.ChevronRight size={13}/><strong>{pageTitle}</strong></div>
+          </div>
           <button className="topbar-search" type="button" onClick={() => setPaletteOpen(true)}><Icons.Search size={16}/><span>Search tasks, projects, clients…</span><kbd>⌘K</kbd></button>
           <div className="topbar-actions">
             <button className="icon-button topbar-capture" type="button" onClick={() => setCaptureOpen(true)} aria-label="Quick capture"><Icons.Plus size={18}/></button>
