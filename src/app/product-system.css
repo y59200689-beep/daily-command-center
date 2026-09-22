@@ -529,3 +529,25 @@ body { background: var(--canvas); font-size: 13px; letter-spacing: -.005em; }
 .growth-next h2 { font: 660 15px var(--font-geist-sans); margin: 2px 0 4px; }
 .growth-next__cta { display: inline-block; margin-top: 8px; padding: 6px 12px; border-radius: 6px; background: var(--attention-soft); color: var(--attention); font-weight: 620; font-size: 10px; }
 .growth-header-actions { display: flex; align-items: center; gap: 6px; }
+
+/* Modal Layer & Dialogs Stacking Context Fix */
+.modal-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 1000 !important;
+  display: grid;
+  place-items: start center;
+  padding: min(10vh, 72px) 20px 24px;
+  background: rgba(15, 17, 23, 0.45);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.modal {
+  position: relative;
+  z-index: 1001 !important;
+  width: min(620px, 100%);
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: 14px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22), 0 4px 16px rgba(0, 0, 0, 0.08);
+}

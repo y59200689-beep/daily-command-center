@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useId, useRef, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { Icons } from "@/components/icons";
 
 interface ModalProps {
@@ -14,17 +15,22 @@ interface ModalProps {
 let openModalCount = 0;
 
 export function Modal({ open, onClose, title, description, children, variant = "default" }: ModalProps) {
+  const [mounted, setMounted] = useState(false);
   const dialogRef = useRef<HTMLDivElement>(null);
   const onCloseRef = useRef(onClose);
   const titleId = useId();
   const descriptionId = useId();
 
   useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
     onCloseRef.current = onClose;
   }, [onClose]);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open || !mounted) return;
     const previous = document.activeElement as HTMLElement | null;
     const dialog = dialogRef.current;
     dialog?.querySelector<HTMLElement>("input, button, textarea, select, a[href]")?.focus();
@@ -49,10 +55,10 @@ export function Modal({ open, onClose, title, description, children, variant = "
       if (openModalCount === 0) document.body.classList.remove("modal-open");
       previous?.focus();
     };
-  }, [open]);
+  }, [open, mounted]);
 
-  if (!open) return null;
-  return (
+  if (!mounted || !open) return null;
+  return createPortal(
     <div className="modal-layer" role="presentation" onMouseDown={(event) => { if (event.currentTarget === event.target) onClose(); }}>
       <div ref={dialogRef} className={`modal modal--${variant}`} role="dialog" aria-modal="true" aria-labelledby={titleId} aria-describedby={description ? descriptionId : undefined}>
         <div className="modal__header">
@@ -65,6 +71,7 @@ export function Modal({ open, onClose, title, description, children, variant = "
         </div>
         {children}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
