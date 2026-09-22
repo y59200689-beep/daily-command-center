@@ -4,7 +4,7 @@ import { useCallback, useState } from "react";
 import { Icons } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { useDeferredEffect } from "@/lib/use-deferred-effect";
-type Provider = "gmail" | "google_drive" | "github" | "strava";
+type Provider = "gmail" | "google_drive" | "github" | "strava" | "hevy" | "pacer" | "myfitnesspal";
 type State = { connected: boolean; connection: null | { provider_email?: string | null; display_name?: string | null; last_synced_at?: string | null; last_successful_sync_at?: string | null; sync_status?: string | null } };
 
 const PROVIDER_ICONS: Record<Provider, typeof Icons.Zap> = {
@@ -12,6 +12,9 @@ const PROVIDER_ICONS: Record<Provider, typeof Icons.Zap> = {
   google_drive: Icons.Paperclip,
   github: Icons.BriefcaseBusiness,
   strava: Icons.Dumbbell,
+  hevy: Icons.Activity,
+  pacer: Icons.Footprints,
+  myfitnesspal: Icons.Apple,
 };
 
 const ICON_MAP: Record<string, typeof Icons.Zap> = {

@@ -5,17 +5,29 @@ import { Icons } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { DomainPage } from "@/features/domains/domain-page";
 import { useDeferredEffect } from "@/lib/use-deferred-effect";
+import { FitnessSyncBar } from "@/features/v2/fitness-sync-bar";
 
 type Row = Record<string, unknown> & {
   id: string;
   progress?: { actual: number; target: number; remaining: number; complete: boolean };
 };
 
+type Totals = {
+  sessions: number;
+  distance_km: number;
+  duration_minutes: number;
+  steps?: number;
+  gym_volume_kg?: number;
+  calories_burned?: number;
+  calories_consumed?: number;
+  net_calories?: number;
+};
+
 type Data = {
   period: { start: string; end: string };
   activities: Row[];
   targets: Row[];
-  totals: { sessions: number; distance_km: number; duration_minutes: number };
+  totals: Totals;
 };
 
 export function FitnessDashboard() {
@@ -50,6 +62,8 @@ export function FitnessDashboard() {
         </div>
       </header>
 
+      <FitnessSyncBar onSyncComplete={load} />
+
       {error ? (
         <div className="inline-error" role="alert">
           <p>{error}</p>
@@ -62,18 +76,34 @@ export function FitnessDashboard() {
         </div>
       ) : (
         <>
-          <section className="metric-ledger metric-ledger--three" aria-label="Weekly fitness metrics">
+          <section className="metric-ledger" aria-label="Weekly fitness metrics">
             <div>
               <strong>{data.totals.sessions}</strong>
               <span>Sessions this week</span>
             </div>
             <div>
               <strong>{data.totals.distance_km.toFixed(1)} km</strong>
-              <span>Total distance</span>
+              <span>Total distance (Strava)</span>
             </div>
             <div>
               <strong>{Math.round(data.totals.duration_minutes)} min</strong>
               <span>Active duration</span>
+            </div>
+            <div>
+              <strong>{(data.totals.steps ?? 0).toLocaleString()}</strong>
+              <span>Weekly steps (Pacer)</span>
+            </div>
+            <div>
+              <strong>{(data.totals.gym_volume_kg ?? 0).toLocaleString()} kg</strong>
+              <span>Volume lifted (Hevy)</span>
+            </div>
+            <div>
+              <strong>
+                {data.totals.calories_consumed
+                  ? `${(data.totals.net_calories ?? 0) > 0 ? `+${data.totals.net_calories}` : (data.totals.net_calories ?? 0)} kcal`
+                  : `${data.totals.calories_burned ?? 0} kcal`}
+              </strong>
+              <span>{data.totals.calories_consumed ? "Net energy balance (MFP)" : "Calories burned"}</span>
             </div>
           </section>
 

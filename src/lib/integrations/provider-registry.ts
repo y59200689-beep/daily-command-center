@@ -1,7 +1,7 @@
 import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
 import { cookies } from "next/headers";
 
-export const providers = ["google", "gmail", "google_drive", "github", "strava"] as const;
+export const providers = ["google", "gmail", "google_drive", "github", "strava", "hevy", "pacer", "myfitnesspal"] as const;
 export type Provider = (typeof providers)[number];
 
 type ProviderConfig = { label: string; clientId: string | undefined; clientSecret: string | undefined; redirectUri: string | undefined; authorizationUrl: string; tokenUrl: string; scopes: string[] };
@@ -12,6 +12,9 @@ export function configFor(provider: Provider): ProviderConfig {
   if (provider === "gmail") return { label: "Gmail", ...google, redirectUri: process.env.GMAIL_REDIRECT_URI, authorizationUrl: "https://accounts.google.com/o/oauth2/v2/auth", tokenUrl: "https://oauth2.googleapis.com/token", scopes: ["openid", "email", "https://www.googleapis.com/auth/gmail.metadata", ...(process.env.GMAIL_ENABLE_SEND === "true" ? ["https://www.googleapis.com/auth/gmail.send"] : [])] };
   if (provider === "google_drive") return { label: "Google Drive", ...google, redirectUri: process.env.GOOGLE_DRIVE_REDIRECT_URI, authorizationUrl: "https://accounts.google.com/o/oauth2/v2/auth", tokenUrl: "https://oauth2.googleapis.com/token", scopes: ["openid", "email", "https://www.googleapis.com/auth/drive.metadata.readonly"] };
   if (provider === "github") return { label: "GitHub", clientId: process.env.GITHUB_CLIENT_ID, clientSecret: process.env.GITHUB_CLIENT_SECRET, redirectUri: process.env.GITHUB_REDIRECT_URI, authorizationUrl: "https://github.com/login/oauth/authorize", tokenUrl: "https://github.com/login/oauth/access_token", scopes: ["read:user", "repo:status", "public_repo"] };
+  if (provider === "hevy") return { label: "Hevy", clientId: "hevy_api_key", clientSecret: undefined, redirectUri: undefined, authorizationUrl: "", tokenUrl: "", scopes: [] };
+  if (provider === "pacer") return { label: "Pacer", clientId: "pacer_key", clientSecret: undefined, redirectUri: undefined, authorizationUrl: "", tokenUrl: "", scopes: [] };
+  if (provider === "myfitnesspal") return { label: "MyFitnessPal", clientId: "mfp_key", clientSecret: undefined, redirectUri: undefined, authorizationUrl: "", tokenUrl: "", scopes: [] };
   return { label: "Strava", clientId: process.env.STRAVA_CLIENT_ID, clientSecret: process.env.STRAVA_CLIENT_SECRET, redirectUri: process.env.STRAVA_REDIRECT_URI, authorizationUrl: "https://www.strava.com/oauth/authorize", tokenUrl: "https://www.strava.com/oauth/token", scopes: ["read,activity:read_all"] };
 }
 
