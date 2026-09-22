@@ -176,8 +176,34 @@ export function DomainPage({ domain, embedded = false, onMutationSuccess, refres
         {total > 50 || page > 1 ? <nav className="dataset-pagination" aria-label={`${config.title} pagination`}><p className="dataset-note">Showing {rows.length?((page-1)*50)+1:0}–{Math.min(page*50,total)} of {total}</p><div><Button emphasis="ghost" disabled={page===1} onClick={()=>setPage((current)=>Math.max(1,current-1))}>Previous</Button><Button emphasis="ghost" disabled={page*50>=total} onClick={()=>setPage((current)=>current+1)}>Next</Button></div></nav> : null}
         <Modal open={open} onClose={() => setOpen(false)} variant={domain === "tasks" ? "task" : "default"} title={editing ? domain === "tasks" ? "Task details" : `Edit ${config.title.toLowerCase().replace(/s$/, "")}` : config.action} description={domain === "tasks" ? "Update the work, its urgency, timing, and relationships." : "Changes are saved to your private workspace."}>
             {editing && domain === "calendar" ? <div className="meeting-capture-entry"><Link className="button button--outline button--neutral" href={`/meeting/${editing.id}/capture`}>Capture meeting outcome</Link><Link className="button button--ghost button--neutral" href={`/meeting/${editing.id}`}>Open meeting brief</Link></div> : null}
-            {domain === "tasks" ? <TaskDetailForm fields={config.fields} values={values} setValues={setValues} editing={editing} saving={saving} error={error} archiveArmed={archiveArmed} onArchive={archive} onClose={() => setOpen(false)} onSubmit={save}/> : <form className="simple-form" onSubmit={save} noValidate>{config.fields.map((field) => <FormField field={field} value={values[field.key] ?? ""} setValue={(value) => setValues((current) => ({ ...current, [field.key]: value }))} key={field.key}/>)}{error ? <p className="field-error" role="alert">{error}</p> : null}<div className="modal__actions">{editing ? <Button emphasis="danger" onClick={() => void archive(editing)}>{archiveArmed ? "Confirm archive" : "Archive"}</Button> : null}<Button emphasis="ghost" onClick={() => setOpen(false)}>Cancel</Button><Button intent="brand" type="submit" disabled={saving}>{saving ? "Saving…" : "Save changes"}</Button></div></form>}
-            {editing && domain in attachmentEntities ? <div className={domain === "tasks" ? "task-related" : ""}><AttachmentSection entityType={attachmentEntities[domain as keyof typeof attachmentEntities]} entityId={editing.id}/></div> : null}
+            {domain === "tasks" ? (
+                <TaskDetailForm
+                    fields={config.fields}
+                    values={values}
+                    setValues={setValues}
+                    editing={editing}
+                    saving={saving}
+                    error={error}
+                    archiveArmed={archiveArmed}
+                    onArchive={archive}
+                    onClose={() => setOpen(false)}
+                    onSubmit={save}
+                    attachments={editing && domain in attachmentEntities ? <AttachmentSection entityType={attachmentEntities[domain as keyof typeof attachmentEntities]} entityId={editing.id}/> : null}
+                />
+            ) : (
+                <>
+                    <form className="simple-form" onSubmit={save} noValidate>
+                        {config.fields.map((field) => <FormField field={field} value={values[field.key] ?? ""} setValue={(value) => setValues((current) => ({ ...current, [field.key]: value }))} key={field.key}/>)}
+                        {error ? <p className="field-error" role="alert">{error}</p> : null}
+                        <div className="modal__actions">
+                            {editing ? <Button emphasis="danger" onClick={() => void archive(editing)}>{archiveArmed ? "Confirm archive" : "Archive"}</Button> : null}
+                            <Button emphasis="ghost" onClick={() => setOpen(false)}>Cancel</Button>
+                            <Button intent="brand" type="submit" disabled={saving}>{saving ? "Saving…" : "Save changes"}</Button>
+                        </div>
+                    </form>
+                    {editing && domain in attachmentEntities ? <div className="domain-related-attachments"><AttachmentSection entityType={attachmentEntities[domain as keyof typeof attachmentEntities]} entityId={editing.id}/></div> : null}
+                </>
+            )}
         </Modal>
     </div>;
 }
@@ -217,7 +243,7 @@ function TaskBoard({ rows, onEdit, onToggle, empty }: { rows: DomainRecord[]; on
         })}
     </section>;
 }
-function TaskDetailForm({ fields, values, setValues, editing, saving, error, archiveArmed, onArchive, onClose, onSubmit }: {
+function TaskDetailForm({ fields, values, setValues, editing, saving, error, archiveArmed, onArchive, onClose, onSubmit, attachments }: {
     fields: Field[];
     values: Record<string, string>;
     setValues: React.Dispatch<React.SetStateAction<Record<string, string>>>;
@@ -228,6 +254,7 @@ function TaskDetailForm({ fields, values, setValues, editing, saving, error, arc
     onArchive: (record: DomainRecord) => Promise<void>;
     onClose: () => void;
     onSubmit: (event: React.FormEvent) => Promise<void>;
+    attachments?: ReactNode;
 }) {
     const byKey = Object.fromEntries(fields.map((field) => [field.key, field]));
     const renderField = (key: string, className?: string) => byKey[key] ? <FormField className={className} field={byKey[key]} value={values[key] ?? ""} setValue={(value) => setValues((current) => ({ ...current, [key]: value }))}/> : null;
@@ -249,6 +276,7 @@ function TaskDetailForm({ fields, values, setValues, editing, saving, error, arc
                 {renderField("goal_id")}
             </div>
         </aside>
+        {attachments ? <div className="task-related">{attachments}</div> : null}
         {error ? <p className="field-error task-detail-error" role="alert">{error}</p> : null}
         <div className="modal__actions task-detail-actions">
             {editing ? <Button emphasis="danger" onClick={() => void onArchive(editing)}>{archiveArmed ? "Confirm archive" : "Archive"}</Button> : null}
