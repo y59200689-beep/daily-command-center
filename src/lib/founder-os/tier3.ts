@@ -1,5 +1,5 @@
 import type { Row } from "./repository";
-import { daysUntil, isOpen, numberOrNull, type Severity, type Signal, type Sources } from "./intelligence";
+import { daysUntil, isOpen, type Signal, type Sources } from "./intelligence";
 import { founderBottlenecks, type StateFact } from "./tier1";
 
 // 1. Experiment Engine Intelligence
@@ -30,6 +30,29 @@ export function experimentSignals(data: Sources, today: string): Signal[] {
         route: `/experiments?record=${exp.id}`,
         companyId: exp.company_id ? String(exp.company_id) : undefined,
         deadline: exp.end_date ? String(exp.end_date) : undefined,
+        detectedAt: today,
+      });
+    }
+
+    // Concluded experiment
+    if (exp.status === "completed" && exp.outcome_result && exp.outcome_result !== "INCONCLUSIVE") {
+      signals.push({
+        id: `exp:concluded:${exp.id}`,
+        sourceId: exp.id,
+        type: "EXPERIMENT_CONCLUDED",
+        domain: "learning",
+        title: `Concluded experiment (${exp.outcome_result}): ${exp.name}`,
+        severity: "medium",
+        reasons: [
+          `Experiment concluded with outcome ${exp.outcome_result}.`,
+          `Hypothesis: "${exp.hypothesis}". Target metric: ${exp.target_metric}.`,
+          exp.result ? `Findings: ${exp.result}` : "No conclusion recorded.",
+          exp.lesson ? `Lesson: ${exp.lesson}` : "No lesson recorded.",
+        ],
+        impact: "Completed experiments provide empirical learning across operating domains.",
+        action: "Review findings and synthesize operating lessons",
+        route: `/experiments?record=${exp.id}`,
+        companyId: exp.company_id ? String(exp.company_id) : undefined,
         detectedAt: today,
       });
     }
@@ -128,7 +151,7 @@ export function forecastSignals(data: Sources, today: string): Signal[] {
         sourceId: fc.id,
         type: "FORECAST_DUE",
         domain: "decisions",
-        title: `Forecast resolution due: ${String(fc.prediction).slice(0, 60)}`,
+        title: `Forecast resolution due: ${String(fc.prediction)}`,
         severity: resDays < -7 ? "high" : "medium",
         reasons: [
           `Resolution date ${fc.resolution_date} reached (${resDays < 0 ? `${Math.abs(resDays)} days ago` : "today"}).`,
@@ -144,13 +167,34 @@ export function forecastSignals(data: Sources, today: string): Signal[] {
       });
     }
 
+    if (fc.resolution && fc.resolution !== "unresolved") {
+      signals.push({
+        id: `forecast:resolved:${fc.id}`,
+        sourceId: fc.id,
+        type: "FORECAST_RESOLVED",
+        domain: "learning",
+        title: `Calibrated forecast ${fc.resolution}: ${String(fc.prediction)}`,
+        severity: "medium",
+        reasons: [
+          `Prediction resolved as ${fc.resolution}.`,
+          `Confidence: ${fc.confidence}. Actual: "${fc.actual_result ?? "no actual recorded"}".`,
+          fc.calibration_notes ? `Calibration: ${fc.calibration_notes}` : "No calibration notes recorded.",
+        ],
+        impact: "Calibrated forecasts reinforce or challenge decision assumptions.",
+        action: "Review calibration in Operating Memory",
+        route: `/forecasts?record=${fc.id}`,
+        companyId: fc.company_id ? String(fc.company_id) : undefined,
+        detectedAt: today,
+      });
+    }
+
     if (fc.confidence === "high" && fc.resolution === "incorrect") {
       signals.push({
         id: `forecast:miss:${fc.id}`,
         sourceId: fc.id,
         type: "HIGH_CONFIDENCE_FORECAST_MISSED",
         domain: "learning",
-        title: `High-confidence forecast missed: ${String(fc.prediction).slice(0, 60)}`,
+        title: `High-confidence forecast missed: ${String(fc.prediction)}`,
         severity: "high",
         reasons: [
           `Prediction was rated high confidence but resolved incorrect.`,
@@ -563,7 +607,6 @@ export type ExtractedAction = {
 
 export function extractActionsFromCommunication(text: string, now = new Date()): ExtractedAction[] {
   const actions: ExtractedAction[] = [];
-  const lines = text.split("\n").map(l => l.trim()).filter(Boolean);
 
   // Pattern 1: Someone promised to deliver something (owed_to_me)
   // e.g. "Ahmed said he will send supplier pricing by Friday"
@@ -666,6 +709,7 @@ function parseDateFromText(rawDate: string | undefined, now = new Date()): strin
 
 // 8. Meaningful Facts Delta for Tier 3 objects
 export function tier3MeaningfulFacts(data: Sources, today: string): StateFact[] {
+  void today;
   const facts: StateFact[] = [];
 
   // Experiments facts

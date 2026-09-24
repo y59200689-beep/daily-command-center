@@ -33,7 +33,7 @@ export function ResourceWorkspace({ resource }: { resource: ResourceKey }) {
   useEffect(() => subscribeToWorkspaceMutations(["founder-os"], () => void load()), [load]);
   const begin = useCallback(async (row?: Row) => {
     setEditing(row ?? null); setFormError("");
-    setValues(Object.fromEntries((config.fields as Field[]).map(f => [f.key, row ? row[f.key] ?? (f.kind === "boolean" ? false : "") : f.key === "reminder_days" ? 30 : f.key === "currency" ? "MAD" : f.key === "active" ? true : f.kind === "boolean" ? false : f.options?.[0] ?? ""])));
+    setValues(Object.fromEntries((config.fields as Field[]).map(f => [f.key, row ? row[f.key] ?? (f.kind === "boolean" ? false : "") : f.key === "reminder_days" ? 30 : f.key === "currency" ? "MAD" : f.key === "active" ? true : f.kind === "boolean" ? false : f.kind === "select" && !f.required ? "" : f.options?.[0] ?? ""])));
     setOpen(true);
     if (resource === "dependencies") return;
     try { const res = await fetch(`/api/operating/${resource}?options=true`); const body = await res.json(); if (!res.ok) throw new Error(body.error); setOptions(body); } catch (e) { setFormError(e instanceof Error ? e.message : "Relationship options could not be loaded."); }

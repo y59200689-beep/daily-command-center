@@ -12,7 +12,7 @@ async function load(request: Request) {
   return { supabase, userId, briefing };
 }
 export async function GET(request: Request) {
-  try { const { briefing } = await load(request); const { facts: _facts, ...view } = briefing; void _facts; return NextResponse.json(view); }
+  try { const { briefing } = await load(request); return NextResponse.json(briefing); }
   catch (e) { return apiError(e, "Executive briefing could not be loaded."); }
 }
 export async function POST(request: Request) {

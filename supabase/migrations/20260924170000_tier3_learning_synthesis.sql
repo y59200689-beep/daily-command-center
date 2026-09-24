@@ -211,3 +211,28 @@ end $$;
 revoke all on function public.tier1_propose_lesson(text,uuid,text) from public,anon;
 grant execute on function public.tier1_propose_lesson(text,uuid,text) to authenticated;
 
+-- 9. Lesson Permissions and Automatic Proposal Definer
+grant select, insert, update, delete on public.operating_lessons to authenticated;
+grant select, insert, update, delete on public.lesson_evidence_links to authenticated;
+
+create or replace function public.founder_propose_lesson() returns trigger language plpgsql security definer set search_path = public as $$
+declare lesson_text text; label text; lesson_id uuid;
+begin
+  if tg_table_name='decisions' then lesson_text:=new.lesson_learned; label:=new.title;
+  elsif tg_table_name='quality_incidents' then
+    if new.status not in ('resolved','closed','archived') then return new; end if;
+    lesson_text:=new.preventive_action; label:=new.title;
+  else
+    if new.status <> 'completed' then return new; end if;
+    lesson_text:=new.lesson; label:=new.name;
+  end if;
+  if nullif(trim(lesson_text),'') is null then return new; end if;
+  insert into public.operating_lessons(user_id,title,statement,why_proposed,domain,status,confidence_state,source_table,source_id)
+  values(new.user_id,label,lesson_text,'Recorded outcome review; review before applying to other situations.','operations','proposed','weak',tg_table_name,new.id)
+  on conflict(user_id,source_table,source_id) where source_table is not null do nothing returning id into lesson_id;
+  if lesson_id is not null then
+    insert into public.lesson_evidence_links(lesson_id,user_id,source_table,source_id,source_quality,description)
+    values(lesson_id,new.user_id,tg_table_name,new.id::text,'user_reported','Lesson recorded in the source outcome review.');
+  end if;
+  return new;
+end $$;

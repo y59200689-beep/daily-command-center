@@ -18,15 +18,34 @@
 
 ## Acceptance Gate Results
 
-| Gate | Result |
-|------|--------|
-| Unit tests (`pnpm test`) | **848 / 848 pass, 0 fail** |
-| TypeScript (`pnpm tsc --noEmit`) | **0 errors** |
-| Regression: Tier 1 tests | Unaffected (all passing) |
-| Regression: Tier 2 tests | Unaffected (all passing) |
-| Remote migrations applied | None (local only, as instructed) |
-| Hosting deployed | None (as instructed) |
-| Synthetic users / fixture data | Zero |
+| Gate | Target | Result | Evidence / Details |
+|------|--------|--------|---------------------|
+| Unit / Integration Tests | 848 / 848 pass | **PASS** | 848 / 848 passed, 0 failed, 35 dedicated Tier 3 tests |
+| TypeScript Compiler | 0 errors | **PASS** | `tsc --noEmit` exited 0 |
+| ESLint Code Quality | 0 errors / warnings | **PASS** | `eslint .` exited 0 |
+| Production Build | PASS | **PASS** | `next build --webpack` completed and verified static/dynamic routes |
+| Isolated DB / RLS Verification | PASS | **PASS** | Owner isolation, peer cross-tenant rejection, user_id reassignment rejection, anon denial verified |
+| Client Secret Boundary | PASS | **PASS** | Zero service secrets leaked into browser client bundle or window state |
+| Authenticated Desktop E2E | 11 / 11 pass | **PASS** | All 11/11 tests passed in `e2e/tier3/desktop.spec.ts` |
+| Mobile E2E (iPhone) | 4 / 4 pass | **PASS** | Energy state, forecast, extractor, CoS/executive synthesis passed on `mobile-iphone` |
+| Mobile E2E (Android) | 4 / 4 pass | **PASS** | Energy state, forecast, extractor, CoS/executive synthesis passed on `mobile-android` |
+| Cross-Domain Intelligence Propagation | PASS | **PASS** | Facts & signals propagate to `/state`, `/executive`, `/review/weekly`, `/chief-of-staff` |
+| Tier 1 & Tier 2 Regression Smoke | PASS | **PASS** | Core routes (/today, /state, /executive, /commitments, /business-pulse, /infrastructure, /decisions, /waiting) pass cleanly |
+| Environment Cleanup | 0 fixtures | **PASS** | Verified 0 synthetic Auth users, 0 synthetic Tier 3 records, 0 cross-domain fixture records |
+| Remote Migration Policy | None | **PASS** | 0 remote migrations applied; Tier 3 migration strictly local |
+| Hosting Deployment Policy | None | **PASS** | No hosting deployment performed |
+
+### Verified Tier 3 Local Migrations
+1. `supabase/migrations/20260924170000_tier3_learning_synthesis.sql`
+   - `growth_experiments` intelligence extensions
+   - `founder_forecasts` table with RLS & owner guards
+   - `asset_metadata` reuse, maintenance & value category extensions
+   - `content_items` company, pillar, objective, and audience extensions
+   - `founder_daily_states` table with RLS & owner guards
+   - Comprehensive `founder_owner_guard` updates
+   - Full-text search updates via `search_founder_records`
+   - RPC updates: `tier1_propose_lesson` and `founder_propose_lesson` (SECURITY DEFINER)
+   - Granted table permissions on `operating_lessons` and `lesson_evidence_links`
 
 ---
 
