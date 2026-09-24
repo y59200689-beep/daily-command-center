@@ -3,6 +3,13 @@
 **Branch:** `codex/founder-os-tier2-activation`  
 **Sprint:** Founder OS — Tier 3 Intelligence & Learning Layer
 
+## Current activation state
+
+- **Local implementation and acceptance:** complete; the results below describe the local acceptance run.
+- **Production database:** `20260924170000_tier3_learning_synthesis.sql` applied on 2026-09-24. Remote/local migration history aligns at 40/40. Production schema, transactional database smoke, RLS/isolation, content owner guard, lesson-trigger grants, and synthetic cleanup passed. See [Tier 3 production activation](tier3-production-activation.md).
+- **Authenticated production-backed HTTP/browser smoke:** passed with a disposable normal Auth user against the current local application and production database. Synthetic database records were cleaned up; the disposable Auth user remains for manual removal. See [Tier 3 production activation](tier3-production-activation.md).
+- **Hosting deployment:** not performed and not authorized in the database activation task. Tier 3 UI behavior has not been activated on hosting by this migration.
+
 ---
 
 ## Roadmap Completion
@@ -32,7 +39,7 @@
 | Cross-Domain Intelligence Propagation | PASS | **PASS** | Facts & signals propagate to `/state`, `/executive`, `/review/weekly`, `/chief-of-staff` |
 | Tier 1 & Tier 2 Regression Smoke | PASS | **PASS** | Core routes (/today, /state, /executive, /commitments, /business-pulse, /infrastructure, /decisions, /waiting) pass cleanly |
 | Environment Cleanup | 0 fixtures | **PASS** | Verified 0 synthetic Auth users, 0 synthetic Tier 3 records, 0 cross-domain fixture records |
-| Remote Migration Policy | None | **PASS** | 0 remote migrations applied; Tier 3 migration strictly local |
+| Remote Migration Policy at local acceptance | None | **PASS** | No remote migration had been applied at the time of this local acceptance. Tier 3 production DB migration was applied later; see current activation state above. |
 | Hosting Deployment Policy | None | **PASS** | No hosting deployment performed |
 
 ### Verified Tier 3 Local Migrations
@@ -141,7 +148,7 @@
 
 ## Constraints Compliance
 
-- ✅ **No remote migrations applied** — migration is local only
+- ✅ **No remote migrations applied during local acceptance** — production database activation occurred later, as recorded above
 - ✅ **No hosting deployment** — not performed
 - ✅ **No Tier 1 / Tier 2 regression** — all existing 813 tests continued passing
 - ✅ **Strict RLS on all new tables** — owner-scoped policies with `founder_owner_guard` triggers
@@ -150,4 +157,4 @@
 
 ---
 
-## READY FOR TIER 3 PRODUCTION READINESS AUDIT
+## Historical local gate: ready for Tier 3 production readiness audit
