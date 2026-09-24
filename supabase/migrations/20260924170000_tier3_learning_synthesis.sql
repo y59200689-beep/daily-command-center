@@ -149,6 +149,11 @@ create trigger founder_capture_conversion before insert or update on public.foun
 drop trigger if exists founder_owner_guard on public.founder_daily_states;
 create trigger founder_owner_guard before insert or update on public.founder_daily_states for each row execute function public.founder_owner_guard();
 
+-- The existing content_owned_links trigger covers legacy links only.
+-- Wire the expanded owner guard for Tier 3 company and repurpose links.
+drop trigger if exists founder_owner_guard on public.content_items;
+create trigger founder_owner_guard before insert or update on public.content_items for each row execute function public.founder_owner_guard();
+
 -- 7. Update Search Founder Records with Tier 3 Objects
 create or replace function public.search_founder_records(search_query text, result_limit integer default 12)
 returns table(entity_type text,entity_id uuid,title text,snippet text)
@@ -236,3 +241,4 @@ begin
   end if;
   return new;
 end $$;
+revoke all on function public.founder_propose_lesson() from public, anon, authenticated;
