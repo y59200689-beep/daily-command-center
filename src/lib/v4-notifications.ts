@@ -6,6 +6,7 @@ export type NotificationSeverity = "info" | "attention" | "important" | "critica
 const level: Record<NotificationSeverity, number> = { info: 0, attention: 1, important: 2, critical: 3 };
 
 export function notificationRoute(type: string, entityType?: string | null, entityId?: string | null) {
+  if (entityType === "founder_signal") return "/state";
   if(entityType?.startsWith('financial_')){const views:Record<string,string>={financial_accounts:'accounts',financial_cashflow:'cashflow',financial_collections:'collections',financial_promises:'promises',financial_obligations:'obligations',financial_budgets:'budgets',financial_investments:'investments',financial_subscriptions:'subscriptions'};return views[entityType]?'/financial-control/'+views[entityType]:'/financial-control';}
   if (["commitment", "milestone", "decision_gate"].includes(entityType ?? "")) return "/control-tower";
   if (entityType === "strategy_week_plan") return "/plan/week";

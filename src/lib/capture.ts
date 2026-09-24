@@ -1,9 +1,9 @@
-export type CaptureKind = "task"|"note"|"idea"|"decision"|"followup"|"inbox";
+export type CaptureKind = "task"|"note"|"idea"|"decision"|"followup"|"inbox"|"issue"|"risk"|"waiting"|"commitment"|"contact"|"experiment"|"knowledge";
 export type ParsedCapture = { kind:CaptureKind; text:string; confidence:number; due?:string };
 
 export function parseCapture(input:string, now=new Date()):ParsedCapture{
   const value=input.trim(); const lower=value.toLowerCase();
-  const prefixes:[RegExp,CaptureKind,number][]=[[/^task\s+/i,"task",.98],[/^note\s+/i,"note",.98],[/^idea\s+/i,"idea",.98],[/^decision\s+/i,"decision",.98],[/^follow[ -]?up(?:\s+with)?\s+/i,"followup",.96]];
+  const prefixes:[RegExp,CaptureKind,number][]=[[/^issue\s+/i,"issue",.98],[/^risk\s+/i,"risk",.98],[/^waiting(?: for)?\s+/i,"waiting",.98],[/^commitment\s+/i,"commitment",.98],[/^contact\s+/i,"contact",.98],[/^experiment\s+/i,"experiment",.98],[/^knowledge\s+/i,"knowledge",.98],[/^task\s+/i,"task",.98],[/^note\s+/i,"note",.98],[/^idea\s+/i,"idea",.98],[/^decision\s+/i,"decision",.98],[/^follow[ -]?up(?:\s+with)?\s+/i,"followup",.96]];
   const match=prefixes.find(([pattern])=>pattern.test(value));
   if(!match)return{kind:"inbox",text:value,confidence:.35};
   const [pattern,kind,confidence]=match;let text=value.replace(pattern,"").trim();let due:string|undefined;

@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { SignalRow } from "@/features/founder-os/state-view";
+import type { Signal } from "@/lib/founder-os/intelligence";
 import {
   AlertTriangle,
   Clock,
@@ -15,6 +17,7 @@ import {
 import "./chief-of-staff.css";
 
 type ChiefState = {
+  founderRecommendations?: Signal[];
   nextAction: {
     title: string;
     whyNow: string;
@@ -176,6 +179,7 @@ export function ChiefOfStaffHome() {
 
   return (
     <div className="chief-container">
+      {data?.founderRecommendations?.length ? <section className="founder-state"><h2>Founder recommendations</h2><p className="founder-muted">Review the source and prepare a next step. Actions continue through the existing approval workflow.</p>{data.founderRecommendations.map(signal => <SignalRow key={signal.id} signal={signal} />)}</section> : null}
       {/* ClickUp Context Header */}
       <header className="task-context-header">
         <div>

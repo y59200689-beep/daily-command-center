@@ -1,5 +1,7 @@
 "use client";
 import Link from "next/link";
+import { FounderStatePanel } from "@/features/founder-os/state-view";
+import type { FounderState } from "@/lib/founder-os/intelligence";
 import { useCallback, useEffect, useState } from "react";
 import { Icons } from "@/components/icons";
 import { Button } from "@/components/ui/button";
@@ -43,6 +45,7 @@ type Intelligence = {
   fitness: { insights: string[] };
 };
 type TodayData = {
+  founderState?: FounderState | null;
   date: string;
   profile: { display_name?: string; timezone?: string } | null;
   priorities: Item[];
@@ -107,6 +110,9 @@ export function TodayDashboard() {
     () =>
       subscribeToWorkspaceMutations(
         [
+          "founder-os",
+          "fitness",
+          "decisions",
           "tasks",
           "inbox",
           "projects",
@@ -173,6 +179,7 @@ export function TodayDashboard() {
     (data.priorities[0] ? `/focus?task=${data.priorities[0].id}` : "/tasks");
   return (
     <div className="today-page">
+      {data.founderState ? <FounderStatePanel state={data.founderState} compact /> : <p className="founder-coverage">Founder State is unavailable. <Link href="/state">Review monitoring</Link>.</p>}
       <section className="brief-hero">
         <div className="brief-hero__main">
           <p className="eyebrow">
@@ -542,7 +549,7 @@ export function TodayDashboard() {
                 <strong>{String(project.name)}</strong>
                 <small>{String(project.description ?? "Open project")}</small>
               </div>
-              <em>{String(project.progress ?? 0)}%</em>
+              <em>{String(project.status ?? "Status unknown")}</em>
             </Link>
           ))}
         </aside>

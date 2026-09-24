@@ -1,0 +1,879 @@
+{
+  "verifiedAt": "2026-09-23T23:49:18.981Z",
+  "projectId": "sqzkqzrvxkdbcdpwcywd",
+  "identitiesChecked": [
+    "889cb171-3717-4d1f-831d-edd096545a7d",
+    "daae6482-745e-4811-a05b-b350b3a1a0ae",
+    "3319a1a3-0a0d-474e-adac-1fd91839131d",
+    "cabacf50-42e4-460a-a38a-737a04799793",
+    "1128af48-0ad2-4f8a-a3e8-6555fe8d321c",
+    "cbd0454e-bbc6-471a-9605-9c765cc7c938",
+    "327cecac-0eef-4aa8-b967-cb615cd004eb",
+    "26b47c90-23d3-49fd-a844-f9c817c12c04",
+    "d236118b-bba8-42f4-a8b9-db6feb16615d",
+    "aba93edb-3c59-45f6-aba6-16352712f842",
+    "35fdf4f1-8a46-4a47-b349-0cd86161ee41",
+    "ba4809c7-9047-48ee-b118-b8603d4fe7ec",
+    "4c06a2ba-d42f-446b-b2ef-57d5eb32784b",
+    "b2741f0a-0610-47b9-908e-fd11bfac3d58",
+    "af5863f4-3f2b-4fda-a624-061ffcf75813",
+    "605a3e91-ee2f-4819-867e-f9070c9e111d",
+    "22f339ab-46c3-4971-8162-10d2bc70d7a3",
+    "ecef6179-cc26-45e6-a520-ac42993200f9",
+    "1ef36261-c8ee-4983-ac93-e97472f18bd3",
+    "54880f8a-5574-4f64-a001-4f06e0145974",
+    "40e5469c-c1e9-403b-83fc-83bf2e3e5df5",
+    "3121881e-16a3-4e9e-8741-b2d0ad5ad5ef"
+  ],
+  "tablesChecked": 239,
+  "remainingRecords": [],
+  "runs": [
+    {
+      "evidenceFile": "tier1-android-cleanup-final.json",
+      "runId": "801ff038-d8d9-4414-b5d5-2ad22ac60803",
+      "userId": "3319a1a3-0a0d-474e-adac-1fd91839131d",
+      "remainingAuthUsers": 0,
+      "remainingOwnedRows": 0,
+      "observations": [
+        {
+          "name": "mobile_412 propagation/review",
+          "result": "PASS"
+        },
+        {
+          "name": "capture_412 dependencies/capture",
+          "result": "PASS"
+        }
+      ]
+    },
+    {
+      "evidenceFile": "tier1-cleanup-result.json",
+      "observations": []
+    },
+    {
+      "evidenceFile": "tier1-desktop-cleanup-final.json",
+      "runId": "c2e524d6-04a3-483b-9d04-24a7a987e68e",
+      "userId": "cabacf50-42e4-460a-a38a-737a04799793",
+      "remainingAuthUsers": 0,
+      "remainingOwnedRows": 0,
+      "observations": [
+        {
+          "name": "live RLS A/B/anonymous",
+          "result": "PASS"
+        },
+        {
+          "name": "client credential isolation",
+          "result": "PASS"
+        },
+        {
+          "name": "desktop propagation/review",
+          "result": "PASS"
+        },
+        {
+          "name": "capture_1280 dependencies/capture",
+          "result": "PASS"
+        },
+        {
+          "name": "live RLS A/B/anonymous",
+          "result": "PASS"
+        },
+        {
+          "name": "client credential isolation",
+          "result": "PASS"
+        }
+      ]
+    },
+    {
+      "evidenceFile": "tier1-iphone-cleanup-final.json",
+      "runId": "971f4126-1aaa-4389-b253-5e7f6d2dd9da",
+      "userId": "327cecac-0eef-4aa8-b967-cb615cd004eb",
+      "remainingAuthUsers": 0,
+      "remainingOwnedRows": 0,
+      "observations": [
+        {
+          "name": "mobile_390 propagation/review",
+          "result": "PASS"
+        },
+        {
+          "name": "capture_390 dependencies/capture",
+          "result": "PASS"
+        }
+      ]
+    },
+    {
+      "evidenceFile": "tier1-iphone-cleanup-initial.json",
+      "runId": "2e5cb2bb-96a9-44cb-a6fd-c102f9d334a0",
+      "userId": "26b47c90-23d3-49fd-a844-f9c817c12c04",
+      "remainingAuthUsers": 0,
+      "remainingOwnedRows": 0,
+      "observations": [
+        {
+          "name": "mobile_390 propagation/review",
+          "result": "PASS"
+        }
+      ]
+    },
+    {
+      "evidenceFile": "tier1-run10-cleanup.json",
+      "runId": "b4b2e8b2-f4d2-40b6-b61f-a7f6350a112e",
+      "userId": "d236118b-bba8-42f4-a8b9-db6feb16615d",
+      "remainingAuthUsers": 0,
+      "remainingOwnedRows": 0,
+      "observations": []
+    },
+    {
+      "evidenceFile": "tier1-run3-cleanup.json",
+      "runId": "c48c044f-8ed2-4a2b-b8a7-a107b6f44435",
+      "userId": "aba93edb-3c59-45f6-aba6-16352712f842",
+      "remainingAuthUsers": 0,
+      "remainingOwnedRows": 0,
+      "observations": []
+    },
+    {
+      "evidenceFile": "tier1-run4-cleanup.json",
+      "runId": "a5620a6e-99bc-471b-ab2e-6113ca1bd3b6",
+      "userId": "4c06a2ba-d42f-446b-b2ef-57d5eb32784b",
+      "remainingAuthUsers": 0,
+      "remainingOwnedRows": 0,
+      "observations": []
+    },
+    {
+      "evidenceFile": "tier1-run5-cleanup.json",
+      "runId": "8f57506e-fe3f-49ad-864b-373d5f156eb7",
+      "userId": "b2741f0a-0610-47b9-908e-fd11bfac3d58",
+      "remainingAuthUsers": 0,
+      "remainingOwnedRows": 0,
+      "observations": []
+    },
+    {
+      "evidenceFile": "tier1-run6-cleanup.json",
+      "runId": "fdd36c41-847a-495a-aed6-ebcd7128ed14",
+      "userId": "af5863f4-3f2b-4fda-a624-061ffcf75813",
+      "remainingAuthUsers": 0,
+      "remainingOwnedRows": 0,
+      "observations": []
+    },
+    {
+      "evidenceFile": "tier1-run7-cleanup.json",
+      "runId": "2be23955-0fd0-460b-9c0d-770551861316",
+      "userId": "605a3e91-ee2f-4819-867e-f9070c9e111d",
+      "remainingAuthUsers": 0,
+      "remainingOwnedRows": 0,
+      "observations": [
+        {
+          "name": "live RLS A/B/anonymous",
+          "result": "PASS"
+        },
+        {
+          "name": "client credential isolation",
+          "result": "PASS"
+        },
+        {
+          "name": "capture_1280 dependencies/capture",
+          "result": "PASS"
+        },
+        {
+          "name": "live RLS A/B/anonymous",
+          "result": "PASS"
+        },
+        {
+          "name": "client credential isolation",
+          "result": "PASS"
+        }
+      ]
+    },
+    {
+      "evidenceFile": "tier1-run8-cleanup.json",
+      "runId": "bf6f2747-f553-477f-942f-7a57dca37aa7",
+      "userId": "1ef36261-c8ee-4983-ac93-e97472f18bd3",
+      "remainingAuthUsers": 0,
+      "remainingOwnedRows": 0,
+      "observations": []
+    },
+    {
+      "evidenceFile": "tier1-run9-cleanup.json",
+      "runId": "98aa3fb3-eb50-46db-9207-fea145f115ed",
+      "userId": "54880f8a-5574-4f64-a001-4f06e0145974",
+      "remainingAuthUsers": 0,
+      "remainingOwnedRows": 0,
+      "observations": []
+    }
+  ],
+  "resourceIds": {
+    "3319a1a3-0a0d-474e-adac-1fd91839131d": {
+      "activity_log": [
+        "205e30df-ea01-4e38-abaf-d29d73a62878",
+        "ef07b426-a046-4887-b888-bc3b2231d0b7",
+        "4b4307ae-b712-4b00-a728-b92cdab84d2d",
+        "fc972ded-63b9-4c66-a6de-423bc22319d9",
+        "e7c758b6-9db6-4a64-9edd-0f6b8f87ffe8",
+        "8787f992-2634-4f18-abcf-55618d891ecb",
+        "f3941192-48cc-41a8-a1de-fb9dee2fe728",
+        "f89898a2-997c-4e4f-960a-e340dfe1383d",
+        "497e5637-4773-488f-a0fb-322f6905de6b",
+        "3d959129-dd96-4bec-902e-f4cd7b894988",
+        "7354302a-8dff-4a12-8ae0-e22bdbdbee04",
+        "6e3ddb69-0609-47a2-8010-4b01a63d007e",
+        "f51bdecb-1d66-4440-b9fc-1ba9a0d3edf6",
+        "4ccf9401-3b6c-4014-ad3e-4beb1f40613e",
+        "5c5bdde6-bf3a-4e54-95cf-7d20308b2c23",
+        "56c936ce-693e-4275-98b9-d8249069e8e0",
+        "5a7fa737-023f-48ee-b028-0427cf1a28fb",
+        "ade23473-a832-4951-8f2d-8dcb8b32876f",
+        "c9735037-e824-4b9e-9906-3ed342dde633",
+        "3a317bfe-78b6-4a9a-ba87-bb36deabe3b4",
+        "6b0422cf-3ef9-4ccd-89bc-9cf3a02c856e",
+        "5e9aa833-b77e-4960-80b3-75f11bbac01a",
+        "c653096d-be4e-4607-b84f-54c8942fce9a"
+      ],
+      "decisions": [
+        "458a9bef-4b94-4362-b85c-038401f94c48",
+        "0457b775-ecf7-4a03-9289-99837fdd2790"
+      ],
+      "executive_snapshots": [
+        "b3efa448-e4e0-4301-beba-93aee51c7d23"
+      ],
+      "followups": [
+        "f1e5bf0e-4d0f-4057-bd8e-92d078c565e6"
+      ],
+      "inbox_items": [
+        "bb3c0170-041d-4257-868b-f10e560b6e59",
+        "1f8f7a46-ff93-4803-a650-07dbf646dba2"
+      ],
+      "lesson_evidence_links": [
+        "93704148-0302-47ca-8ee5-cc1f3ecb90b9",
+        "bf4e0036-81d3-4887-a901-89a2faa22d4a"
+      ],
+      "operating_commitments": [
+        "03deefb3-3e3b-4e15-9663-0ac3bd6c4354",
+        "0eff90c9-f15d-4973-a01a-ea6b9cb39063"
+      ],
+      "operating_lessons": [
+        "1b8032c8-c240-4380-9cfa-e57c50fbfa9c",
+        "d8d95a35-c359-4f9b-b117-20253cf23e55"
+      ],
+      "operating_risks": [
+        "75b4cbed-e93b-4c4a-a702-13edec1aeb92",
+        "cf2e7825-b33a-4f2a-a903-255229017edd",
+        "5e59b497-a6a3-47ff-a0fb-39a2b71fe947"
+      ],
+      "operational_dependencies": [
+        "2428fc8d-e62c-442c-8169-d592007c93b1"
+      ],
+      "quality_incidents": [
+        "c950a543-01db-45aa-85ab-1c429228c473",
+        "1c1e4e0a-0941-433e-89f2-919b50a8e0a9",
+        "103e638b-be88-42d2-a2c8-57ef6978b7fd"
+      ],
+      "retrospectives": [
+        "130e0c9e-12b5-4024-b5b7-59fec1d72e60"
+      ],
+      "tasks": [
+        "7d5d7b02-11d5-4a55-82b1-1256254e518d",
+        "bb2637bf-1fab-4c43-8cb7-3f9c49983431"
+      ],
+      "waiting_items": [
+        "021e8530-c2d6-4808-b719-08befa4d1ca7",
+        "77496758-f73e-4cea-a1e2-ef7eea6b093f"
+      ]
+    },
+    "cabacf50-42e4-460a-a38a-737a04799793": {
+      "activity_log": [
+        "650ed3f2-d97b-412b-ba19-95361e6c25bf",
+        "eb9eb241-8f45-4e8b-9623-96fd46e13c53",
+        "3bf301f4-081f-463c-990f-287a92289fb3",
+        "111fb5c6-c954-4310-a920-8b9caad3acdf",
+        "464cc10b-d992-46c3-844a-ecd3d69ddd52",
+        "d1a33243-4473-45f8-9df7-52e660bac128",
+        "42b52624-1adc-4621-b53d-7f56e93aa6e5",
+        "ae52ea13-424b-4f7b-bf17-ccf9e8b5747a",
+        "d383a6ef-7bb0-4a1f-b517-dd5b6caf8c87",
+        "0b64b283-2d7d-4a18-ad97-c9fa31078506",
+        "a91fef70-1598-4d8b-b455-c4ddc482113f",
+        "52da8890-d5c7-4f2f-9bdd-5f13c46bd2c2",
+        "c92d8f3d-7aa7-4dfa-88fd-804206d12d3e",
+        "be9717d3-e144-4f78-b248-a08c9b33452e",
+        "fafc6b7b-d6ae-4e24-9739-e621f428427c",
+        "ec7cc18b-f5f7-4f49-82f7-37ec41a140f7",
+        "e5cb2c8a-d412-4b76-9918-f268d42e5fdd",
+        "e2c03c7e-0f5d-4358-8ea6-454f69f790a6",
+        "6b0a0f7b-1bbe-40e6-a771-7c37658172e1",
+        "a1c7ff83-2f3e-4217-82d2-326e82774939",
+        "f51732c0-49b6-4ecc-9976-ded93e4f6d01",
+        "682b5f11-0930-4510-882c-8c6989f7f3a7",
+        "084a0768-291e-47af-80c1-2b1a6aad26ea",
+        "d2929cf8-08ff-44b5-af56-5903289742ee",
+        "7cfb89ba-ab59-42d2-90dd-c12a5b905a71",
+        "094b169f-e99a-49bb-a446-98270de1265e",
+        "52391b33-ce7c-4caa-9744-7aae1411139d",
+        "3d547a5f-dee6-4098-9276-9622635253a3"
+      ],
+      "decisions": [
+        "96f02449-33af-4cb8-8181-20668b6abec0",
+        "574e90aa-4fa2-45e9-ada4-c0dcc4468976",
+        "e18dfcb5-fc8e-4ddf-aef9-27534c911442"
+      ],
+      "executive_snapshots": [
+        "ebe0fcd4-942a-4aa5-8d13-91920a372e0f"
+      ],
+      "followups": [
+        "9139e9fa-b7c5-4cf9-bf33-f0a7e98d60dd"
+      ],
+      "inbox_items": [
+        "4574ced9-b838-47ed-ae8d-e81bcc6c6a6d",
+        "61932091-d331-4597-8d3a-885dfefb27c1"
+      ],
+      "lesson_evidence_links": [
+        "6b9a6ead-68fe-468f-b756-1b5962056c17",
+        "1ff1e2b9-8952-424d-b7f7-f9ac02fae829",
+        "7750e496-d42b-46ab-9793-0eb276447c55"
+      ],
+      "operating_commitments": [
+        "2c835909-c90c-4d0e-a27d-63a13e694ace"
+      ],
+      "operating_lessons": [
+        "3ec1ae7b-3cb5-4814-ac12-3a769e005ad2",
+        "6e615cb9-9d4f-45cc-9660-9b4d350e2899",
+        "e29187b2-ca97-4ee1-adcd-d0dc4d39957d"
+      ],
+      "operating_risks": [
+        "076794a8-2b0b-4908-9f95-89fc3ba780b7",
+        "219ee8ea-cf97-40e5-b4ba-62380f06dfd6",
+        "41cef769-fd6c-4926-abc4-a0c68db01e30"
+      ],
+      "operational_dependencies": [
+        "feb929a4-561b-48b9-9dca-0ae71c3767e3"
+      ],
+      "projects": [
+        "cefb9b36-3d71-4b92-a991-53f630f5a552",
+        "16da5744-c9fa-4815-a384-d4f030dbe014"
+      ],
+      "quality_incidents": [
+        "18dd51cd-f51f-457e-987a-5e583007ad05",
+        "b6268da2-a937-4200-ace9-057cf114d5ea",
+        "ca502247-dd44-47aa-8022-faf0ce566f11",
+        "5bb221f9-21fd-4ff0-9ccd-caea3cafb0a6"
+      ],
+      "retrospectives": [
+        "63f5f804-8580-4d16-87f2-6fb1b2303afa"
+      ],
+      "tasks": [
+        "f4d4dfc9-bfc6-4b34-acb4-13fe218c09ab",
+        "1dbffe9a-f42e-41ba-96db-168968f54f3c",
+        "b1c438c2-bdad-43f4-b798-75d107a0d157"
+      ],
+      "waiting_items": [
+        "ee243fbc-9d90-41f5-bbe5-d31de45b6138",
+        "f292ce70-290f-4b54-aacd-72ddd4ba4c81"
+      ]
+    },
+    "1128af48-0ad2-4f8a-a3e8-6555fe8d321c": {
+      "projects": [
+        "db609516-e72a-4408-ae1b-0fc8437376de"
+      ]
+    },
+    "cbd0454e-bbc6-471a-9605-9c765cc7c938": {
+      "projects": [
+        "4caddf0b-8e85-45d5-bcad-2004446ea14a"
+      ]
+    },
+    "327cecac-0eef-4aa8-b967-cb615cd004eb": {
+      "activity_log": [
+        "e0c7c5ca-6f0c-4adb-ac95-a4529c22ea61",
+        "0bd83d07-a3f1-42a1-adc4-274e21dd9d25",
+        "eef8f3b2-ce62-4079-9125-8e47cb0c3e46",
+        "31e172e7-c9a9-47ca-a85e-8f126a94ee73",
+        "4e5b81a9-51d5-4a23-b393-3bb347533d36",
+        "4c978be6-af57-49fe-a2ca-67ff45e8b301",
+        "53d92033-4037-406f-8ebd-1bedd8b2ea0a",
+        "0e46a0b5-11c7-428f-a004-e8a12d697395",
+        "59f5f93f-6b04-4a99-95a8-25dabbb2af86",
+        "6a0db5b0-59fd-42e4-9e82-1c247c2abf10",
+        "1087603a-9522-4ae3-bf20-836c544c80f3",
+        "7a2fe8d1-7d9e-41f3-9e6f-819e19b5a625",
+        "a68e371b-0067-4178-b96c-73794499d5af",
+        "84fc1bb7-6f53-4d42-adad-9d75781329bb",
+        "3cde1ddb-132e-40fa-87ab-12ba00ef0270",
+        "8564354f-de91-4495-bfb8-51d1797cdfac",
+        "0a543169-ab74-467a-ba1f-652fa3599a60",
+        "46ced1b8-9df1-450a-ac48-590cc25c24f2",
+        "b34949f7-f81f-4c2a-8d0f-cb4e97c7ff05",
+        "e96abee8-c91a-410f-ab8f-3e4e287f3864",
+        "efb67be2-dee9-4d07-9361-6e5367e67518",
+        "9a994e27-bf90-4173-86f3-698eafebeb08",
+        "acef7a93-0c17-4a96-8858-31057fca0730"
+      ],
+      "decisions": [
+        "cf0fbe0d-3a13-481c-a1f9-909bbe3a2979",
+        "cca23042-4d81-40d8-ac6a-6ad25d8e2fd4"
+      ],
+      "executive_snapshots": [
+        "a03545a0-fe2f-4f90-a6d4-8ac3e7700c87"
+      ],
+      "followups": [
+        "e5101f58-4b6e-41b8-8df8-661fd16432b2"
+      ],
+      "inbox_items": [
+        "e43fbdeb-9564-4395-b47e-00b230637ed1",
+        "ea52e3dd-5756-42d4-bb8b-cb3ec28e5d6a"
+      ],
+      "lesson_evidence_links": [
+        "5df3d730-dc98-48d6-a576-f0b35a41c71c",
+        "a5a4fd39-0f94-43e6-a389-5ad36ef5ca40"
+      ],
+      "operating_commitments": [
+        "3799a794-ec0a-4d47-b584-bff33893b6e1",
+        "53f40f91-182d-4e3e-8f1e-9af5e80c41d5"
+      ],
+      "operating_lessons": [
+        "5cb3c82a-a440-4a8a-ad89-d55975f93919",
+        "abcc9268-2865-4de8-9059-5ad527e6d8d9"
+      ],
+      "operating_risks": [
+        "e8e34db0-2ed2-4e60-b084-32b855592764",
+        "d4055de0-9555-415b-bce9-b22bf946461e",
+        "04652dda-87b0-4908-9f2c-443126026670"
+      ],
+      "operational_dependencies": [
+        "168089a8-114e-41c1-b15a-ca6f6abc7270"
+      ],
+      "quality_incidents": [
+        "9fb8bc79-cb79-40f7-9b83-cdeaab7efdfe",
+        "f84aaf77-2299-429e-823f-2f91496c96ce",
+        "9d811f39-46f4-44f3-97de-025ab215cf9c"
+      ],
+      "retrospectives": [
+        "bcce841a-f559-4db8-834d-d73b08010393"
+      ],
+      "tasks": [
+        "6d62d80b-b1ba-44f1-bfdd-7d155185144f",
+        "3c6d221e-9c35-4302-ae31-f39d61cac6e8"
+      ],
+      "waiting_items": [
+        "88e55519-58cd-4289-96a1-16843dca9000",
+        "898e198b-aab3-4c59-b72e-d7d671cee431"
+      ]
+    },
+    "26b47c90-23d3-49fd-a844-f9c817c12c04": {
+      "activity_log": [
+        "b856a3fa-3de2-4c38-86b3-0ac242821fc7",
+        "2edcec96-605a-4939-88ff-be214ebb70a9",
+        "6543d7b3-c7be-4478-b45f-6617bf6a11ea",
+        "8f8b427e-bd13-42f8-abe2-0e64138c85f7",
+        "f09dca08-fc8d-44c6-a99d-2cb69813f50a",
+        "fc447cdc-f73d-4e5e-9a03-91fa32c68a5f",
+        "f9858a45-079c-489e-9eb3-49bc3822d135",
+        "10631c60-3026-420b-82c7-6e52f506cc6c",
+        "c12fe9ba-47a4-4474-aa68-bd60a5b903f0",
+        "fde5ff29-746b-4727-b549-26667cc6e4b3",
+        "584b15b3-ad0d-4ec5-82cf-0809fb5a77a4",
+        "fa6590ba-f8c6-4338-aaee-7d3057a94942",
+        "89b19037-c044-4746-a6f8-a7d3b83cb251",
+        "b39c49d2-8f30-437f-b527-52e7c9ca3221",
+        "bf304846-2bb9-47b2-877f-810651508d68",
+        "369f85df-e19f-41f6-bf4a-3d8e8d0ce0b1",
+        "3c0d17fb-9ff0-4170-bd08-16b0ccc9d467",
+        "a7865672-2baf-45cc-b386-d42cb79ddec3"
+      ],
+      "decisions": [
+        "b20ead9a-693c-40bf-991d-cbc2b61da22d",
+        "66527377-f007-4cca-a793-50030cd088d3"
+      ],
+      "executive_snapshots": [
+        "e9766b4d-f7bd-460a-b42c-9ecbed17bf7f"
+      ],
+      "followups": [
+        "3a03589b-93f7-4b88-9625-521fc91727cf"
+      ],
+      "inbox_items": [
+        "36f976ff-c393-401e-a118-ca037af27ea7",
+        "182e3d37-3659-4bdc-9e3a-0d3e2dd62d2a"
+      ],
+      "lesson_evidence_links": [
+        "90c7f10e-2435-4cdc-be81-89f73f6fb898",
+        "5cae0bdc-68c1-4b65-9ec6-dab5fd09f01e"
+      ],
+      "operating_commitments": [
+        "5d993b26-b1a2-484b-a19f-ae53ec4701d7",
+        "5dd46675-855b-4ec6-98a7-c767d819aae8"
+      ],
+      "operating_lessons": [
+        "1e98870f-cd8d-4446-bb3c-febe4896fae1",
+        "bb64a56b-048c-4987-adaf-2e3078d89ece"
+      ],
+      "operating_risks": [
+        "1d95107d-b01a-4386-864f-c5fbf07a14e3"
+      ],
+      "quality_incidents": [
+        "6d6a3fa6-6a2f-49c8-a623-c0e7594bcad0",
+        "0ccfaf28-26aa-4546-9d0f-01d05e5a8a90"
+      ],
+      "retrospectives": [
+        "569a9bbf-aa40-4367-b7df-bd3f346b3004"
+      ],
+      "tasks": [
+        "3fbd6109-4738-403f-ac86-f9c09aed1ce3",
+        "a14b0c67-821d-4a78-8bf2-88c0f306fda4"
+      ],
+      "waiting_items": [
+        "be3fc42d-87a0-4910-b89f-11906bdc4426",
+        "b93458ef-32de-4d1a-81e7-fa6227552d6a"
+      ]
+    },
+    "d236118b-bba8-42f4-a8b9-db6feb16615d": {
+      "activity_log": [
+        "5f596171-7f75-4964-a6a6-5af8135e3f4e",
+        "e61ab2be-3b56-4828-aa2a-25f7cee3764a",
+        "9c151b0d-7e1a-49c0-8126-a2f81627f5e4",
+        "e5a7666b-97b1-4e47-9d24-e38b2f5c4ee8",
+        "971597a2-8a84-40ed-96b0-c8ea1033daf0",
+        "fd7c0804-e68e-4ad0-bef8-10664ae701e5",
+        "5ee1123c-311d-4d14-8de3-1189156cc951",
+        "4506a689-28a6-4c61-9934-c4ec8283316a",
+        "d3e7e0c8-0922-4357-9552-f73d6ccddb3d",
+        "5335d8bd-99d9-428f-93e7-b3974671e5c0",
+        "0c1f50b7-23da-428e-ab8b-d43138a0d96b"
+      ],
+      "decisions": [
+        "c39d5591-c33c-4b58-af35-d9799a4c8f3c"
+      ],
+      "operating_commitments": [
+        "ff00b75f-15b2-4cf9-81d9-0f3a036489bc"
+      ],
+      "operating_risks": [
+        "499c437e-5c2c-45d5-a6a0-587bbb752b6c"
+      ],
+      "quality_incidents": [
+        "95c51e62-3871-4e53-a19f-5c69f0ce9a6e",
+        "07f54d7e-14aa-46c4-9aa6-b7aa32d01fd8"
+      ],
+      "tasks": [
+        "8f0bf9dc-ebea-46f1-889b-1d1fd9740d4f"
+      ],
+      "waiting_items": [
+        "20657498-7054-4ab9-a034-9a6295bdfb42"
+      ]
+    },
+    "aba93edb-3c59-45f6-aba6-16352712f842": {
+      "activity_log": [
+        "9b483fed-842e-489a-a872-24bbfe6cfc4b",
+        "013faa6f-75bb-472b-b721-3238e3750927",
+        "f50028e7-004c-4e2f-bf84-97cbead6fcb0"
+      ],
+      "decisions": [
+        "661475d9-6342-4005-b0a5-40dbdf5b811e",
+        "5ef87925-4d3e-433e-92bf-69f0b518530d"
+      ],
+      "inbox_items": [
+        "aa0ffd81-ec5d-4748-8288-df96ca7e30c2"
+      ],
+      "projects": [
+        "73e57284-b4b2-45c2-b085-d3190d0fd851",
+        "4d819370-029f-435d-b23c-db8fbf2751e9"
+      ],
+      "tasks": [
+        "dcaa738b-cab5-42ae-97f1-ac591a9c856d"
+      ],
+      "waiting_items": [
+        "ac315db0-fd8f-44e8-9f54-8187efd38228"
+      ]
+    },
+    "35fdf4f1-8a46-4a47-b349-0cd86161ee41": {
+      "projects": [
+        "91abec08-6786-41f2-95a7-3b5e019decbc"
+      ]
+    },
+    "ba4809c7-9047-48ee-b118-b8603d4fe7ec": {
+      "projects": [
+        "a96797c9-2e11-4f21-b455-b72f4474173c"
+      ]
+    },
+    "4c06a2ba-d42f-446b-b2ef-57d5eb32784b": {
+      "activity_log": [
+        "8f0379e8-b9ca-4528-86d1-c21e9bc33b50",
+        "cf79e72c-d401-4eca-9c10-14ac6e12aecd",
+        "e443b25f-c1f3-4491-b07b-348c79931380",
+        "66f1107c-b47f-4eab-b54b-b4d45d147520",
+        "437a4353-7b5e-46f7-9d17-d4abdd42235d",
+        "860007a9-d819-434b-8f27-5998584e6d54",
+        "8b1ea528-ad62-45b0-b24c-8f8e69e88151",
+        "21c11459-cfe1-4287-872c-1062c869ddd6",
+        "b0b3d001-fb0a-4eaf-9d91-702392e6c5df",
+        "7bde1663-0a7a-43d2-b522-c6702d0ef701",
+        "c552871d-1081-4ee4-a4ea-b975706ef928",
+        "f1c010bf-7539-49b5-9573-d9dadb1a794f",
+        "7238567c-b04a-48de-8755-0bfbdf000219",
+        "411ea820-451f-432f-a328-1bb84d34075d"
+      ],
+      "decisions": [
+        "18100026-bffe-4666-9c18-cfa3991af0d0",
+        "85844f5f-9151-4cd7-9d47-2861bd488172"
+      ],
+      "inbox_items": [
+        "35887f35-c0df-443f-ae85-f9eb9eaa61b2",
+        "49dd9940-8039-4ff7-968f-f0da00301239"
+      ],
+      "operating_commitments": [
+        "433023e5-c896-42eb-94cd-4a2fa1149ddc"
+      ],
+      "operating_risks": [
+        "a38b3138-5387-43fe-9694-c6ff549cd248",
+        "e66f015a-1657-4d9f-b3e0-2c3c1f027310",
+        "5a2134da-3c15-48b5-8d08-50a15c578c3e"
+      ],
+      "operational_dependencies": [
+        "c6d09fd4-85ec-4ecc-ac60-a288365d0c56"
+      ],
+      "quality_incidents": [
+        "88170a67-62fc-46f3-80c3-ca55c8115f5e",
+        "b3630a43-bf68-45a5-8e66-756e087edc0a",
+        "42664d52-6194-4b0e-b09f-bb2c6038ea8f"
+      ],
+      "tasks": [
+        "cf8099f6-802b-41be-9041-ab4682439729"
+      ],
+      "waiting_items": [
+        "46fca9c8-bf5f-4d78-929c-cc28df70c7b5"
+      ]
+    },
+    "b2741f0a-0610-47b9-908e-fd11bfac3d58": {
+      "activity_log": [
+        "f5d570b9-4fe3-43c5-8418-ef140c7c863e",
+        "edccb6a3-b4c5-4fdd-b5d4-672e3f3776ec"
+      ],
+      "decisions": [
+        "80a930b4-0a86-4b9a-99a1-7c81a823509b"
+      ]
+    },
+    "af5863f4-3f2b-4fda-a624-061ffcf75813": {
+      "activity_log": [
+        "f364a52d-2510-4f6f-8f80-d0cb4c6c4ca9",
+        "9c42526b-fcf9-4e5e-a34d-d15665925f31",
+        "2828fa7a-31e0-400d-b899-820069435ed6",
+        "cbb9ffff-4c25-4b5c-a262-7b817e15ac6e",
+        "4d6ce111-23e7-4a4b-ad1b-c23d0a6b6ad9",
+        "e3b26359-126b-4718-a266-6f38dcc4de23",
+        "ef6a82a3-c969-4748-8dd4-09d0052b3830"
+      ],
+      "decisions": [
+        "1dca2ab2-d35c-43a8-9372-18225a19dce7"
+      ],
+      "executive_snapshots": [
+        "a8c26c42-1372-4b16-9b85-2ad2e043ce72"
+      ],
+      "operating_commitments": [
+        "e63fe812-7e2c-4073-a535-135ca89bb179"
+      ],
+      "operating_risks": [
+        "b031a749-e994-46c6-95ab-c92fd023d784"
+      ],
+      "quality_incidents": [
+        "310b9744-3cab-4713-9b6b-5a874d416bfa"
+      ],
+      "waiting_items": [
+        "711cbe12-e35a-4998-a586-ad44898c22ff"
+      ]
+    },
+    "605a3e91-ee2f-4819-867e-f9070c9e111d": {
+      "activity_log": [
+        "d97a6b05-10f0-46f3-9155-8ce6abe6598c",
+        "fe990837-61cd-484b-b2df-523b598b248b",
+        "8266392c-43a3-4d15-a95e-5c6a07fe91c1",
+        "44a1fad4-0478-4475-af79-a1c9e9088909",
+        "f52a1b20-2746-478d-87ad-8222b2fa06e0",
+        "6d37662a-6075-452e-b202-7f77eff49b1c",
+        "1f07b483-0020-41f3-a8aa-9ef297a1ccf5",
+        "9914ecfe-2a63-418f-90d0-aac70ea7a2af",
+        "5e211d64-32ba-4283-8d20-a4fe49def1f8",
+        "b73cf7b0-f4d3-4069-9e34-29582b32e3bc",
+        "59480c91-3c37-4cdb-a104-07c4bd6ef900",
+        "43d7c31f-097b-4c98-b929-b56c02aad24c",
+        "d2dcc3e3-5472-4701-94eb-ce7762fc4417",
+        "a30f5ab8-08fe-4640-ad25-9c3a82c62956",
+        "7281bf1a-c862-4499-a7ae-967675a71016",
+        "0ac0eadc-0a5e-4c37-95f7-c4be28fae532",
+        "f88ab50e-35d5-40c1-bdb3-ec2e47213cc7",
+        "7797ed36-f510-4cee-b69e-b1f8fde57ac1",
+        "4dfc706b-b083-4883-b546-aca8afc2813a",
+        "7c49c796-85d7-435f-9f0a-3fb8a20073eb",
+        "f645506f-9eb2-435b-9dc5-b294d2dd42f8",
+        "9625754a-89e8-4b60-86d9-2cd2ba17bf2f",
+        "d27e53e7-d8ae-45b1-991c-4cf1a987a7fb",
+        "a529d41e-9859-43fd-85bf-aff9edc92236"
+      ],
+      "decisions": [
+        "3a3bd15d-9a59-4fb8-ab3e-cf7ab74fefad",
+        "1f476c36-935c-4d38-be3b-18f1da11a5a6",
+        "938c4aef-fee8-4f29-86ee-d6f20ad41e19"
+      ],
+      "executive_snapshots": [
+        "e261ad3e-fe3f-4025-bb61-e5fbecfa7b30"
+      ],
+      "followups": [
+        "9c0f643e-e7cb-4687-aa54-5d882710d6d1"
+      ],
+      "inbox_items": [
+        "db53531a-adb4-42d3-982e-7e258fbac2b8",
+        "57c3ad06-f816-49f1-a54f-57affcc75d0d"
+      ],
+      "lesson_evidence_links": [
+        "6c49582c-a0f4-474c-bee4-645faa5e433c",
+        "1c58da88-270c-49ce-bc6e-9af0df06ebe7"
+      ],
+      "operating_commitments": [
+        "c3e8a88f-f324-476a-a51c-2eb96b53fc20"
+      ],
+      "operating_lessons": [
+        "4104d76f-80d1-4e04-ac92-c8e36576a5f7",
+        "5d1ab29a-6134-47b5-9aaf-c27cb6cb407d"
+      ],
+      "operating_risks": [
+        "6fbb6479-e1f9-42eb-aaa2-bae9654ed9a7",
+        "10426275-ac43-4422-a1d9-9ae2f5d1c95c",
+        "de02589f-fd1f-48c7-90dd-910eaac71f2b"
+      ],
+      "operational_dependencies": [
+        "c7c96c81-79a1-4345-960c-8295eb1575ec"
+      ],
+      "projects": [
+        "651e5f47-e576-46ad-8d7c-f73f3f19eca2",
+        "c42cde07-3c64-4b6a-a264-be3cad7895d1"
+      ],
+      "quality_incidents": [
+        "cb5bec56-176c-45eb-afd9-e046d74a2e95",
+        "8b456b87-50fe-4814-8911-401f759890e9",
+        "3e1b67a1-4e32-45aa-9fb4-8349d58d48b6",
+        "fedd5d1b-05a5-4d54-a958-5aa3acfd62fc"
+      ],
+      "tasks": [
+        "658ef259-c998-4e00-ae54-b35ef6ea14cc",
+        "c873f390-a182-4df1-8fe4-1ab621f2e6cd"
+      ],
+      "waiting_items": [
+        "1284f261-ddcc-4a94-a761-588ddf0527c0",
+        "b798b664-253f-4e08-ad67-c135e1e09236"
+      ]
+    },
+    "22f339ab-46c3-4971-8162-10d2bc70d7a3": {
+      "projects": [
+        "cbf76365-3863-4055-99b2-5fc0b9d9fbe6"
+      ]
+    },
+    "ecef6179-cc26-45e6-a520-ac42993200f9": {
+      "projects": [
+        "5f61d90f-de3d-4604-acd3-2ec72e711241"
+      ]
+    },
+    "1ef36261-c8ee-4983-ac93-e97472f18bd3": {
+      "activity_log": [
+        "0768b8f5-c5d1-4cc7-bdd5-286bc9aca629",
+        "ee5c7624-508e-402e-bebb-bace01405824",
+        "09c9eff8-a890-4dd4-8a52-e57f3eabdec2",
+        "a3176372-c97d-4a9d-8a57-9d1d0096a5e7",
+        "5ba7380d-3c4d-4053-8272-fc0942f19217",
+        "bbd6ce4c-f473-4980-884c-f57b6ca4b2ee",
+        "1238ec57-f4b7-4a72-b379-b9948771b1b3",
+        "278e9349-179d-4b88-8b71-6c5abdeb70c3",
+        "54bd966b-248c-498d-9033-cad85dc1163e",
+        "b0222552-e23d-4b6b-9e2b-ba95ce188223",
+        "b52a5a7b-a5e1-43d0-8475-1c2239a7f443",
+        "6903d535-74b7-40c6-851a-f924d9b2ad6b",
+        "36700786-9cd7-40ea-8d45-034fb5dd562e",
+        "32b6c94f-ad83-4468-9ee5-fd75cbca6434",
+        "a4ad21db-d513-45d0-919d-8374b21b66a1",
+        "7a19fed6-1091-4c05-a41d-144ab05fe3ea",
+        "995630a9-1406-4484-b2ec-3e32b8721645"
+      ],
+      "decisions": [
+        "12cd715a-fd43-4568-9882-fbabfca2b968",
+        "15854c5c-80df-453e-96bc-0c60878b466b"
+      ],
+      "executive_snapshots": [
+        "dc6956c5-d939-4b4c-9aaf-71a60249b70b"
+      ],
+      "followups": [
+        "0ad0eee9-b29d-4893-afed-893fa060ddd3"
+      ],
+      "lesson_evidence_links": [
+        "91dc841c-6433-4034-b06d-59d9e8c2e7c5",
+        "e692eb8b-80ac-4e58-81a5-a3431c5fa101",
+        "14b742f9-c7a3-420e-9741-e0a40eaaa735"
+      ],
+      "operating_commitments": [
+        "66c1ecb0-daa5-41be-96d9-afd1ead8d043"
+      ],
+      "operating_lessons": [
+        "5878e8e3-a0bc-4195-9496-9dd4f9a0ffc7",
+        "7ab3670b-8f8f-4464-a457-14e2a76ab0c1",
+        "7f7373b1-e9d7-46b4-81f6-6ced79bf623c"
+      ],
+      "operating_risks": [
+        "3e1c8985-194f-4c6b-a905-df241a3e5be6"
+      ],
+      "quality_incidents": [
+        "dd38ac14-9163-47d0-a142-14967e93c5d1",
+        "9a717bb6-77d0-490d-b70c-1c3b98db912c"
+      ],
+      "tasks": [
+        "c168765e-bc10-4792-a8f0-d69f92ae8233"
+      ],
+      "waiting_items": [
+        "31c928c1-0fcb-4f93-b11d-03fe620160a7"
+      ]
+    },
+    "54880f8a-5574-4f64-a001-4f06e0145974": {
+      "activity_log": [
+        "ae054dac-96c4-4b72-8db1-d70379958ee4",
+        "62e557c9-3d3a-4d3b-82d7-f0052e3af0a3",
+        "67e349b2-3a9c-48f5-ad3b-ecf8a94fefe1",
+        "aaaff820-6b09-4ee3-96f2-262e4af82591",
+        "31316ac8-70c8-42dc-a0af-5e924158dfe9",
+        "8e5fb633-a9d2-4e72-906f-6d93ea5205b0",
+        "bdd4f616-e400-45ed-80ac-58e824b6c2f3",
+        "bbb243e6-7013-4b4f-892d-c42d1a2f670d",
+        "1ebe7add-aa34-44b4-abca-8d1e52c9f15e",
+        "3fb310d9-6e11-47bc-8a8c-42978d565631",
+        "74350b97-2b60-49d9-b73a-ff6ee7c489ad",
+        "078bfddf-2f0b-4233-8f21-c8504c068e20",
+        "25fda727-4d28-4a9e-a0c0-1bc0d3f6dec8",
+        "ef01067f-eb4a-4868-afe7-24e87fa0f5c2",
+        "771a6220-3ecb-4818-973d-dbc139b88a26"
+      ],
+      "decisions": [
+        "b24804eb-821e-4dc5-a75c-4cea85e084f9"
+      ],
+      "executive_snapshots": [
+        "35d42f3c-eda0-4261-92ee-a800b7c77a4c"
+      ],
+      "followups": [
+        "554e2e60-4af4-484d-bc48-2755d8893736"
+      ],
+      "lesson_evidence_links": [
+        "810127a5-50a9-4583-91e8-1b1983e69e45",
+        "c8613952-1111-432b-a16e-7683c7afc3b3"
+      ],
+      "operating_commitments": [
+        "9c633f2f-3ad8-4561-bcec-34a134b2e6bb"
+      ],
+      "operating_lessons": [
+        "75229adf-2148-4e63-85d2-93655be0deda",
+        "dfe874cb-49a6-464e-852c-b447ae7e25b2"
+      ],
+      "operating_risks": [
+        "3805752b-9772-4be5-9853-efd165dc753f"
+      ],
+      "quality_incidents": [
+        "f9d6d7ef-b1a4-4aa5-8736-ba8e540c7250",
+        "851cb20b-5413-4535-9070-18b3b577d4c1"
+      ],
+      "retrospectives": [
+        "ad3db8eb-97a5-4281-ad38-b6a844ed7970"
+      ],
+      "tasks": [
+        "67da7f5b-99ce-4a8e-a393-a0655f2f62bc"
+      ],
+      "waiting_items": [
+        "a74ed708-f250-4792-b006-ca78f97a65a3"
+      ]
+    }
+  }
+}

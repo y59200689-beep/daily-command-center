@@ -1,3 +1,4 @@
+import { emitFounderNotifications } from "@/lib/founder-os/notifications";
 import { NextResponse } from "next/server";
 import { syncGoogleCalendar } from "@/lib/integrations/google-calendar";
 import { syncProvider } from "@/lib/integrations/sync";
@@ -25,5 +26,18 @@ export async function GET(request: Request) {
     const slot=financialAutomationDue(automation.type,automation.schedule_or_condition??{},profile.data?.timezone??'UTC',automation.last_run_at);
     if(slot){attempted++;await runFinancialAutomation(client,automation.user_id,automation.id,slot);}
   }catch{failed++;}}
+  // Include owners without an external connection; their internal deadlines still matter.
+  for (let offset = 0; ; offset += 100) {
+    const profiles = await client.from("profiles").select("id,timezone").order("id").range(offset, offset + 99);
+    if (profiles.error) { failed++; break; }
+    for (const profile of profiles.data ?? []) {
+      try {
+        const today = new Intl.DateTimeFormat("en-CA", { timeZone: profile.timezone || "UTC", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+        const result = await emitFounderNotifications(client, profile.id, today);
+        if (result.unavailable) failed++;
+      } catch { failed++; }
+    }
+    if ((profiles.data?.length ?? 0) < 100) break;
+  }
   return NextResponse.json({ attempted, failed });
 }

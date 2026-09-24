@@ -1,0 +1,16 @@
+import { test } from "@playwright/test";
+import { snapshotRegistry } from "../../scripts/e2e/registry.mjs";
+import { businessWorkflow } from "./workflows";
+test.afterEach(()=>snapshotRegistry());
+test("Phase 2A business and KPI authenticated workflow",async({page})=>{test.setTimeout(300000);await businessWorkflow(page);});
+import { clientSecretCheck } from "../tier1/security";
+import { kpiIsolation } from "./security";
+test("Phase 2A normal-user KPI isolation and client credential boundary",async({page})=>{test.setTimeout(180000);await kpiIsolation();await clientSecretCheck(page);});
+import { infrastructureWorkflow } from "./workflows";
+test("Phase 2B infrastructure access and technical health",async({page})=>{test.setTimeout(300000);await infrastructureWorkflow(page);});
+import { personalWorkflow } from './workflows';
+test('Phase 2C personal wealth mobility and documents',async({page})=>{test.setTimeout(300000);await personalWorkflow(page);});
+import { relationshipWorkflow } from './workflows';
+test('Phase 2D relationships commitments capture and propagation',async({page})=>{test.setTimeout(300000);await relationshipWorkflow(page);});
+import { personalIsolation } from './security';
+test('Phase 2C normal-user personal and infrastructure isolation',async({page})=>{test.setTimeout(180000);await personalIsolation();await clientSecretCheck(page);});

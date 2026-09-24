@@ -1,4 +1,5 @@
 "use client";
+import { LessonProposal } from "@/features/founder-os/workflow-panel";
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
@@ -62,7 +63,7 @@ export function LearningForecastView() {
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
             {forecasts.map((f) => (
-              <div key={f.id} className="learning-card">
+              <div key={f.id} className="learning-card"><LessonProposal kind="forecast" id={f.id} initial={f.calibration_proposal ?? ""} />
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                   <div>
                     <div style={{ display: "flex", gap: "0.5rem", alignItems: "center", marginBottom: "0.25rem" }}>

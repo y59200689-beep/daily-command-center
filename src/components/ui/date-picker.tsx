@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useDeferredEffect } from "@/lib/use-deferred-effect";
 import { Icons } from "@/components/icons";
 import { cn } from "@/lib/utils";
 
@@ -47,7 +48,6 @@ export function DatePicker({
   value = "",
   onChange,
   placeholder = "Select date",
-  required,
   className,
   disabled = false,
 }: DatePickerProps) {
@@ -62,12 +62,12 @@ export function DatePicker({
   const [viewDate, setViewDate] = useState(() => selectedDate || new Date());
 
   // Sync viewed month when opened or value changes
-  useEffect(() => {
+  useDeferredEffect(useCallback(() => {
     if (open && value) {
       const parsed = parseDateKey(value);
       if (parsed) setViewDate(parsed);
     }
-  }, [open, value]);
+  }, [open, value]));
 
   // Handle clicking outside to close
   useEffect(() => {
@@ -146,6 +146,7 @@ export function DatePicker({
 
   return (
     <div className={cn("date-picker-wrap", className)} ref={containerRef}>
+      <div className="date-picker-control">
       <button
         id={id}
         type="button"
@@ -161,7 +162,9 @@ export function DatePicker({
         <span className={cn("date-picker-trigger__label", !value && "is-placeholder")}>
           {value ? formatHuman(value) : placeholder}
         </span>
-        {value && !disabled ? (
+        {(!value || disabled) && <Icons.ChevronDown size={14} className="date-picker-trigger__chevron" />}
+      </button>
+        {value && !disabled && (
           <button
             type="button"
             className="date-picker-trigger__clear"
@@ -171,10 +174,8 @@ export function DatePicker({
           >
             <Icons.X size={13} />
           </button>
-        ) : (
-          <Icons.ChevronDown size={14} className="date-picker-trigger__chevron" />
         )}
-      </button>
+      </div>
 
       {open ? (
         <div className="date-picker-popover" role="dialog" aria-label="Calendar date picker">

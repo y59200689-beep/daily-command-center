@@ -27,7 +27,7 @@ export function PacerCard() {
   // Quick form state
   const [steps, setSteps] = useState("10000");
   const [distanceKm, setDistanceKm] = useState("7.5");
-  const [durationMin, setDurationMin] = useState("60");
+  const [durationMin] = useState("60");
   const [calories, setCalories] = useState("350");
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
 

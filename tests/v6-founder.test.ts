@@ -27,7 +27,7 @@ test("V6 migration is additive and owner-scopes the company, commerce, product, 
 test("V6 founder routes use server authenticated owner-scoped company records", async () => {
   const [dashboard, records] = await Promise.all([readFile(new URL("../src/app/api/founder/route.ts", import.meta.url), "utf8"), readFile(new URL("../src/app/api/founder/[resource]/route.ts", import.meta.url), "utf8")]);
   for (const source of [dashboard, records]) { assert.match(source, /requireUser\(\)/); assert.match(source, /eq\("user_id", userId\)/); }
-  assert.match(records, /ownedCompany/); assert.match(records, /supplier_records/); assert.match(records, /product_roadmap_items/);
+  const registry = await readFile(new URL("../src/lib/founder-os/legacy.ts", import.meta.url), "utf8"); assert.match(records, /ownedCompany/); assert.match(registry, /supplier_records/); assert.match(registry, /product_roadmap_items/);
 });
 test("V6 founder dashboard gives source-unavailable states rather than production-looking demo values", async () => {
   const source = await readFile(new URL("../src/features/founder/founder-dashboard.tsx", import.meta.url), "utf8");
@@ -81,11 +81,11 @@ test("V6 supplier order UI explains non-automatic stock handling and refreshes a
 });
 test("V6 Today founder signals are owner-scoped and capped to urgent production conditions", async () => {
   const [route, dashboard] = await Promise.all([readFile(new URL("../src/app/api/today/route.ts", import.meta.url), "utf8"), readFile(new URL("../src/features/today/today-dashboard.tsx", import.meta.url), "utf8")]);
-  assert.match(route, /founderSignals/); assert.match(route, /slice\(0,2\)/); assert.match(route, /eq\("user_id",userId\)/); assert.match(dashboard, /Founder attention/);
+  assert.match(route, /founderSignals/); assert.match(route, /slice\(0,\s*2\)/); assert.match(route, /eq\("user_id",\s*userId\)/); assert.match(dashboard, /Founder attention/);
 });
 test("V6 weekly review extends the existing review with bounded company commerce, reliability, and AI metrics", async () => {
   const [route, page] = await Promise.all([readFile(new URL("../src/app/api/intelligence/review/weekly/route.ts", import.meta.url), "utf8"), readFile(new URL("../src/features/intelligence/intelligence-pages.tsx", import.meta.url), "utf8")]);
-  assert.match(route, /withFounderReview/); assert.match(route, /company_funnel_snapshots/); assert.match(route, /ai_usage_records/); assert.match(page, /Para Officinal/);
+  assert.match(route, /withFounderReview/); assert.match(route, /company_funnel_snapshots/); assert.match(route, /ai_usage_records/); assert.match(page, /Active businesses/);
 });
 test("V6 GitHub sync persists bounded normalized issue and pull-request detail", async () => {
   const [migration, sync, route] = await Promise.all([readFile(new URL("../supabase/migrations/20260906150000_v6_github_work_items_and_receiving.sql", import.meta.url), "utf8"), readFile(new URL("../src/lib/integrations/sync.ts", import.meta.url), "utf8"), readFile(new URL("../src/app/api/founder/development/route.ts", import.meta.url), "utf8")]);

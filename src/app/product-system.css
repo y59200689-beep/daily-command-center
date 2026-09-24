@@ -479,6 +479,9 @@ body { background: var(--canvas); font-size: 13px; letter-spacing: -.005em; }
 .task-detail-actions__spacer { flex:1; }
 
 .date-picker-wrap { position: relative; width: 100%; }
+.date-picker-control { position: relative; }
+.date-picker-control .date-picker-trigger.has-value { padding-right: 42px; }
+.date-picker-control > .date-picker-trigger__clear { position: absolute; right: 2px; top: 50%; transform: translateY(-50%); width: 32px; height: 32px; }
 .date-picker-trigger { width: 100%; min-height: 34px; display: flex; align-items: center; gap: 8px; padding: 5px 10px; border: 1px solid var(--line-strong); border-radius: var(--radius-control); background: var(--surface); color: var(--ink); font-size: 12px; font-weight: 500; text-align: left; cursor: pointer; transition: border-color .15s ease, box-shadow .15s ease, background-color .15s ease; }
 .date-picker-trigger:hover { border-color: color-mix(in srgb, var(--attention) 40%, var(--line-strong)); }
 .date-picker-trigger.is-open, .date-picker-trigger:focus-visible { border-color: var(--attention); outline: 0; box-shadow: 0 0 0 3px var(--attention-soft); }

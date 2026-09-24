@@ -1,3 +1,5 @@
+import { loadFounderState } from "@/lib/founder-os/server";
+import type { Signal } from "@/lib/founder-os/intelligence";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   classifyActionRisk,
@@ -12,6 +14,7 @@ import {
 import { sendApprovedGmailDraft } from "./integrations/gmail";
 
 export interface ChiefOfStaffContext {
+  founderRecommendations: Signal[];
   nextAction: NextChiefAction;
   topMetrics: {
     preparedCount: number;
@@ -67,6 +70,7 @@ export async function loadChiefOfStaffContext(
   client: SupabaseClient,
   userId: string
 ): Promise<ChiefOfStaffContext> {
+  const founderPromise = loadFounderState(client, userId).catch(() => null);
   // Parallel bounded queries with graceful fallbacks
   const [
     approvalsRes,
@@ -165,6 +169,7 @@ export async function loadChiefOfStaffContext(
   };
 
   return {
+    founderRecommendations: (await founderPromise)?.attention ?? [],
     nextAction,
     topMetrics,
     proposals,

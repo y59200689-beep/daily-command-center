@@ -1,3 +1,5 @@
+import { compactFounderState } from "@/lib/founder-os/intelligence";
+import { loadFounderState } from "@/lib/founder-os/server";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { apiError } from "@/lib/api";
@@ -44,6 +46,8 @@ export async function GET() {
     const timezone = profile.data?.timezone ?? "UTC";
     const today = dateInTimezone(new Date(), timezone);
     const { start, end } = dayBounds(today, timezone);
+    const financialPromise = optionalFinancialOverview(supabase, userId);
+    const founderStatePromise = loadFounderState(supabase, userId, today, financialPromise).then(compactFounderState).catch(() => null);
 
     const safe = async <T>(promise: PromiseLike<{ data: T | null; error: unknown }>) => {
       try {
@@ -149,7 +153,7 @@ export async function GET() {
     // Safe Financial overview
     let financial: Awaited<ReturnType<typeof optionalFinancialOverview>> = null;
     try {
-      financial = await optionalFinancialOverview(supabase, userId);
+      financial = await financialPromise;
     } catch {
       financial = null;
     }
@@ -596,6 +600,7 @@ export async function GET() {
 
     return NextResponse.json({
       date: today,
+      founderState: await founderStatePromise,
       profile: profile.data,
       priorities,
       todayTasks,

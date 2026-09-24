@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { AttachmentSection } from "@/components/attachment-section";
 import { Icons } from "@/components/icons";
@@ -37,16 +38,16 @@ type Config = {
 const f = (key: string, label: string, type?: Field["type"], options?: string[], required = false, relation?: Field["relation"]): Field => ({ key, label, type, options, required, relation });
 const c = (eyebrow: string, title: string, intro: string, action: string, columns: string[], titleField: string, secondary: string, tertiary: string, fields: Field[]): Config => ({ eyebrow, title, intro, action, columns, titleField, secondary, tertiary, fields });
 const configs: Record<DomainKey, Config> = {
-    tasks: c("Execution", "Tasks", "A deliberate list of commitments—not a graveyard of good intentions.", "New task", ["Task", "Status", "Due"], "title", "status", "due_date", [f("title", "Task", "text", undefined, true), f("description", "Notes", "textarea"), f("status", "Status", "select", ["inbox", "planned", "in_progress", "waiting", "blocked", "completed", "cancelled"]), f("priority", "Priority", "select", ["none", "low", "medium", "high", "urgent"]), f("due_date", "Due date", "date")]),
-    inbox: c("Triage", "Inbox", "Capture quickly, then decide what each item becomes.", "Capture", ["Captured item", "Detected as", "Captured"], "raw_text", "detected_type", "created_at", [f("raw_text", "Capture", "textarea", undefined, true), f("detected_type", "Type", "select", ["inbox", "task", "note", "idea", "decision", "follow-up"]), f("status", "Triage status", "select", ["unprocessed", "processed", "archived"])]),
+    tasks: c("Execution", "Tasks", "A deliberate list of commitments—not a graveyard of good intentions.", "New task", ["Task", "Status", "Due"], "title", "status", "due_date", [f("title", "Task", "text", undefined, true), f("description", "Notes", "textarea"), f("status", "Status", "select", ["inbox", "planned", "in_progress", "waiting", "blocked", "completed", "cancelled"]), f("priority", "Priority", "select", ["none", "low", "medium", "high", "urgent"]), f("work_classification", "Work classification", "select", ["standard", "founder_only", "delegate", "automate_candidate"]), f("due_date", "Due date", "date")]),
+    inbox: c("Triage", "Inbox", "Capture quickly, then decide what each item becomes.", "Capture", ["Captured item", "Detected as", "Captured"], "raw_text", "detected_type", "created_at", [f("raw_text", "Capture", "textarea", undefined, true), f("detected_type", "Type", "select", ["inbox", "task", "note", "idea", "decision", "follow-up", "issue", "risk", "commitment", "contact", "experiment"]), f("status", "Triage status", "select", ["unprocessed", "processed", "archived"])]),
     projects: c("Workspace", "Projects", "See momentum, risk, and the next meaningful move.", "New project", ["Project", "Status", "Progress"], "name", "status", "progress", [f("name", "Project name", "text", undefined, true), f("description", "Description", "textarea"), f("status", "Status", "select", ["idea", "planning", "active", "paused", "completed", "archived"]), f("progress", "Progress", "number"), f("value_amount", "Project value", "number"), f("currency", "Currency"), f("target_date", "Target date", "date")]),
     clients: c("Relationships", "Clients", "Keep promises, context, and follow-ups close together.", "New client", ["Client", "Company", "Next contact"], "name", "company", "next_follow_up_at", [f("name", "Client name", "text", undefined, true), f("company", "Company"), f("email", "Email"), f("phone", "Phone"), f("notes", "Notes", "textarea")]),
     followups: c("Relationships", "Follow-ups", "Keep every promised check-in visible.", "New follow-up", ["Follow-up", "Status", "Due"], "title", "status", "due_at", [f("title", "Follow-up", "text", undefined, true), f("due_at", "Due", "datetime-local"), f("status", "Status", "select", ["open", "done", "cancelled"]), f("notes", "Notes", "textarea")]),
     waiting: c("Open loops", "Waiting", "Know exactly where momentum depends on someone else.", "Track request", ["Waiting for", "Contact", "Expected"], "title", "contact", "expected_by", [f("title", "Waiting for", "text", undefined, true), f("contact", "Contact"), f("expected_by", "Expected by", "datetime-local"), f("status", "Status", "select", ["waiting", "received", "cancelled"]), f("notes", "Notes", "textarea")]),
     notes: c("Second brain", "Notes", "Working knowledge with context and a way back to the source.", "New note", ["Note", "Category", "Updated"], "title", "category", "updated_at", [f("title", "Title", "text", undefined, true), f("content", "Note", "textarea"), f("category", "Category")]),
-    goals: c("Direction", "Goals", "Connect the week in front of you to the quarter you want.", "New goal", ["Goal", "Period", "Progress"], "title", "period", "progress", [f("title", "Goal", "text", undefined, true), f("description", "Description", "textarea"), f("period", "Period", "select", ["quarter", "month", "week"]), f("target_date", "Target date", "date"), f("progress", "Progress", "number")]),
+    goals: c("Direction", "Goals", "Connect the week in front of you to the quarter you want.", "New goal", ["Goal", "Period", "Progress"], "title", "period", "progress", [f("title", "Goal", "text", undefined, true), f("description", "Description", "textarea"), f("period", "Period", "select", ["year", "quarter", "month", "week"]), f("target_date", "Target date", "date"), f("progress", "Progress", "number")]),
     ideas: c("Possibilities", "Idea vault", "Interesting is enough. Ideas do not need to become obligations.", "Capture idea", ["Idea", "Potential", "State"], "title", "potential", "status", [f("title", "Idea", "text", undefined, true), f("description", "Description", "textarea"), f("potential", "Potential", "select", ["low", "medium", "high", "huge"]), f("status", "State")]),
-    decisions: c("Memory", "Decision log", "Keep the why, impact, and review point—not just the outcome.", "Log decision", ["Decision", "Impact", "Review"], "title", "impact", "review_date", [f("title", "Decision title", "text", undefined, true), f("decision", "Outcome", "textarea", undefined, true), f("reasoning", "Reasoning", "textarea"), f("impact", "Impact", "select", ["low","medium","high","critical"]), f("confidence", "Confidence", "select", ["low","medium","high"]), f("status", "Status", "select", ["active","review_due","superseded","reversed","archived"]), f("decision_date", "Date", "date"), f("review_date", "Review date", "date")]),
+    decisions: c("Memory", "Decision log", "Keep the why, impact, and review point—not just the outcome.", "Log decision", ["Decision", "Impact", "Review"], "title", "impact", "review_date", [f("title", "Decision title", "text", undefined, true), f("decision", "Outcome", "textarea", undefined, true), f("reasoning", "Reasoning", "textarea"), f("impact", "Impact", "select", ["low","medium","high","critical"]), f("confidence", "Confidence", "select", ["low","medium","high"]), f("status", "Status", "select", ["active","review_due","superseded","reversed","archived","proposed","under_review","decided","implemented","validated"]), f("decision_date", "Date", "date"), f("review_date", "Review date", "date")]),
     prompts: c("Library", "Prompts", "Reusable instructions with variables, versions, and a record of what works.", "New prompt", ["Prompt", "Category", "Uses"], "title", "category", "usage_count", [f("title", "Prompt name", "text", undefined, true), f("prompt_text", "Instructions", "textarea", undefined, true), f("category", "Category", "select", ["Coding","Marketing","Design","Image Generation","Business","Research","Writing","Other"]), f("description", "Description", "textarea"), f("rating", "Usefulness rating (1–5)", "number")]),
     invoices: c("Business pulse · MAD", "Invoices", "Track what has been billed, paid, and linked to client work.", "New invoice", ["Invoice", "Status", "Remaining"], "invoice_number", "status", "amount_remaining", [f("invoice_number", "Invoice number"), f("title", "Title", "text", undefined, true), f("description", "Description", "textarea"), f("subtotal", "Subtotal", "number", undefined, true), f("tax_amount", "Tax", "number"), f("discount_amount", "Discount", "number"), f("currency", "Currency"), f("status", "Status", "select", ["draft", "sent", "partial", "paid", "overdue", "cancelled"]), f("issue_date", "Issue date", "date"), f("due_date", "Due date", "date"), f("external_reference", "External reference"), f("notes", "Notes", "textarea")]),
     payments: c("Cash received", "Payments", "Immutable receipts recorded against an owned invoice.", "Record payment", ["Reference", "Method", "Amount"], "reference", "payment_method", "amount", [f("invoice_id","Invoice ID","text",undefined,true),f("amount","Amount","number",undefined,true),f("currency","Currency"),f("payment_date","Payment date","date",undefined,true),f("payment_method","Payment method"),f("reference","Reference"),f("notes","Notes","textarea")]),
@@ -63,10 +64,14 @@ const configs: Record<DomainKey, Config> = {
     settings: c("System", "Settings", "Tune the command center to the way you work.", "Save changes", [], "title", "status", "created_at", [])
 };
 const relationshipFields: Partial<Record<DomainKey, Field[]>> = { tasks: [f("project_id", "Project", "relation", undefined, false, "projects"), f("client_id", "Client", "relation", undefined, false, "clients"), f("goal_id", "Goal", "relation", undefined, false, "goals")], projects: [f("client_id", "Client", "relation", undefined, false, "clients"), f("goal_id", "Goal", "relation", undefined, false, "goals")], followups: [f("client_id", "Client", "relation", undefined, false, "clients"), f("project_id", "Project", "relation", undefined, false, "projects")], waiting: [f("client_id", "Client", "relation", undefined, false, "clients"), f("project_id", "Project", "relation", undefined, false, "projects")], notes: [f("project_id", "Project", "relation", undefined, false, "projects"),f("client_id","Client","relation",undefined,false,"clients")], ideas: [f("project_id", "Project", "relation", undefined, false, "projects")], decisions: [f("project_id", "Project", "relation", undefined, false, "projects"),f("client_id","Client","relation",undefined,false,"clients")], prompts: [f("project_id", "Project", "relation", undefined, false, "projects"),f("client_id","Client","relation",undefined,false,"clients"),f("campaign_id","Campaign","relation",undefined,false,"campaigns")], invoices: [f("client_id", "Client", "relation", undefined, false, "clients"), f("project_id", "Project", "relation", undefined, false, "projects")], expenses: [f("client_id", "Client", "relation", undefined, false, "clients"),f("project_id", "Project", "relation", undefined, false, "projects")],subscriptions:[f("project_id","Project","relation",undefined,false,"projects")],campaigns:[f("client_id","Client","relation",undefined,true,"clients"),f("project_id","Project","relation",undefined,false,"projects")], finance: [f("client_id", "Client", "relation", undefined, false, "clients"), f("project_id", "Project", "relation", undefined, false, "projects")], content: [f("client_id", "Client", "relation", undefined, false, "clients"), f("project_id", "Project", "relation", undefined, false, "projects"),f("campaign_id","Campaign","relation",undefined,false,"campaigns"),f("prompt_id","Prompt","relation",undefined,false,"prompts")] };
+configs.decisions.fields.push(f("options_considered", "Options considered", "textarea"), f("selected_option", "Selected option"), f("assumptions", "Assumptions", "textarea"), f("expected_outcome", "Expected outcome", "textarea"), f("expected_metric", "Expected metric"), f("actual_outcome", "Actual outcome", "textarea"), f("variance", "Variance from expectation", "textarea"), f("lesson_learned", "Lesson (proposed to Operating Memory)", "textarea"), f("owner_label", "Owner"), f("deadline", "Decision deadline", "date"), f("reversibility", "Reversibility", "select", ["reversible", "costly", "irreversible"]), f("financial_exposure", "Financial exposure", "number"), f("currency", "Currency"));
+configs.waiting.fields.push(f("followup_date", "Follow-up date", "date"), f("importance", "Importance", "select", ["medium", "low", "high", "critical"]), f("direction", "Direction", "select", ["owed_to_me", "owed_by_me"]), f("owner_label", "Owner"), f("impact", "Impact", "textarea"), f("blocking_revenue", "Blocking revenue", "select", ["false", "true"]));
+configs.content.fields.push(f("audience", "Audience"), f("impressions", "Impressions / views", "number"), f("clicks", "Clicks", "number"), f("leads", "Leads", "number"), f("conversions", "Conversions", "number"), f("attributed_revenue", "Attributed revenue", "number"), f("production_cost", "Production cost", "number"), f("metric_currency", "Metrics currency"), f("learning", "Learning", "textarea"));
+configs.fitness.fields.push(f("perceived_exertion", "Perceived exertion (1–10)", "number"));
 configs.tasks.fields.push(f("daily_position", "Today’s win position", "select", ["", "1", "2", "3"]));
 for (const [key, fields] of Object.entries(relationshipFields))
     configs[key as DomainKey].fields.push(...fields);
-const emptyValues = (config: Config) => Object.fromEntries(config.fields.map((field) => [field.key, field.options?.[0] ?? (field.key === "currency" ? "MAD" : field.key === "timezone" ? "Africa/Casablanca" : "")]));
+const emptyValues = (config: Config) => Object.fromEntries(config.fields.map((field) => [field.key, field.options?.[0] ?? (["currency", "metric_currency"].includes(field.key) ? "MAD" : field.key === "timezone" ? "Africa/Casablanca" : "")]));
 const display = (value: unknown) => value == null || value === "" ? "—" : String(value).replaceAll("_", " ");
 export function isTaskPastDue(record: DomainRecord): boolean {
     const status = String(record.status ?? "");
@@ -97,6 +102,7 @@ export function DomainPage({ domain, embedded = false, onMutationSuccess, refres
     onMutationSuccess?: () => void | Promise<void>;
     refreshToken?: number;
 }) {
+    const router = useRouter();
     const config = configs[domain];
     const [records, setRecords] = useState<DomainRecord[]>([]);
     const [loading, setLoading] = useState(true);
@@ -130,7 +136,7 @@ export function DomainPage({ domain, embedded = false, onMutationSuccess, refres
         return "month";
     });
 
-    useEffect(() => {
+    useDeferredEffect(useCallback(() => {
         try {
             const params = new URLSearchParams(window.location.search);
             const viewParam = params.get("view");
@@ -152,7 +158,7 @@ export function DomainPage({ domain, embedded = false, onMutationSuccess, refres
                 }
             }
         } catch {}
-    }, []);
+    }, []));
 
     const handleSetTaskView = (view: "list" | "board") => {
         setTaskView(view);
@@ -387,6 +393,8 @@ export function DomainPage({ domain, embedded = false, onMutationSuccess, refres
             const fuRes = await fetch("/api/entities/followups", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ title: rawText, status: "open" }) });
             if (!fuRes.ok) { const d = await fuRes.json(); showToast(d.error ?? "Follow-up could not be created.", "error"); return; }
         }
+        const operatingRoutes: Record<string, string> = { issue: "/issues", risk: "/risks/register", commitment: "/commitments", contact: "/relationships", experiment: "/experiments" };
+        if (operatingRoutes[detectedType]) { router.push(`${operatingRoutes[detectedType]}?capture=${record.id}`); return; }
         // Mark inbox item as processed
         const response = await fetch(`/api/entities/inbox/${record.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: "processed" }) });
         const data = await response.json();
@@ -622,7 +630,6 @@ function TaskBoard({
     onAddTaskInStatus: (status: string) => void;
     empty: ReactNode;
 }) {
-    if (!rows.length) return <div className="data-surface">{empty}</div>;
     const columns = ["inbox", "planned", "in_progress", "waiting", "still_waiting", "blocked", "completed", "cancelled"] as const;
 
     const [columnColors, setColumnColors] = useState<Record<string, string>>({});
@@ -632,14 +639,16 @@ function TaskBoard({
     const [dragOverCardId, setDragOverCardId] = useState<string | null>(null);
     const [dropPosition, setDropPosition] = useState<"before" | "after" | null>(null);
 
-    useEffect(() => {
+    useDeferredEffect(useCallback(() => {
         try {
             const saved = localStorage.getItem(COLUMN_COLORS_KEY);
             if (saved) {
                 setColumnColors(JSON.parse(saved));
             }
         } catch {}
-    }, []);
+    }, []));
+
+    if (!rows.length) return <div className="data-surface">{empty}</div>;
 
     const handleSelectColor = (status: string, hex: string) => {
         setColumnColors((prev) => {
@@ -949,13 +958,13 @@ function QuickCreateRelationModal({
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState("");
 
-    useEffect(() => {
+    useDeferredEffect(useCallback(() => {
         if (open) {
             setName("");
             setSecondary(relation === "goals" ? "quarter" : "");
             setError("");
         }
-    }, [open, relation]);
+    }, [open, relation]));
 
     if (!open || !relation) return null;
 
@@ -1282,7 +1291,7 @@ function TaskDetailForm({ fields, values, setValues, editing, saving, error, arc
                 {renderField("daily_position")}
                 {renderField("project_id")}
                 {renderField("client_id")}
-                {renderField("goal_id")}
+                {renderField("goal_id")}{renderField("work_classification")}
             </div>
 
             {/* ── Recurrence Panel ───────────────────────────────── */}

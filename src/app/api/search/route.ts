@@ -7,7 +7,8 @@ export async function GET(request: Request) {
     const { supabase, userId } = await requireUser();
     const query = new URL(request.url).searchParams.get("q")?.trim() ?? "";
     if (query.length < 2) return NextResponse.json({ data: [] });
-    const [workspace, products, suppliers, orders, roadmap, incidents, support, githubWork, marketing, trips, segments, reservations, documents, visas, renewals, admin, dates, routines] = await Promise.all([
+    const [operating, workspace, products, suppliers, orders, roadmap, incidents, support, githubWork, marketing, trips, segments, reservations, documents, visas, renewals, admin, dates, routines] = await Promise.all([
+      supabase.rpc("search_founder_records", { search_query: query.slice(0, 240), result_limit: 12 }),
       supabase.rpc("search_workspace", { search_query: query, result_limit: 30 }),
       supabase.from("product_catalog_refs").select("id,name,sku").eq("user_id", userId).ilike("name", `%${query.replaceAll("%", "\\%")}%`).limit(8),
       supabase.from("supplier_records").select("id,name,contact_reference").eq("user_id", userId).ilike("name", `%${query.replaceAll("%", "\\%")}%`).limit(8),
@@ -141,6 +142,6 @@ export async function GET(request: Request) {
       ...(cAudits.data ?? []).map((row) => ({ entity_type: "inventory_audit", entity_id: row.id, title: `Audit · ${row.scope}`, snippet: row.status })),
       ...(cAdjustments.data ?? []).map((row) => ({ entity_type: "inventory_adjustment", entity_id: row.id, title: `Adjustment · ${row.reason}`, snippet: row.product_id })),
     ];
-    return NextResponse.json({ data: [...financialRows,...(workspace.data ?? []), ...knowledgeRows, ...founderRows, ...strategyRows, ...growthRows, ...operationsRows, ...teamRows, ...successRows, ...commerceRows].slice(0, 30) });
+    return NextResponse.json({ data: [...(operating.data ?? []), ...financialRows,...(workspace.data ?? []), ...knowledgeRows, ...founderRows, ...strategyRows, ...growthRows, ...operationsRows, ...teamRows, ...successRows, ...commerceRows].slice(0, 30) });
   } catch (error) { return NextResponse.json({ error: error instanceof Error && error.message === "AUTH_REQUIRED" ? "Authentication required." : "Search is unavailable." }, { status: error instanceof Error && error.message === "AUTH_REQUIRED" ? 401 : 500 }); }
 }

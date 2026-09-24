@@ -27,7 +27,7 @@ test("tasks provide grouped list, board, server filters, sorting, and cancelled 
   assert.match(domains, /Tasks grouped by status/);
   assert.match(domains, /aria-pressed=\{taskView === "list"\}/);
   assert.match(domains, /aria-label="Sort tasks"/);
-  assert.match(domains, /const columns = \["inbox", "planned", "in_progress", "waiting", "blocked", "completed", "cancelled"\]/);
+  assert.match(domains, /const columns = \["inbox", "planned", "in_progress", "waiting", "still_waiting", "blocked", "completed", "cancelled"\]/);
   assert.match(entityRoute, /status: request\.nextUrl\.searchParams\.get\("status"\)/);
   assert.match(entityRoute, /sort: request\.nextUrl\.searchParams\.get\("sort"\)/);
 });

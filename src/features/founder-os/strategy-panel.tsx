@@ -1,0 +1,13 @@
+"use client";
+import { useCallback, useState } from "react";
+import { useDeferredEffect } from "@/lib/use-deferred-effect";
+import { announceWorkspaceMutation } from "@/lib/workspace-mutations";
+import { Button } from "@/components/ui/button";
+type Data = { links: { id: string; label: string; target_type: string }[]; options: Record<string, { id: string; label: string }[]> };
+export function StrategyPanel({ type, id }: { type: string; id: string }) {
+ const [data, setData] = useState<Data | null>(null), [error, setError] = useState(""), [query, setQuery] = useState(""), [target, setTarget] = useState("goal"), [selection, setSelection] = useState(""), [busy, setBusy] = useState(false);
+ const load = useCallback(async () => { try { const res = await fetch(`/api/founder-strategy?source_type=${type}&source_id=${id}&q=${encodeURIComponent(query)}`); const body = await res.json(); if (!res.ok) throw new Error(body.error); setData(body); setError(""); } catch (e) { setError(String(e)); } }, [type, id, query]);
+ useDeferredEffect(useCallback(() => { void load(); }, [load]));
+ async function change(method: string, linkId?: string) { setBusy(true); try { const res = await fetch(`/api/founder-strategy${linkId ? `?id=${linkId}` : ""}`, { method, headers: { "Content-Type": "application/json" }, ...(method === "POST" ? { body: JSON.stringify({ source_type: type, source_id: id, target_type: target, target_id: selection }) } : {}) }); const body = await res.json(); if (!res.ok) throw new Error(body.error); announceWorkspaceMutation("founder-os"); await load(); } catch (e) { setError(String(e)); } finally { setBusy(false); } }
+ return <details className="founder-record"><summary>Strategic alignment</summary><p>Connect this work to annual / 90-day objectives, commitments, milestones or KPIs.</p>{error && <p role="alert">{error}</p>}{data?.links.map(l => <div className="founder-list-row" key={l.id}><span>{l.label} · {l.target_type}</span><Button disabled={busy} onClick={() => void change("DELETE", l.id)}>Remove link</Button></div>)}<div className="founder-form"><label>Search targets<input value={query} onChange={e => setQuery(e.target.value)} /></label><label>Target type<select value={target} onChange={e => { setTarget(e.target.value); setSelection(""); }}>{["goal", "commitment", "milestone", "kpi"].map(t => <option key={t}>{t}</option>)}</select></label><label>Target<select value={selection} onChange={e => setSelection(e.target.value)}><option value="">Select a named record…</option>{data?.options[target]?.map(o => <option key={o.id} value={o.id}>{o.label}</option>)}</select></label><Button disabled={!selection || busy} onClick={() => void change("POST")}>Link strategy</Button></div></details>;
+}

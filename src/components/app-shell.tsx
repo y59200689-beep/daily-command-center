@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useDeferredEffect } from "@/lib/use-deferred-effect";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { CommandPalette } from "@/components/command-palette";
@@ -33,7 +34,8 @@ const areas = [
     { label: "Operations", items: [["Operations", "/operations", Icons.ListTodo], ["Control tower", "/control-tower", Icons.Target], ["Automations", "/automations", Icons.Zap], ["Analytics", "/analytics", Icons.ChartNoAxesCombined]] },
     { label: "People & process", items: [["Team", "/team", Icons.Users], ["Communication", "/communication", Icons.MessageSquareText], ["Risks", "/risks", Icons.Bell], ["Documents", "/documents", Icons.FileText]] },
   ] },
-  { label: "Intelligence", href: "/chief-of-staff", icon: Icons.Sparkles, matches: ["/chief-of-staff", "/executive", "/knowledge", "/learning", "/memory", "/strategy", "/portfolio"], groups: [
+  { label: "Intelligence", href: "/chief-of-staff", icon: Icons.Sparkles, matches: ["/state", "/changes", "/issues", "/dependencies", "/risks/register", "/business-pulse", "/infrastructure", "/relationships", "/commitments", "/experiments", "/chief-of-staff", "/executive", "/knowledge", "/learning", "/memory", "/strategy", "/portfolio"], groups: [
+    { label: "Founder operating system", items: [["Founder State", "/state", Icons.Zap], ["Founder review", "/state/review", Icons.Check], ["Critical issues", "/issues", Icons.ShieldCheck], ["Risk register", "/risks/register", Icons.ShieldCheck], ["Dependencies", "/dependencies", Icons.ListTodo], ["Business Pulse", "/business-pulse", Icons.ChartNoAxesCombined], ["Infrastructure", "/infrastructure", Icons.BriefcaseBusiness], ["Commitments", "/commitments", Icons.ListTodo], ["Relationships", "/relationships", Icons.Users], ["Experiments", "/experiments", Icons.Lightbulb]] },
     { label: "Command", items: [["Chief of staff", "/chief-of-staff", Icons.ShieldCheck], ["Executive", "/executive", Icons.Sparkles], ["Knowledge", "/knowledge", Icons.BookOpen], ["Watchlist", "/knowledge/watch", Icons.Bell], ["Review", "/knowledge/review", Icons.Check], ["Learning", "/learning", Icons.Lightbulb]] },
     { label: "Strategy", items: [["Control tower", "/control-tower", Icons.Target], ["Portfolio", "/portfolio", Icons.BriefcaseBusiness], ["Memory", "/memory", Icons.BookOpen], ["Content", "/content", Icons.FileText]] },
   ] },
@@ -67,12 +69,12 @@ function Shell({ children,user }: { children: ReactNode;user:ShellUser }) {
   const currentRoute = Object.keys(routeLabels).sort((a, b) => b.length - a.length).find((href) => pathname === href || pathname.startsWith(`${href}/`));
   const pageTitle = currentRoute ? routeLabels[currentRoute] : "Daily Command";
 
-  useEffect(() => {
+  useDeferredEffect(useCallback(() => {
     try {
       const saved = localStorage.getItem("dcc-sidebar-collapsed");
       if (saved === "true") setSidebarCollapsed(true);
     } catch {}
-  }, []);
+  }, []));
 
   const toggleSidebar = useCallback(() => {
     setSidebarCollapsed((prev) => {

@@ -1,0 +1,9 @@
+{
+  "userId": "6201be28-df71-4e53-b569-aab9184ea484",
+  "email": "tier1-e2e-92de9c02-fbd9-4af0-87be-6a7fd7d6d0bd@example.com",
+  "runId": "92de9c02-fbd9-4af0-87be-6a7fd7d6d0bd",
+  "projectId": "local",
+  "remainingAuthUsers": 0,
+  "remainingOwnedRows": 0,
+  "evidence": "{\"name\":\"Tier 2A business/KPI create edit refresh and propagation\",\"result\":{\"company\":\"badb6190-53a2-42b2-8017-cbe2b52ba2d6\",\"kpi\":\"b2b0b85c-0fc3-4891-8427-3bc2deeb8c9a\",\"observation\":\"61711d8d-2f41-4e0b-aa7b-41f93f8dd329\",\"errors\":[]}}\n{\"name\":\"Tier 2A live normal-user RLS, foreign links and anonymous denial\",\"result\":\"PASS\"}\n{\"name\":\"client credential isolation\",\"result\":\"PASS\"}\n"
+}

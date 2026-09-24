@@ -46,6 +46,7 @@ export async function PATCH(request: NextRequest, context: Context) {
           client_id: record.client_id ?? null,
           goal_id: record.goal_id ?? null,
           recurrence_frequency: freq,
+          ...(record.work_classification ? { work_classification: record.work_classification } : {}),
           due_date: `${nextDue.getFullYear()}-${String(nextDue.getMonth()+1).padStart(2,"0")}-${String(nextDue.getDate()).padStart(2,"0")}`,
           estimated_minutes: record.estimated_minutes ?? null,
           // For goal-type recurring tasks, reset progress
