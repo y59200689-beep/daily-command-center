@@ -43,6 +43,11 @@ export async function loadFounderState(client: SupabaseClient, userId: string, t
     strategicCommitments: client.from("strategic_commitments").select("*").eq("user_id", userId).in("status", ["planned", "committed", "at_risk"]),
     strategyLinks: client.from("founder_strategy_links").select("*").eq("user_id", userId),
     companies: client.from("companies").select("id,name").eq("user_id", userId).eq("active", true),
+    experiments: client.from("growth_experiments").select("*").eq("user_id", userId),
+    forecasts: client.from("founder_forecasts").select("*").eq("user_id", userId),
+    assets: client.from("asset_metadata").select("*").eq("user_id", userId),
+    content: client.from("content_items").select("*").eq("user_id", userId).is("deleted_at", null),
+    dailyStates: client.from("founder_daily_states").select("*").eq("user_id", userId).order("date", { ascending: false }).limit(14),
   };
   const data: Sources = {}, coverage: Coverage[] = [];
   const results = await Promise.all(Object.entries(queries).map(async ([source, query]) => {

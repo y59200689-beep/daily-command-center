@@ -1,5 +1,6 @@
 import { personalSignals } from "./personal";
 import { continuitySignals } from "./continuity";
+import { experimentSignals, forecastSignals, assetSignals, contentSignals, energyAndAttentionSignals } from "./tier3";
 import { evaluateKpi } from "./kpi";
 import { founderBottlenecks, projectMomentum, strategicAlignment, waitingPerspectives } from "./tier1";
 import type { Row } from "./repository";
@@ -57,7 +58,6 @@ export function issuePriority(row: Row, downstreamCount: number, today: string) 
   return { severity, reasons: reasons.length ? reasons : ["An unresolved operational issue is recorded"] };
 }
 export const kpiEvaluation = evaluateKpi;
-
 export function wealthSummary(rows: Row[]) {
   const currencies: Record<string, { assets: number; liabilities: number; liquid: number; equity: number; net: number }> = {};
   for (const row of rows) {
@@ -72,7 +72,6 @@ export function wealthSummary(rows: Row[]) {
 }
 export function mobilityState(row: Row, today: string) {
   const elapsed = daysUntil(row.start_date, today), allowed = numberOrNull(row.allowed_stay_days);
-  // Entry day counts as day one. Completed stays stop at recorded departure.
   const end = row.actual_departure ? String(row.actual_departure) : row.status === "completed" && row.end_date ? String(row.end_date) : today;
   const used = elapsed === null || elapsed > 0 ? null : Math.max(0, -(daysUntil(row.start_date, end) ?? 0) + 1);
   return { used, remaining: used === null || allowed === null ? null : allowed - used, visaDays: daysUntil(row.visa_expiry, today) };
@@ -84,7 +83,15 @@ export function experimentOutcome(row: Row) {
   return (row.direction === "lower" ? actual <= target : actual >= target) ? "Defined target met" : "Defined target not met";
 }
 export function buildFounderState(data: Sources, today: string, coverage: Coverage[] = [], previous: Signal[] | null = null, dismissed: string[] = []) {
-  const signals: Signal[] = personalSignals(data, today);
+  const signals: Signal[] = [
+    ...personalSignals(data, today),
+    ...experimentSignals(data, today),
+    ...forecastSignals(data, today),
+    ...assetSignals(data, today),
+    ...contentSignals(data, today),
+    ...energyAndAttentionSignals(data, today),
+  ];
+
   const rows = (key: string) => data[key] ?? [];
   const add = (key: string, r: Row, type: string, domain: string, severity: Severity, reasons: string[], action: string, route: string, deadline?: unknown) => signals.push({ id: `${key}:${r.id}:${type}`, sourceId: r.id, type, domain, title: String(r.title ?? r.name ?? r.label ?? type), severity, reasons, impact: domain === "business" ? "Recorded business performance needs review against its operating targets." : domain === "technical" ? "System availability or operational continuity may be affected." : domain === "personal" ? "Personal readiness or an administrative obligation may need action." : "The linked work, obligation or decision may be delayed without action.", action, route, companyId: r.company_id ? String(r.company_id) : undefined, deadline: typeof deadline === "string" ? deadline : undefined, detectedAt: today });
   for (const r of rows("issues").filter(isOpen)) {

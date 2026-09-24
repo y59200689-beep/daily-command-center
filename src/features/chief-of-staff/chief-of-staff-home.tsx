@@ -69,6 +69,14 @@ type ChiefState = {
     risk_level: string;
     status: string;
   }>;
+  dailyBrief?: {
+    whatChanged: Array<{ id: string; title: string; route: string; why: string }>;
+    whatMatters: Array<{ id: string; title: string; route: string; why: string }>;
+    whatNeedsYou: Array<{ id: string; title: string; route: string; why: string }>;
+    whatCanWait: Array<{ id: string; title: string; route: string; why: string }>;
+    whatShouldBeDelegated: Array<{ id: string; title: string; route: string; why: string }>;
+    whatShouldBeLearned: Array<{ id: string; title: string; route: string; why: string }>;
+  };
 };
 
 export function ChiefOfStaffHome() {
@@ -277,6 +285,87 @@ export function ChiefOfStaffHome() {
           </div>
         )}
       </div>
+
+      {/* Chief of Staff Daily Brief */}
+      {data?.dailyBrief && (
+        <section className="chief-hero-card mt-6 p-5 rounded-2xl bg-slate-900/60 border border-slate-800">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-400 block mb-0.5">Synthesis Brief</span>
+              <h2 className="text-base font-semibold text-white">Chief of Staff Daily Brief</h2>
+            </div>
+            <span className="text-xs text-slate-400">Contextual priorities for executive focus</span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {/* What Changed */}
+            <div className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800/80">
+              <span className="text-[11px] font-semibold text-slate-300 block mb-2">What changed</span>
+              {data.dailyBrief.whatChanged.length ? data.dailyBrief.whatChanged.map(item => (
+                <Link key={item.id} href={item.route} className="block text-xs py-1 text-slate-400 hover:text-white transition">
+                  <strong className="text-slate-200 block truncate">{item.title}</strong>
+                  <span className="text-[10px] text-slate-500 block truncate">{item.why}</span>
+                </Link>
+              )) : <p className="text-[11px] text-slate-500">No material changes detected.</p>}
+            </div>
+
+            {/* What Matters */}
+            <div className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800/80">
+              <span className="text-[11px] font-semibold text-amber-300 block mb-2">What matters</span>
+              {data.dailyBrief.whatMatters.length ? data.dailyBrief.whatMatters.map(item => (
+                <Link key={item.id} href={item.route} className="block text-xs py-1 text-slate-400 hover:text-white transition">
+                  <strong className="text-slate-200 block truncate">{item.title}</strong>
+                  <span className="text-[10px] text-slate-500 block truncate">{item.why}</span>
+                </Link>
+              )) : <p className="text-[11px] text-slate-500">All primary health metrics steady.</p>}
+            </div>
+
+            {/* What Needs You */}
+            <div className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800/80">
+              <span className="text-[11px] font-semibold text-rose-300 block mb-2">What needs you</span>
+              {data.dailyBrief.whatNeedsYou.length ? data.dailyBrief.whatNeedsYou.map(item => (
+                <Link key={item.id} href={item.route} className="block text-xs py-1 text-slate-400 hover:text-white transition">
+                  <strong className="text-slate-200 block truncate">{item.title}</strong>
+                  <span className="text-[10px] text-slate-500 block truncate">{item.why}</span>
+                </Link>
+              )) : <p className="text-[11px] text-slate-500">No pending founder gates.</p>}
+            </div>
+
+            {/* What Can Wait */}
+            <div className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800/80">
+              <span className="text-[11px] font-semibold text-slate-400 block mb-2">What can wait</span>
+              {data.dailyBrief.whatCanWait.length ? data.dailyBrief.whatCanWait.map(item => (
+                <Link key={item.id} href={item.route} className="block text-xs py-1 text-slate-400 hover:text-white transition">
+                  <strong className="text-slate-200 block truncate">{item.title}</strong>
+                  <span className="text-[10px] text-slate-500 block truncate">{item.why}</span>
+                </Link>
+              )) : <p className="text-[11px] text-slate-500">Queue is clear.</p>}
+            </div>
+
+            {/* What Should Be Delegated */}
+            <div className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800/80">
+              <span className="text-[11px] font-semibold text-indigo-300 block mb-2">What to delegate</span>
+              {data.dailyBrief.whatShouldBeDelegated.length ? data.dailyBrief.whatShouldBeDelegated.map(item => (
+                <Link key={item.id} href={item.route} className="block text-xs py-1 text-slate-400 hover:text-white transition">
+                  <strong className="text-slate-200 block truncate">{item.title}</strong>
+                  <span className="text-[10px] text-slate-500 block truncate">{item.why}</span>
+                </Link>
+              )) : <p className="text-[11px] text-slate-500">No recurring bottlenecks identified.</p>}
+            </div>
+
+            {/* What Should Be Learned */}
+            <div className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800/80">
+              <span className="text-[11px] font-semibold text-cyan-300 block mb-2">What to learn</span>
+              {data.dailyBrief.whatShouldBeLearned.length ? data.dailyBrief.whatShouldBeLearned.map(item => (
+                <Link key={item.id} href={item.route} className="block text-xs py-1 text-slate-400 hover:text-white transition">
+                  <strong className="text-slate-200 block truncate">{item.title}</strong>
+                  <span className="text-[10px] text-slate-500 block truncate">{item.why}</span>
+                </Link>
+              )) : <p className="text-[11px] text-slate-500">All experiments & forecasts current.</p>}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Awaiting Your Approval Section */}
       <section className="space-y-3">

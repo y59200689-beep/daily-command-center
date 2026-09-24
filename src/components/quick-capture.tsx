@@ -9,7 +9,7 @@ import type { PersistedDomain } from "@/lib/domains";
 import { announceWorkspaceMutation } from "@/lib/workspace-mutations";
 
 interface QuickCaptureProps { open: boolean; onClose: () => void }
-const captureDomains: Record<CaptureKind, PersistedDomain> = { task: "tasks", note: "notes", idea: "ideas", decision: "decisions", followup: "followups", inbox: "inbox", issue: "inbox", risk: "inbox", waiting: "waiting", commitment: "inbox", contact: "inbox", experiment: "inbox", knowledge: "notes" };
+const captureDomains: Record<CaptureKind, PersistedDomain> = { task: "tasks", note: "notes", idea: "ideas", decision: "decisions", followup: "followups", inbox: "inbox", issue: "inbox", risk: "inbox", waiting: "waiting", commitment: "inbox", contact: "inbox", experiment: "inbox", knowledge: "notes", content: "inbox", asset: "inbox", forecast: "inbox" };
 
 export function QuickCapture({ open, onClose }: QuickCaptureProps) {
   const [value, setValue] = useState("");
