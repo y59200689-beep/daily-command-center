@@ -1,3 +1,2 @@
-import { BusinessPulseWorkspace } from "@/features/founder-os/business-pulse";
-export const metadata = { title: "Business Pulse" };
-export default function Page() { return <BusinessPulseWorkspace />; }
+import { redirect } from "next/navigation";
+export default function Page() { redirect("/business?view=pulse"); }

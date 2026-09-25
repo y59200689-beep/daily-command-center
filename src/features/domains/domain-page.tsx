@@ -13,12 +13,16 @@ import { normalizeOptionalNumberInput } from "@/lib/numeric-input";
 import { useDeferredEffect } from "@/lib/use-deferred-effect";
 import { announceWorkspaceMutation } from "@/lib/workspace-mutations";
 import { DatePicker } from "@/components/ui/date-picker";
+import { StyledSelect } from "@/components/ui/styled-select";
 import { CalendarConflicts } from "@/features/calendar/calendar-conflicts";
 import { CalendarDashboard } from "@/features/calendar/calendar-dashboard";
 import { ProjectDashboard } from "@/features/domains/project-dashboard";
+import { ClientDashboard } from "@/features/domains/client-dashboard";
+import { GoalsDashboard } from "@/features/domains/goals-dashboard";
 import { InboxWorkbench } from "@/features/inbox/inbox-workbench";
 import "./task-board-design.css";
 import "./task-list-design.css";
+import "./task-detail-reference.css";
 type DomainKey = PersistedDomain | "assistant" | "settings";
 const attachmentEntities = { tasks: "task", projects: "project", clients: "client", notes: "note", content: "content", decisions: "decision", invoices: "invoice" } as const;
 type Field = {
@@ -239,6 +243,15 @@ export function DomainPage({ domain, embedded = false, onMutationSuccess, refres
             showToast(reason instanceof Error ? reason.message : "Event could not be updated.", "error");
         }
     }
+    async function updateGoalStatus(record: DomainRecord, status: string) {
+        try {
+            const response = await fetch(`/api/entities/goals/${record.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status }) });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error ?? "Goal could not be updated.");
+            setRecords(current => current.map(item => item.id === record.id ? { ...item, ...data.record } : item));
+            showToast("Goal status updated.");
+        } catch (reason) { showToast(reason instanceof Error ? reason.message : "Goal could not be updated.", "error"); }
+    }
     async function save(event: React.FormEvent) {
         event.preventDefault();
         setSaving(true);
@@ -427,9 +440,9 @@ export function DomainPage({ domain, embedded = false, onMutationSuccess, refres
     return <div className={`domain-page ${embedded ? "domain-page--embedded" : ""} ${domain === "inbox" ? "domain-page--inbox" : ""}`}>
         {domain === "inbox" ? null : embedded ? <div className="embedded-heading"><div><p className="eyebrow">Manage records</p><h2>{config.title}</h2></div><Button intent="brand" onClick={() => begin()}><Icons.Plus size={16}/>{config.action}</Button></div> : domain === "tasks" ? <header className="task-context-header"><div><div className="task-context-header__path"><Icons.ListTodo size={15}/><span>My work</span><Icons.ChevronRight size={13}/><strong>Tasks</strong></div><h1>Tasks</h1><p>Plan, prioritize, and move work forward.</p></div><div className="task-context-header__actions"><span className="task-total"><strong>{total}</strong> total</span><Button intent="brand" onClick={() => begin()}><Icons.Plus size={16}/>New task</Button></div></header> : <header className="task-context-header domain-context-header"><div><div className="task-context-header__path"><span>{config.eyebrow}</span><Icons.ChevronRight size={13}/><strong>{config.title}</strong></div><h1>{config.title}</h1><p>{config.intro}</p></div><div className="task-context-header__actions"><span className="task-total"><strong>{total}</strong> total</span><Button intent="brand" onClick={() => begin()}><Icons.Plus size={16}/>{config.action}</Button></div></header>}
         {domain === "calendar" ? <CalendarConflicts onEdit={begin} onResolved={load} /> : null}
-        {domain === "inbox" || domain === "calendar" || domain === "projects" ? null : <div className={`domain-toolbar ${domain === "tasks" ? "task-toolbar" : ""}`}><SearchInput ref={inputRef} id={`${domain}-search`} label={`Search ${domain}`} value={query} onChange={(event) => {setQuery(event.target.value);setPage(1)}} onClear={() => {setQuery("");setPage(1)}} placeholder={`Search ${domain}…`}/><div className="domain-toolbar__controls">{domain === "tasks" ? <><div className="view-switch task-view-switch" aria-label="Task view"><button type="button" className={taskView === "list" ? "active" : ""} aria-pressed={taskView === "list"} onClick={() => handleSetTaskView("list")}><Icons.ListTodo size={14}/>List</button><button type="button" className={taskView === "board" ? "active" : ""} aria-pressed={taskView === "board"} onClick={() => handleSetTaskView("board")}><Icons.BriefcaseBusiness size={14}/>Board</button></div><label className="compact-select"><span>Status</span><select aria-label="Filter tasks by status" value={statusFilter} onChange={(event) => {setStatusFilter(event.target.value);setPage(1)}}><option value="open">Open</option><option value="all">All statuses</option><option value="inbox">Inbox</option><option value="planned">Planned</option><option value="in_progress">In progress</option><option value="waiting">Waiting</option><option value="still_waiting">Still Waiting</option><option value="blocked">Blocked</option><option value="completed">Completed</option><option value="cancelled">Cancelled</option></select></label><label className="compact-select"><span>Priority</span><select aria-label="Filter tasks by priority" value={priorityFilter} onChange={(event) => {setPriorityFilter(event.target.value);setPage(1)}}><option value="all">All priorities</option><option value="urgent">Urgent</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option><option value="none">No priority</option></select></label><label className="compact-select"><span>Sort</span><select aria-label="Sort tasks" value={taskSort} onChange={(event) => {setTaskSort(event.target.value);setPage(1)}}><option value="updated">Recently updated</option><option value="due">Due date</option><option value="priority">Priority</option><option value="title">Task name</option></select></label></> : null}{domain !== "tasks" ? <span className="record-count">{total} {total === 1 ? "item" : "items"}</span> : null}</div></div>}
+        {domain === "inbox" || domain === "calendar" || domain === "projects" || domain === "clients" || domain === "goals" ? null : <div className={`domain-toolbar ${domain === "tasks" ? "task-toolbar" : ""}`}><SearchInput ref={inputRef} id={`${domain}-search`} label={`Search ${domain}`} value={query} onChange={(event) => {setQuery(event.target.value);setPage(1)}} onClear={() => {setQuery("");setPage(1)}} placeholder={`Search ${domain}…`}/><div className="domain-toolbar__controls">{domain === "tasks" ? <><div className="view-switch task-view-switch" aria-label="Task view"><button type="button" className={taskView === "list" ? "active" : ""} aria-pressed={taskView === "list"} onClick={() => handleSetTaskView("list")}><Icons.ListTodo size={14}/>List</button><button type="button" className={taskView === "board" ? "active" : ""} aria-pressed={taskView === "board"} onClick={() => handleSetTaskView("board")}><Icons.BriefcaseBusiness size={14}/>Board</button></div><div className="compact-select"><span>Status</span><StyledSelect label="Filter tasks by status" value={statusFilter} onChange={next=>{setStatusFilter(next);setPage(1)}} options={[{value:"open",label:"Open"},{value:"all",label:"All statuses"},{value:"inbox",label:"Inbox"},{value:"planned",label:"Planned"},{value:"in_progress",label:"In progress"},{value:"waiting",label:"Waiting"},{value:"still_waiting",label:"Still Waiting"},{value:"blocked",label:"Blocked"},{value:"completed",label:"Completed"},{value:"cancelled",label:"Cancelled"}]}/></div><div className="compact-select"><span>Priority</span><StyledSelect label="Filter tasks by priority" value={priorityFilter} onChange={next=>{setPriorityFilter(next);setPage(1)}} options={[{value:"all",label:"All priorities"},{value:"urgent",label:"Urgent"},{value:"high",label:"High"},{value:"medium",label:"Medium"},{value:"low",label:"Low"},{value:"none",label:"No priority"}]}/></div><div className="compact-select"><span>Sort</span><StyledSelect label="Sort tasks" value={taskSort} onChange={next=>{setTaskSort(next);setPage(1)}} options={[{value:"updated",label:"Recently updated"},{value:"due",label:"Due date"},{value:"priority",label:"Priority"},{value:"title",label:"Task name"}]}/></div></> : null}{domain !== "tasks" ? <span className="record-count">{total} {total === 1 ? "item" : "items"}</span> : null}</div></div>}
         {error && !open ? <ErrorState error={error} retry={load}/> : null}
-        {loading ? <div className="loading-state" aria-live="polite"><span className="loading-spinner"/><p>Loading {config.title.toLowerCase()}…</p></div> : domain === "projects" ? <ProjectDashboard rows={rows} onEdit={begin} onCreate={() => begin()}/> : domain === "tasks" ? taskView === "list" ? <TaskTable rows={rows} onEdit={begin} onToggle={toggleTask} empty={<EmptyState query={query} title={config.title} action={config.action} clear={() => setQuery("")} create={() => begin()}/>}/> : <TaskBoard rows={rows} onEdit={begin} onToggle={toggleTask} onMoveTask={moveTask} onAddTaskInStatus={handleAddTaskInStatus} empty={<EmptyState query={query} title={config.title} action={config.action} clear={() => setQuery("")} create={() => begin()}/>}/> : domain === "inbox" ? <InboxWorkbench rows={rows} query={query} setQuery={setQuery} onEdit={begin} onResolve={resolveInbox} onCapture={() => begin()} loading={loading}/> : domain === "calendar" ? <CalendarDashboard rows={rows} view={calendarView} onViewChange={handleSetCalendarView} monthOffset={calendarMonthOffset} changeMonth={setCalendarMonthOffset} onEdit={begin} onCreate={(defaults) => begin(undefined, defaults)} onReschedule={rescheduleCalendarEvent}/> : <StandardTable columns={config.columns} rows={rows} config={config} onEdit={begin} empty={<EmptyState query={query} title={config.title} action={config.action} clear={() => setQuery("")} create={() => begin()}/>}/>}
+        {loading ? <div className="loading-state" aria-live="polite"><span className="loading-spinner"/><p>Loading {config.title.toLowerCase()}…</p></div> : domain === "projects" ? <ProjectDashboard rows={rows} onEdit={begin} onCreate={() => begin()}/> : domain === "clients" ? <ClientDashboard rows={rows} onEdit={begin} onCreate={() => begin()}/> : domain === "goals" ? <GoalsDashboard rows={rows} onEdit={begin} onCreate={() => begin()} onStatusChange={updateGoalStatus}/> : domain === "tasks" ? taskView === "list" ? <TaskTable rows={rows} onEdit={begin} onToggle={toggleTask} empty={<EmptyState query={query} title={config.title} action={config.action} clear={() => setQuery("")} create={() => begin()}/>}/> : <TaskBoard rows={rows} onEdit={begin} onToggle={toggleTask} onMoveTask={moveTask} onAddTaskInStatus={handleAddTaskInStatus} empty={<EmptyState query={query} title={config.title} action={config.action} clear={() => setQuery("")} create={() => begin()}/>}/> : domain === "inbox" ? <InboxWorkbench rows={rows} query={query} setQuery={setQuery} onEdit={begin} onResolve={resolveInbox} onCapture={() => begin()} loading={loading}/> : domain === "calendar" ? <CalendarDashboard rows={rows} view={calendarView} onViewChange={handleSetCalendarView} monthOffset={calendarMonthOffset} changeMonth={setCalendarMonthOffset} onEdit={begin} onCreate={(defaults) => begin(undefined, defaults)} onReschedule={rescheduleCalendarEvent}/> : <StandardTable columns={config.columns} rows={rows} config={config} onEdit={begin} empty={<EmptyState query={query} title={config.title} action={config.action} clear={() => setQuery("")} create={() => begin()}/>}/>}
         {total > 50 || page > 1 ? <nav className="dataset-pagination" aria-label={`${config.title} pagination`}><p className="dataset-note">Showing {rows.length?((page-1)*50)+1:0}–{Math.min(page*50,total)} of {total}</p><div><Button emphasis="ghost" disabled={page===1} onClick={()=>setPage((current)=>Math.max(1,current-1))}>Previous</Button><Button emphasis="ghost" disabled={page*50>=total} onClick={()=>setPage((current)=>current+1)}>Next</Button></div></nav> : null}
         <Modal open={open} onClose={() => setOpen(false)} variant={domain === "tasks" ? "task" : "default"} title={editing ? domain === "tasks" ? "Task details" : `Edit ${config.title.toLowerCase().replace(/s$/, "")}` : config.action} description={domain === "tasks" ? "Update the work, its urgency, timing, and relationships." : "Changes are saved to your private workspace."}>
             {editing && domain === "calendar" ? <div className="meeting-capture-entry"><Link className="button button--outline button--neutral" href={`/meeting/${editing.id}/capture`}>Capture meeting outcome</Link><Link className="button button--ghost button--neutral" href={`/meeting/${editing.id}`}>Open meeting brief</Link></div> : null}
@@ -1134,6 +1147,21 @@ function TaskDetailForm({ fields, values, setValues, editing, saving, error, arc
 }) {
     const byKey = Object.fromEntries(fields.map((field) => [field.key, field]));
     const renderField = (key: string, className?: string, placeholder?: string) => byKey[key] ? <FormField className={className} field={byKey[key]} value={values[key] ?? ""} placeholder={placeholder} setValue={(value) => setValues((current) => ({ ...current, [key]: value }))}/> : null;
+    const [priorityOpen, setPriorityOpen] = useState<"hero" | "properties" | null>(null);
+    useEffect(() => {
+        if (!priorityOpen) return;
+        const close = (event: MouseEvent) => { if (!(event.target as HTMLElement).closest(".task-priority-picker")) setPriorityOpen(null); };
+        document.addEventListener("mousedown", close);
+        return () => document.removeEventListener("mousedown", close);
+    }, [priorityOpen]);
+    const priorityOptions = [
+        { value: "none", label: "None", hint: "No urgency set" },
+        { value: "low", label: "Low", hint: "Can wait" },
+        { value: "medium", label: "Medium", hint: "Worth planning" },
+        { value: "high", label: "High", hint: "Needs attention soon" },
+        { value: "urgent", label: "Urgent", hint: "Act as soon as possible" },
+    ];
+    const priorityMenu = (compact = false) => <div className={`task-priority-picker ${compact ? "task-priority-picker--compact" : ""}`}><button type="button" className={`task-priority-trigger task-priority-trigger--${values.priority || "none"}`} aria-haspopup="listbox" aria-expanded={priorityOpen === (compact ? "hero" : "properties")} onClick={() => setPriorityOpen(open => open === (compact ? "hero" : "properties") ? null : compact ? "hero" : "properties")}><Icons.Target size={compact ? 15 : 17}/><span>{compact ? `Priority: ${values.priority || "none"}` : (values.priority || "none")}</span><Icons.ChevronDown size={16}/></button>{priorityOpen === (compact ? "hero" : "properties") && <div className="task-priority-menu" role="listbox" aria-label="Task priority">{priorityOptions.map(option => <button type="button" role="option" aria-selected={(values.priority || "none") === option.value} className={`task-priority-option task-priority-option--${option.value}`} key={option.value} onClick={() => { setValues(current => ({ ...current, priority: option.value })); setPriorityOpen(null); }}><span className="task-priority-option__icon"><Icons.Target size={16}/></span><span><strong>{option.label}</strong><small>{option.hint}</small></span>{(values.priority || "none") === option.value && <Icons.Check size={16}/>}</button>)}</div>}</div>;
 
     // Recurrence state
     const recurrence = values["recurrence_frequency"] ?? "";
@@ -1193,7 +1221,8 @@ function TaskDetailForm({ fields, values, setValues, editing, saving, error, arc
         }
     }
 
-    return <form className="task-detail-workspace" onSubmit={onSubmit} noValidate>
+    return <form className="task-detail-workspace task-detail-workspace--ref" onSubmit={onSubmit} noValidate>
+        <div className="task-detail-hero"><span className="task-detail-hero__icon"><Icons.Inbox size={25}/></span><div><p className="task-detail-hero__eyebrow">{editing ? "Task details" : "New task"}</p><h2>{values.title || "Untitled task"}</h2><p>{editing?.created_at ? `Created ${new Date(String(editing.created_at)).toLocaleDateString([], {month:"short",day:"numeric",year:"numeric"})}` : "Add the details for this task"}{editing?.updated_at ? ` · Last updated ${new Date(String(editing.updated_at)).toLocaleDateString([], {month:"short",day:"numeric",year:"numeric"})}` : ""}</p><div className="task-detail-hero__chips"><span><i/>{String(values.status || "inbox").replaceAll("_"," ")}</span>{priorityMenu(true)}<span><span className="task-detail-hero__avatar">Y</span>You</span>{values.due_date && <span><Icons.CalendarDays size={15}/>{new Date(`${values.due_date}T12:00:00`).toLocaleDateString([], {weekday:"short",month:"short",day:"numeric",year:"numeric"})}</span>}</div></div></div>
         <section className="task-detail-main" aria-label="Task content">
             <div className="task-title-field">
                 <label htmlFor="record-title">
@@ -1309,7 +1338,7 @@ function TaskDetailForm({ fields, values, setValues, editing, saving, error, arc
             <p className="task-detail-label">Task properties</p>
             <div className="task-detail-property-grid">
                 {renderField("status")}
-                {renderField("priority")}
+                <div className="task-priority-property"><label>Priority</label>{priorityMenu()}</div>
                 {renderField("due_date")}
                 {renderField("daily_position")}
                 {renderField("project_id")}
@@ -1434,32 +1463,23 @@ function FormField({ field, value, setValue, className, placeholder }: {
                     onChange={(event) => setValue(event.target.value)}
                 />
             ) : field.type === "select" ? (
-                <select id={id} value={value} onChange={(event) => setValue(event.target.value)}>
-                    {field.options?.map((option) => (
-                        <option value={option} key={option}>{display(option)}</option>
-                    ))}
-                </select>
+                <StyledSelect id={id} label={field.label} value={value} onChange={setValue} options={(field.options ?? []).map(option => ({ value: option, label: display(option) }))}/>
             ) : field.type === "relation" ? (
                 <>
-                    <select
+                    <StyledSelect
                         id={id}
+                        label={field.label}
                         value={value}
-                        onChange={(event) => {
-                            if (event.target.value === "__create_new__") {
+                        searchable
+                        onChange={(nextValue) => {
+                            if (nextValue === "__create_new__") {
                                 setQuickModalOpen(true);
                             } else {
-                                setValue(event.target.value);
+                                setValue(nextValue);
                             }
                         }}
-                    >
-                        <option value="">No {field.label.toLowerCase()}</option>
-                        {relations.map((record) => (
-                            <option value={record.id} key={record.id}>
-                                {String(record.name ?? record.title)}
-                            </option>
-                        ))}
-                        <option value="__create_new__">+ Create new {field.label.toLowerCase()}…</option>
-                    </select>
+                        options={[{ value: "", label: `No ${field.label.toLowerCase()}` }, ...relations.map(record => ({ value: record.id, label: String(record.name ?? record.title) })), { value: "__create_new__", label: `+ Create new ${field.label.toLowerCase()}…` }]}
+                    />
                     <QuickCreateRelationModal
                         open={quickModalOpen}
                         onClose={() => setQuickModalOpen(false)}

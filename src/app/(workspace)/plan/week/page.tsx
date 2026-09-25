@@ -1,2 +1,2 @@
-import { WeeklyPlanningPage } from "@/features/strategy/strategy-pages";
-export default function Page(){return <WeeklyPlanningPage/>}
+import { redirect } from "next/navigation";
+export default function Page() { redirect("/planning?view=week"); }

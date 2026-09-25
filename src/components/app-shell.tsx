@@ -17,30 +17,29 @@ type NavItem = readonly [string, string, (typeof Icons)[keyof typeof Icons]];
 type Area = { label: string; href: string; icon: (typeof Icons)[keyof typeof Icons]; matches: readonly string[]; groups: ReadonlyArray<{ label: string; items: readonly NavItem[] }> };
 
 const areas = [
-  { label: "Home", href: "/today", icon: Icons.Zap, matches: ["/today", "/inbox", "/tasks", "/calendar", "/projects", "/clients"], groups: [
-    { label: "My work", items: [["Today", "/today", Icons.Zap], ["Inbox", "/inbox", Icons.Inbox], ["Tasks", "/tasks", Icons.ListTodo], ["Calendar", "/calendar", Icons.CalendarDays]] },
+  { label: "Home", href: "/today", icon: Icons.Zap, matches: ["/today", "/inbox", "/tasks", "/calendar", "/projects", "/clients", "/files"], groups: [
+    { label: "Daily work", items: [["Today", "/today", Icons.Zap], ["Inbox", "/inbox", Icons.Inbox], ["Tasks", "/tasks", Icons.ListTodo], ["Calendar", "/calendar", Icons.CalendarDays]] },
     { label: "Workspace", items: [["Projects", "/projects", Icons.BriefcaseBusiness], ["Clients", "/clients", Icons.Users], ["Files", "/files", Icons.Paperclip]] },
   ] },
-  { label: "Plan", href: "/plan", icon: Icons.Target, matches: ["/plan", "/focus", "/followups", "/waiting", "/goals", "/review", "/approvals"], groups: [
-    { label: "Planning", items: [["Plan", "/plan", Icons.Target], ["Focus", "/focus", Icons.Focus], ["Goals", "/goals", Icons.Target], ["Approvals", "/approvals", Icons.Check]] },
+  { label: "Plan", href: "/planning", icon: Icons.Target, matches: ["/planning", "/plan", "/focus", "/followups", "/waiting", "/goals", "/review", "/approvals"], groups: [
+    { label: "Priorities", items: [["Planning", "/planning", Icons.Target], ["Focus", "/focus", Icons.Focus], ["Goals", "/goals", Icons.Target]] },
     { label: "Follow through", items: [["Follow-ups", "/followups", Icons.MessageSquareText], ["Waiting", "/waiting", Icons.Clock3], ["Reviews", "/review/weekly", Icons.Check]] },
   ] },
   { label: "Business", href: "/business", icon: Icons.CircleDollarSign, matches: ["/business", "/finance", "/financial-control", "/growth", "/pipeline", "/leads", "/proposals", "/services", "/success", "/commerce", "/founder", "/campaigns"], groups: [
-    { label: "Revenue", items: [["Business overview", "/business", Icons.ChartNoAxesCombined], ["Growth", "/growth", Icons.TrendingUp], ["Pipeline", "/pipeline", Icons.BriefcaseBusiness], ["Leads", "/leads", Icons.Users], ["Clients", "/clients", Icons.Users]] },
-    { label: "Finance & commerce", items: [["Finance", "/finance", Icons.CircleDollarSign], ["Financial control", "/financial-control", Icons.ReceiptText], ["Commerce", "/commerce", Icons.Package], ["Success", "/success", Icons.HeartHandshake], ["Founder", "/founder", Icons.Sparkles]] },
+    { label: "Revenue", items: [["Business", "/business", Icons.ChartNoAxesCombined], ["Pipeline", "/pipeline", Icons.BriefcaseBusiness], ["Leads", "/leads", Icons.Users], ["Growth", "/growth", Icons.TrendingUp]] },
+    { label: "Money", items: [["Finance", "/finance", Icons.CircleDollarSign], ["Commerce", "/commerce", Icons.Package], ["Success", "/success", Icons.HeartHandshake]] },
   ] },
-  { label: "Operate", href: "/operations", icon: Icons.ListTodo, matches: ["/operations", "/team", "/control-tower", "/analytics", "/communication", "/risks", "/automations", "/meeting"], groups: [
-    { label: "Operations", items: [["Operations", "/operations", Icons.ListTodo], ["Control tower", "/control-tower", Icons.Target], ["Automations", "/automations", Icons.Zap], ["Analytics", "/analytics", Icons.ChartNoAxesCombined]] },
-    { label: "People & process", items: [["Team", "/team", Icons.Users], ["Communication", "/communication", Icons.MessageSquareText], ["Risks", "/risks", Icons.Bell], ["Documents", "/documents", Icons.FileText]] },
+  { label: "Operate", href: "/operations", icon: Icons.ListTodo, matches: ["/operations", "/team", "/control-tower", "/analytics", "/communication", "/risks", "/automations", "/meeting", "/documents"], groups: [
+    { label: "Operations", items: [["Operations", "/operations", Icons.ListTodo], ["Team", "/team", Icons.Users], ["Risks", "/risks", Icons.Bell], ["Documents", "/documents", Icons.FileText]] },
+    { label: "Systems", items: [["Control tower", "/control-tower", Icons.Target], ["Automations", "/automations", Icons.Zap]] },
   ] },
-  { label: "Intelligence", href: "/chief-of-staff", icon: Icons.Sparkles, matches: ["/state", "/changes", "/issues", "/dependencies", "/risks/register", "/business-pulse", "/infrastructure", "/relationships", "/commitments", "/experiments", "/chief-of-staff", "/executive", "/knowledge", "/learning", "/memory", "/strategy", "/portfolio"], groups: [
-    { label: "Founder operating system", items: [["Founder State", "/state", Icons.Zap], ["Founder review", "/state/review", Icons.Check], ["Critical issues", "/issues", Icons.ShieldCheck], ["Risk register", "/risks/register", Icons.ShieldCheck], ["Dependencies", "/dependencies", Icons.ListTodo], ["Business Pulse", "/business-pulse", Icons.ChartNoAxesCombined], ["Infrastructure", "/infrastructure", Icons.BriefcaseBusiness], ["Commitments", "/commitments", Icons.ListTodo], ["Relationships", "/relationships", Icons.Users], ["Experiments", "/experiments", Icons.Lightbulb]] },
-    { label: "Command", items: [["Chief of staff", "/chief-of-staff", Icons.ShieldCheck], ["Executive", "/executive", Icons.Sparkles], ["Knowledge", "/knowledge", Icons.BookOpen], ["Watchlist", "/knowledge/watch", Icons.Bell], ["Review", "/knowledge/review", Icons.Check], ["Learning", "/learning", Icons.Lightbulb]] },
-    { label: "Strategy", items: [["Control tower", "/control-tower", Icons.Target], ["Portfolio", "/portfolio", Icons.BriefcaseBusiness], ["Memory", "/memory", Icons.BookOpen], ["Content", "/content", Icons.FileText]] },
+  { label: "Intelligence", href: "/executive", icon: Icons.Sparkles, matches: ["/state", "/changes", "/issues", "/dependencies", "/business-pulse", "/infrastructure", "/relationships", "/commitments", "/experiments", "/chief-of-staff", "/executive", "/knowledge", "/learning", "/memory", "/strategy", "/portfolio"], groups: [
+    { label: "Insight", items: [["Executive", "/executive", Icons.Sparkles], ["What changed", "/changes", Icons.ChartNoAxesCombined], ["Decisions", "/decisions", Icons.MessageSquareText], ["Knowledge", "/knowledge", Icons.BookOpen], ["Watchlist", "/knowledge/watch", Icons.Bell], ["Review", "/knowledge/review", Icons.Check], ["Learning", "/learning", Icons.Lightbulb]] },
+    { label: "Context", items: [["Founder state", "/state", Icons.Zap], ["Saved context", "/memory", Icons.BookOpen], ["Portfolio", "/portfolio", Icons.BriefcaseBusiness]] },
   ] },
-  { label: "Personal", href: "/life", icon: Icons.BookOpen, matches: ["/life", "/fitness", "/travel", "/notes", "/ideas", "/decisions", "/prompts", "/settings"], groups: [
+  { label: "Personal", href: "/life", icon: Icons.BookOpen, matches: ["/life", "/fitness", "/travel", "/notes", "/ideas", "/prompts", "/settings"], groups: [
     { label: "Personal", items: [["Life", "/life", Icons.BookOpen], ["Fitness", "/fitness", Icons.Dumbbell], ["Travel", "/travel", Icons.CalendarDays], ["Notes", "/notes", Icons.FileText]] },
-    { label: "Workspace", items: [["Ideas", "/ideas", Icons.Lightbulb], ["Decisions", "/decisions", Icons.MessageSquareText], ["Prompts", "/prompts", Icons.Command], ["Settings", "/settings", Icons.Settings]] },
+    { label: "Tools", items: [["Ideas", "/ideas", Icons.Lightbulb], ["Prompts", "/prompts", Icons.Command], ["Settings", "/settings", Icons.Settings]] },
   ] },
 ] as const satisfies readonly Area[];
 

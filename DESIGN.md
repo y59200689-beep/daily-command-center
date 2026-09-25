@@ -66,6 +66,8 @@ Geist is the sole display and body family so hierarchy comes from scale, weight,
 
 ## Layout
 
+Related workspaces use one compact tab strip above the existing page content. Tabs are plain text controls on a muted surface, with the selected view on the standard white surface. This keeps established page components and their actions while reducing duplicate destinations in the navigation rail. The icon rail remains at six areas; the contextual menu lists the primary destinations, and deeper destinations remain accessible through section tabs, links, and search.
+
 Desktop uses a 232px persistent sidebar, a 52px command bar, and a fluid content workspace capped at 1480px. The first sidebar tier contains the six everyday destinations; deeper capabilities are grouped into four scan-friendly workspaces. At 767px and below, the sidebar becomes a drawer and a five-item bottom bar preserves Today, Tasks, Capture, Calendar, and More.
 
 List pages use a compact title/action row, one view-control bar, and a purpose-built work surface. Today puts the recommendation, focus capacity, priorities, and next calendar actions in the first viewport. Calendar uses a month surface on desktop and chronological agenda on mobile. Detail context stays in dialogs/sheets or existing detail routes so closing it preserves list context.
