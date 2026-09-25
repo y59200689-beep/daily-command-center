@@ -6,7 +6,8 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function minutesLabel(minutes?: number) {
-  if (!minutes) return "";
+  if (minutes === 0) return "0m";
+  if (minutes == null || Number.isNaN(minutes)) return "";
   const hours = Math.floor(minutes / 60);
   const rest = minutes % 60;
   if (!hours) return `${rest}m`;

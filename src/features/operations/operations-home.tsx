@@ -135,7 +135,7 @@ export function OperationsHome() {
             <Link href="/operations/sops" className="button button--ghost">SOP Library</Link>
           </header>
           {sopsReviewDue.length === 0 ? (
-            <p className="faint-note">All SOPs are up to date and fresh.</p>
+            <p className="faint-note">No SOP reviews are currently flagged as due. Open the library to check coverage and review dates.</p>
           ) : (
             <div>
               {sopsReviewDue.slice(0, 5).map((sop) => (
@@ -200,7 +200,7 @@ export function OperationsHome() {
             <Link href="/operations/systems" className="button button--ghost">Registry</Link>
           </header>
           {atRiskSystems.length === 0 ? (
-            <p className="faint-note">All internal systems and tools are healthy.</p>
+            <p className="faint-note">No registered systems are currently flagged as at risk. Open the registry to check monitoring coverage.</p>
           ) : (
             <div>
               {atRiskSystems.map((sys) => (

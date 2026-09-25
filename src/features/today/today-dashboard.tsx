@@ -624,14 +624,20 @@ function Attention({
         </div>
         <Link href="/risks">Review risks</Link>
       </div>
-      {recommendations.slice(0, 5).map((item) => (
+      {Array.from(recommendations.reduce((groups, item) => {
+        const key = item.entityType && item.entityId ? `${item.entityType}:${item.entityId}` : item.key;
+        groups.set(key, [...(groups.get(key) ?? []), item]);
+        return groups;
+      }, new Map<string, Recommendation[]>()).values()).slice(0, 5).map((group) => {
+        const item = group[0];
+        return (
         <article className="attention-row" key={item.key}>
           <span>{item.priority}</span>
           <div>
             <Link href={item.route}>
               <strong>{item.label}</strong>
             </Link>
-            <p>{item.reason}</p>
+            {group.map((reason) => <p key={reason.key}>{reason.reason}</p>)}
             {explained === item.key ? (
               <ul className="recommendation-evidence">
                 {item.evidence.map((evidence) => (
@@ -647,13 +653,13 @@ function Attention({
               >
                 Why this?
               </button>
-              <button onClick={() => void feedback(item, "snoozed")}>
+              <button onClick={() => void Promise.all(group.map((entry) => feedback(entry, "snoozed")))}>
                 Snooze
               </button>
-              <button onClick={() => void feedback(item, "dismissed")}>
+              <button onClick={() => void Promise.all(group.map((entry) => feedback(entry, "dismissed")))}>
                 Dismiss
               </button>
-              <button onClick={() => void feedback(item, "irrelevant")}>
+              <button onClick={() => void Promise.all(group.map((entry) => feedback(entry, "irrelevant")))}>
                 Irrelevant
               </button>
             </div>
@@ -662,7 +668,7 @@ function Attention({
             <em>Act →</em>
           </Link>
         </article>
-      ))}
+      );})}
     </section>
   );
 }

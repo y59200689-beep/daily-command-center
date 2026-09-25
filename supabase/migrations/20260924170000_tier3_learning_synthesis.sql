@@ -220,7 +220,7 @@ grant execute on function public.tier1_propose_lesson(text,uuid,text) to authent
 grant select, insert, update, delete on public.operating_lessons to authenticated;
 grant select, insert, update, delete on public.lesson_evidence_links to authenticated;
 
-create or replace function public.founder_propose_lesson() returns trigger language plpgsql security definer set search_path = public as $$
+create or replace function public.founder_propose_lesson() returns trigger language plpgsql security invoker set search_path = public as $$
 declare lesson_text text; label text; lesson_id uuid;
 begin
   if tg_table_name='decisions' then lesson_text:=new.lesson_learned; label:=new.title;

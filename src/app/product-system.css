@@ -166,6 +166,11 @@ body { background: var(--canvas); font-size: 13px; letter-spacing: -.005em; }
 
 .calendar-board { overflow: hidden; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
 .calendar-board__heading { height: 52px; display: flex; align-items: center; justify-content: space-between; padding: 0 14px; border-bottom: 1px solid var(--line); }
+.calendar-board__controls { display:flex; align-items:center; gap:6px; }
+.calendar-board__controls button { display:inline-flex; align-items:center; justify-content:center; min-width:32px; min-height:32px; padding:0 8px; border:1px solid var(--line); border-radius:6px; background:var(--surface); color:var(--ink); cursor:pointer; font:600 12px var(--font-geist-sans); }
+.calendar-board__controls button:hover:not(:disabled) { border-color:var(--attention); background:var(--attention-soft); }
+.calendar-board__controls button:disabled { opacity:.45; cursor:default; }
+.calendar-board__controls span { margin-left:8px; }
 .calendar-board__heading div { display: flex; align-items: baseline; gap: 7px; }.calendar-board__heading strong { font-size: 16px; }.calendar-board__heading span { color: var(--muted); font-size: 10px; }
 .calendar-weekdays, .calendar-month { display: grid; grid-template-columns: repeat(7,minmax(0,1fr)); }
 .calendar-weekdays span { height: 28px; display: flex; align-items: center; padding: 0 7px; border-right: 1px solid var(--line); color: var(--faint); font: 600 8px var(--font-geist-mono); text-transform: uppercase; }
@@ -940,4 +945,35 @@ body { background: var(--canvas); font-size: 13px; letter-spacing: -.005em; }
   gap: 3px;
   font-size: 10px;
   font-weight: 600;
+}
+
+/* Audit follow-up: make important supporting information legible at desktop and mobile sizes. */
+.task-context-header__description, .page-description, .dataset-note, .faint-note, .calendar-day small, .calendar-day button, .task-card__meta, .task-card__due, .inbox-item span, .inbox-summary p { font-size: max(12px, 0.75rem); line-height: 1.45; }
+.contextual-sidebar__heading small, .sidebar-create kbd, .calendar-board__heading span, .task-board__column > header, .eyebrow { font-size: max(11px, 0.6875rem); }
+.command-search.search-control { width: 100%; max-width: none; grid-template-columns: 18px minmax(0, 1fr) auto; }
+.command-search .search-control__input { width: 100%; min-width: 0; font-size: 14px; }
+.life-page .signal-stack, .life-page .signal-row, .life-page .signal-row > span { min-width: 0; width: 100%; }
+.life-page .signal-row > span { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; overflow-wrap: normal; word-break: normal; }
+.life-page .signal-row strong { flex: 0 1 auto; min-width: 120px; overflow-wrap: anywhere; }
+.task-board__column { min-height: min(62vh, 640px); }
+.task-board { scrollbar-color: var(--muted) transparent; }
+.task-board { padding-bottom: 22px; }
+.task-board::-webkit-scrollbar { height: 10px; }
+.task-board::-webkit-scrollbar-thumb { border-radius: 10px; background: var(--muted); }
+.metric-ledger > div { min-height: 94px; display: flex; flex-direction: column; justify-content: center; gap: 4px; }
+.metric-ledger span { font-size: 12px; line-height: 1.4; }
+.settings-area { margin-top: 28px; }
+.settings-area h2 { margin: 0 0 12px; font-size: 17px; }
+.calendar-zero-prompt--near { margin-top: 12px; }
+.calendar-board__heading { flex-wrap: wrap; gap: 10px; }
+.calendar-board__controls { display: flex; align-items: center; gap: 6px; }
+.calendar-board__controls button { min-width: 32px; min-height: 32px; padding: 4px 8px; border: 1px solid var(--line); border-radius: 7px; background: var(--surface); color: var(--ink); cursor: pointer; }
+.calendar-board__controls button:disabled { opacity: .45; cursor: default; }
+.calendar-board__controls button:focus-visible, .task-board :focus-visible { outline: 2px solid var(--attention); outline-offset: 2px; }
+[data-theme="dark"] .task-card__meta, [data-theme="dark"] .task-card__due, [data-theme="dark"] .dataset-note, [data-theme="dark"] .faint-note { color: color-mix(in srgb, var(--ink) 68%, var(--surface)); }
+@media (max-width: 767px) {
+  .task-toolbar .task-view-switch { display: flex; }
+  .task-board { grid-auto-columns: minmax(240px, 82vw); }
+  .task-board__column { min-height: 58vh; }
+  .calendar-board__controls button { min-height: 40px; min-width: 40px; }
 }

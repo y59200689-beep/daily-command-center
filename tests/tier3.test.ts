@@ -274,3 +274,10 @@ test("Tier 3 migration includes required tables, RLS, indexes and owner guards",
   assert.ok(sql.includes("founder_daily_states_owner_all"));
   assert.doesNotMatch(sql, /drop table|disable row level security|security definer/i);
 });
+
+test("lesson proposal trigger retains caller permissions after Tier 3", () => {
+  const tier3 = readFileSync("supabase/migrations/20260924170000_tier3_learning_synthesis.sql", "utf8");
+  const repair = readFileSync("supabase/migrations/20260925110000_restore_lesson_trigger_invoker.sql", "utf8");
+  assert.match(tier3, /founder_propose_lesson\(\) returns trigger language plpgsql security invoker/i);
+  assert.match(repair, /alter function public\.founder_propose_lesson\(\) security invoker/i);
+});

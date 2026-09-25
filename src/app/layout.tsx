@@ -1,7 +1,6 @@
 import "./founder-os.css";
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import Script from "next/script";
 import "./globals.css";
 import "./product-system.css";
 
@@ -25,8 +24,8 @@ try {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning className={`${geistSans.variable} ${geistMono.variable}`}>
+      <head><script dangerouslySetInnerHTML={{ __html: themeInitializer }} /></head>
       <body>
-        <Script id="theme-initializer" strategy="beforeInteractive">{themeInitializer}</Script>
         {children}
       </body>
     </html>

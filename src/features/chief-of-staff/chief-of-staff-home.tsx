@@ -25,6 +25,7 @@ type ChiefState = {
     approvalRequirement: string;
     route: string;
     actionId?: string;
+    readiness: string;
   };
   topMetrics: {
     preparedCount: number;
@@ -257,12 +258,12 @@ export function ChiefOfStaffHome() {
               <h2 className="chief-next-action-title text-sm font-semibold">{data.nextAction.title}</h2>
               <p className="chief-next-action-copy text-xs mt-0.5">{data.nextAction.whyNow}</p>
             </div>
-            <Link
+            {data.nextAction.readiness !== "complete" ? <Link
               href={data.nextAction.route}
               className="chief-next-action-cta inline-flex items-center gap-1.5 px-4 py-2 rounded-lg font-semibold text-xs whitespace-nowrap transition"
             >
               Take Action <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
+            </Link> : <Link href="/chief-of-staff/inbox" className="chief-next-action-cta inline-flex items-center gap-1.5 px-4 py-2 rounded-lg font-semibold text-xs whitespace-nowrap transition">Review action inbox <ArrowRight className="w-3.5 h-3.5" /></Link>}
           </div>
         )}
 
