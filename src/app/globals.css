@@ -98,7 +98,7 @@ textarea.resize-none{resize:none}
   max-width: 100%;
   border: 1px solid var(--line, #e2e3e7);
   border-radius: 0.5625rem;
-  background: var(--surface-muted, #f1f2f4);
+  background: var(--surface-2, #f1f2f4);
 }
 .consolidated-workspace__tab {
   display: inline-flex;
