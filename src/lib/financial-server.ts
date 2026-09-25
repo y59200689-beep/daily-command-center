@@ -23,7 +23,7 @@ const sourceTables={invoices:'invoices',payments:'payments',expenses:'expenses',
 export async function loadFinancialControl(client:SupabaseClient,userId:string,today=new Date().toISOString().slice(0,10)) {
  const data:FinancialData={};const truncated:string[]=[];
  await Promise.all(Object.entries({...financialTables,...sourceTables}).map(async([key,table])=>{
-  let query=client.from(table).select('*').eq('user_id',userId).order('created_at',{ascending:false}).limit(1001);
+  let query=client.from(table).select('*').eq('user_id',userId).order(table==='inventory_snapshots'?'captured_at':'created_at',{ascending:false}).limit(1001);
   if(['invoices','payments','expenses','subscriptions','clients'].includes(key))query=query.is('deleted_at',null);
   const result=await query;if(result.error)throw result.error;data[key]=(result.data??[]) as FinancialRow[];if(data[key].length>1000)truncated.push(key);
  }));

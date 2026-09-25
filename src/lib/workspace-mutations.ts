@@ -1,13 +1,14 @@
 import type { PersistedDomain } from "@/lib/domains";
 
-type MutationListener = (domain: PersistedDomain) => void;
+export type MutationDomain = PersistedDomain | "founder-os";
+type MutationListener = (domain: MutationDomain) => void;
 const listeners = new Set<MutationListener>();
 
-export function announceWorkspaceMutation(domain: PersistedDomain) {
+export function announceWorkspaceMutation(domain: MutationDomain) {
   for (const listener of listeners) listener(domain);
 }
 
-export function subscribeToWorkspaceMutations(domains: readonly PersistedDomain[], listener: () => void) {
+export function subscribeToWorkspaceMutations(domains: readonly MutationDomain[], listener: () => void) {
   const domainSet = new Set(domains);
   const mutationListener: MutationListener = (domain) => {
     if (domainSet.has(domain)) listener();
@@ -17,3 +18,6 @@ export function subscribeToWorkspaceMutations(domains: readonly PersistedDomain[
     listeners.delete(mutationListener);
   };
 }
+
+// Founder views observe the same mutation bus as the existing workspace.
+export const domainKeysForFounder: MutationDomain[] = ["founder-os", "fitness", "tasks", "projects", "decisions", "waiting", "subscriptions", "invoices"];

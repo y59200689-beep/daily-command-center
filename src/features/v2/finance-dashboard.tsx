@@ -102,13 +102,14 @@ export function FinanceDashboard() {
             ))}
           </section>
 
+          <p className="dataset-note">Figures reflect invoices, payments, and expenses recorded in this workspace. <Link href="/finance/invoices">Review invoices</Link> or <Link href="/finance/expenses">add an expense</Link> to complete the picture.</p>
           <section className="editorial-split">
             <div className="data-surface">
               <p className="eyebrow">Needs attention</p>
               <h2>
                 {data.overdue.length
                   ? `${data.overdue.length} overdue invoice${data.overdue.length === 1 ? "" : "s"}.`
-                  : "No overdue invoices."}
+                  : "No overdue invoices found in recorded data."}
               </h2>
               {data.overdue.slice(0, 5).map((invoice) => (
                 <Link className="signal-row" href={`/finance/invoices?invoice=${invoice.id}`} key={invoice.id}>
@@ -137,4 +138,3 @@ export function FinanceDashboard() {
     </div>
   );
 }
-

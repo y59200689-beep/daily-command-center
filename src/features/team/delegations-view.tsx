@@ -1,5 +1,6 @@
 "use client";
 
+import { announceWorkspaceMutation } from "@/lib/workspace-mutations";
 import Link from "next/link";
 import { useEffect, useState, useCallback } from "react";
 import { Icons } from "@/components/icons";
@@ -52,6 +53,7 @@ export function DelegationsView() {
 
   // Blocker modal
   const [blockOpen, setBlockOpen] = useState(false);
+  const [founderApproval, setFounderApproval] = useState(false);
   const [blockReason, setBlockReason] = useState("");
   const [blocking, setBlocking] = useState(false);
 
@@ -117,8 +119,10 @@ export function DelegationsView() {
       body: JSON.stringify({
         status: newStatus,
         blocked_reason: blockedReason || null,
+        ...(newStatus === "blocked" ? { founder_approval_required: founderApproval } : {}),
       }),
     });
+    announceWorkspaceMutation("founder-os");
     loadData();
   };
 
@@ -360,7 +364,7 @@ export function DelegationsView() {
         <form noValidate onSubmit={handleBlockSubmit} style={{ display: "grid", gap: "14px" }}>
           <div>
             <label className="field-label">Blocker Reason *</label>
-            <textarea required value={blockReason} onChange={(e) => setBlockReason(e.target.value)} placeholder="What is blocking this outcome from proceeding?" className="text-input resize-none" rows={3} />
+            <label><input type="checkbox" checked={founderApproval} onChange={e => setFounderApproval(e.target.checked)} />Founder approval is required</label><textarea required value={blockReason} onChange={(e) => setBlockReason(e.target.value)} placeholder="What is blocking this outcome from proceeding?" className="text-input resize-none" rows={3} />
           </div>
           <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px" }}>
             <button type="button" onClick={() => setBlockOpen(false)} className="button button--secondary">Cancel</button>

@@ -1,0 +1,9 @@
+{
+  "userId": "861d771c-40c2-4931-aa26-8a819b41e832",
+  "email": "tier1-e2e-34efdec4-8c11-4e5b-acd1-ce7e3f89f160@example.com",
+  "runId": "34efdec4-8c11-4e5b-acd1-ce7e3f89f160",
+  "projectId": "local",
+  "remainingAuthUsers": 0,
+  "remainingOwnedRows": 0,
+  "evidence": "{\"name\":\"Tier 2A business/KPI create edit refresh and propagation\",\"result\":{\"company\":\"8b38c502-45d3-4931-9a26-ceefe42778e8\",\"kpi\":\"a5b2e973-7107-4953-9488-40c33794abe7\",\"observation\":\"d9477935-15ff-44b1-a695-ee2a93c2d6da\",\"errors\":[]}}\n{\"name\":\"Tier 2A live normal-user RLS, foreign links and anonymous denial\",\"result\":\"PASS\"}\n{\"name\":\"client credential isolation\",\"result\":\"PASS\"}\n{\"name\":\"Tier 2A business/KPI create edit refresh and propagation\",\"result\":{\"company\":\"4bc61e92-935e-4150-94d0-cd12e8af9b1b\",\"kpi\":\"41b4be88-1f2a-4b73-be1a-9757c7ad43ad\",\"observation\":\"f8829fff-7c3e-4332-8aec-841fdaaa06c7\",\"errors\":[]}}\n{\"name\":\"Tier 2A business/KPI create edit refresh and propagation\",\"result\":{\"company\":\"be6854f9-abb3-449e-9755-ac5d0a6cdfab\",\"kpi\":\"a78d07b9-8b5a-436d-9601-a7f5bf62cd3c\",\"observation\":\"99b52dc5-9da7-452a-ad8b-50f3e3c51c8f\",\"errors\":[]}}\n"
+}

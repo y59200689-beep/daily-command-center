@@ -1,5 +1,7 @@
 "use client";
 import Link from "next/link";
+import { FounderStatePanel } from "@/features/founder-os/state-view";
+import type { FounderState } from "@/lib/founder-os/intelligence";
 import { useCallback, useEffect, useState } from "react";
 import { Icons } from "@/components/icons";
 import { Button } from "@/components/ui/button";
@@ -43,6 +45,7 @@ type Intelligence = {
   fitness: { insights: string[] };
 };
 type TodayData = {
+  founderState?: FounderState | null;
   date: string;
   profile: { display_name?: string; timezone?: string } | null;
   priorities: Item[];
@@ -107,6 +110,9 @@ export function TodayDashboard() {
     () =>
       subscribeToWorkspaceMutations(
         [
+          "founder-os",
+          "fitness",
+          "decisions",
           "tasks",
           "inbox",
           "projects",
@@ -173,6 +179,7 @@ export function TodayDashboard() {
     (data.priorities[0] ? `/focus?task=${data.priorities[0].id}` : "/tasks");
   return (
     <div className="today-page">
+      {data.founderState ? <FounderStatePanel state={data.founderState} compact /> : <p className="founder-coverage">Founder State is unavailable. <Link href="/state">Review monitoring</Link>.</p>}
       <section className="brief-hero">
         <div className="brief-hero__main">
           <p className="eyebrow">
@@ -542,7 +549,7 @@ export function TodayDashboard() {
                 <strong>{String(project.name)}</strong>
                 <small>{String(project.description ?? "Open project")}</small>
               </div>
-              <em>{String(project.progress ?? 0)}%</em>
+              <em>{String(project.status ?? "Status unknown")}</em>
             </Link>
           ))}
         </aside>
@@ -617,14 +624,20 @@ function Attention({
         </div>
         <Link href="/risks">Review risks</Link>
       </div>
-      {recommendations.slice(0, 5).map((item) => (
+      {Array.from(recommendations.reduce((groups, item) => {
+        const key = item.entityType && item.entityId ? `${item.entityType}:${item.entityId}` : item.key;
+        groups.set(key, [...(groups.get(key) ?? []), item]);
+        return groups;
+      }, new Map<string, Recommendation[]>()).values()).slice(0, 5).map((group) => {
+        const item = group[0];
+        return (
         <article className="attention-row" key={item.key}>
           <span>{item.priority}</span>
           <div>
             <Link href={item.route}>
               <strong>{item.label}</strong>
             </Link>
-            <p>{item.reason}</p>
+            {group.map((reason) => <p key={reason.key}>{reason.reason}</p>)}
             {explained === item.key ? (
               <ul className="recommendation-evidence">
                 {item.evidence.map((evidence) => (
@@ -640,13 +653,13 @@ function Attention({
               >
                 Why this?
               </button>
-              <button onClick={() => void feedback(item, "snoozed")}>
+              <button onClick={() => void Promise.all(group.map((entry) => feedback(entry, "snoozed")))}>
                 Snooze
               </button>
-              <button onClick={() => void feedback(item, "dismissed")}>
+              <button onClick={() => void Promise.all(group.map((entry) => feedback(entry, "dismissed")))}>
                 Dismiss
               </button>
-              <button onClick={() => void feedback(item, "irrelevant")}>
+              <button onClick={() => void Promise.all(group.map((entry) => feedback(entry, "irrelevant")))}>
                 Irrelevant
               </button>
             </div>
@@ -655,7 +668,7 @@ function Attention({
             <em>Act →</em>
           </Link>
         </article>
-      ))}
+      );})}
     </section>
   );
 }

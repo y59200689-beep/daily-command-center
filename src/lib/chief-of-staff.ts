@@ -541,12 +541,12 @@ export function rankNextChiefOfStaffAction(context: {
 
   // Default clean state
   return {
-    title: "All systems operating within normal parameters",
-    whyNow: "No pending approvals, failed executions, or urgent action proposals",
+    title: "No immediate Chief of Staff action found",
+    whyNow: "No pending approvals, failed executions, or urgent action proposals were found in the checked action sources.",
     risk: "safe_internal",
     approvalRequirement: "auto_executable",
     readiness: "complete",
-    route: "/chief-of-staff",
+    route: "/chief-of-staff/inbox",
     score: 0,
   };
 }

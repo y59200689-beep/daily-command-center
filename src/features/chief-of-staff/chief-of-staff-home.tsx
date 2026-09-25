@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { SignalRow } from "@/features/founder-os/state-view";
+import type { Signal } from "@/lib/founder-os/intelligence";
 import {
   AlertTriangle,
   Clock,
@@ -15,6 +17,7 @@ import {
 import "./chief-of-staff.css";
 
 type ChiefState = {
+  founderRecommendations?: Signal[];
   nextAction: {
     title: string;
     whyNow: string;
@@ -22,6 +25,7 @@ type ChiefState = {
     approvalRequirement: string;
     route: string;
     actionId?: string;
+    readiness: string;
   };
   topMetrics: {
     preparedCount: number;
@@ -66,6 +70,14 @@ type ChiefState = {
     risk_level: string;
     status: string;
   }>;
+  dailyBrief?: {
+    whatChanged: Array<{ id: string; title: string; route: string; why: string }>;
+    whatMatters: Array<{ id: string; title: string; route: string; why: string }>;
+    whatNeedsYou: Array<{ id: string; title: string; route: string; why: string }>;
+    whatCanWait: Array<{ id: string; title: string; route: string; why: string }>;
+    whatShouldBeDelegated: Array<{ id: string; title: string; route: string; why: string }>;
+    whatShouldBeLearned: Array<{ id: string; title: string; route: string; why: string }>;
+  };
 };
 
 export function ChiefOfStaffHome() {
@@ -176,6 +188,7 @@ export function ChiefOfStaffHome() {
 
   return (
     <div className="chief-container">
+      {data?.founderRecommendations?.length ? <section className="founder-state"><h2>Founder recommendations</h2><p className="founder-muted">Review the source and prepare a next step. Actions continue through the existing approval workflow.</p>{data.founderRecommendations.map(signal => <SignalRow key={signal.id} signal={signal} />)}</section> : null}
       {/* ClickUp Context Header */}
       <header className="task-context-header">
         <div>
@@ -245,12 +258,12 @@ export function ChiefOfStaffHome() {
               <h2 className="chief-next-action-title text-sm font-semibold">{data.nextAction.title}</h2>
               <p className="chief-next-action-copy text-xs mt-0.5">{data.nextAction.whyNow}</p>
             </div>
-            <Link
+            {data.nextAction.readiness !== "complete" ? <Link
               href={data.nextAction.route}
               className="chief-next-action-cta inline-flex items-center gap-1.5 px-4 py-2 rounded-lg font-semibold text-xs whitespace-nowrap transition"
             >
               Take Action <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
+            </Link> : <Link href="/chief-of-staff/inbox" className="chief-next-action-cta inline-flex items-center gap-1.5 px-4 py-2 rounded-lg font-semibold text-xs whitespace-nowrap transition">Review action inbox <ArrowRight className="w-3.5 h-3.5" /></Link>}
           </div>
         )}
 
@@ -274,6 +287,87 @@ export function ChiefOfStaffHome() {
         )}
       </div>
 
+      {/* Chief of Staff Daily Brief */}
+      {data?.dailyBrief && (
+        <section className="chief-hero-card chief-daily-brief mt-6 p-5 rounded-2xl bg-slate-900/60 border border-slate-800">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-400 block mb-0.5">Synthesis Brief</span>
+              <h2 className="text-base font-semibold text-white">Chief of Staff Daily Brief</h2>
+            </div>
+            <span className="text-xs text-slate-400">Contextual priorities for executive focus</span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {/* What Changed */}
+            <div className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800/80">
+              <span className="text-[11px] font-semibold text-slate-300 block mb-2">What changed</span>
+              {data.dailyBrief.whatChanged.length ? data.dailyBrief.whatChanged.map(item => (
+                <Link key={item.id} href={item.route} className="block text-xs py-1 text-slate-400 hover:text-white transition">
+                  <strong className="text-slate-200 block truncate">{item.title}</strong>
+                  <span className="text-[10px] text-slate-500 block truncate">{item.why}</span>
+                </Link>
+              )) : <p className="text-[11px] text-slate-500">No material changes detected.</p>}
+            </div>
+
+            {/* What Matters */}
+            <div className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800/80">
+              <span className="text-[11px] font-semibold text-amber-300 block mb-2">What matters</span>
+              {data.dailyBrief.whatMatters.length ? data.dailyBrief.whatMatters.map(item => (
+                <Link key={item.id} href={item.route} className="block text-xs py-1 text-slate-400 hover:text-white transition">
+                  <strong className="text-slate-200 block truncate">{item.title}</strong>
+                  <span className="text-[10px] text-slate-500 block truncate">{item.why}</span>
+                </Link>
+              )) : <p className="text-[11px] text-slate-500">All primary health metrics steady.</p>}
+            </div>
+
+            {/* What Needs You */}
+            <div className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800/80">
+              <span className="text-[11px] font-semibold text-rose-300 block mb-2">What needs you</span>
+              {data.dailyBrief.whatNeedsYou.length ? data.dailyBrief.whatNeedsYou.map(item => (
+                <Link key={item.id} href={item.route} className="block text-xs py-1 text-slate-400 hover:text-white transition">
+                  <strong className="text-slate-200 block truncate">{item.title}</strong>
+                  <span className="text-[10px] text-slate-500 block truncate">{item.why}</span>
+                </Link>
+              )) : <p className="text-[11px] text-slate-500">No pending founder gates.</p>}
+            </div>
+
+            {/* What Can Wait */}
+            <div className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800/80">
+              <span className="text-[11px] font-semibold text-slate-400 block mb-2">What can wait</span>
+              {data.dailyBrief.whatCanWait.length ? data.dailyBrief.whatCanWait.map(item => (
+                <Link key={item.id} href={item.route} className="block text-xs py-1 text-slate-400 hover:text-white transition">
+                  <strong className="text-slate-200 block truncate">{item.title}</strong>
+                  <span className="text-[10px] text-slate-500 block truncate">{item.why}</span>
+                </Link>
+              )) : <p className="text-[11px] text-slate-500">Queue is clear.</p>}
+            </div>
+
+            {/* What Should Be Delegated */}
+            <div className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800/80">
+              <span className="text-[11px] font-semibold text-indigo-300 block mb-2">What to delegate</span>
+              {data.dailyBrief.whatShouldBeDelegated.length ? data.dailyBrief.whatShouldBeDelegated.map(item => (
+                <Link key={item.id} href={item.route} className="block text-xs py-1 text-slate-400 hover:text-white transition">
+                  <strong className="text-slate-200 block truncate">{item.title}</strong>
+                  <span className="text-[10px] text-slate-500 block truncate">{item.why}</span>
+                </Link>
+              )) : <p className="text-[11px] text-slate-500">No recurring bottlenecks identified.</p>}
+            </div>
+
+            {/* What Should Be Learned */}
+            <div className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800/80">
+              <span className="text-[11px] font-semibold text-cyan-300 block mb-2">What to learn</span>
+              {data.dailyBrief.whatShouldBeLearned.length ? data.dailyBrief.whatShouldBeLearned.map(item => (
+                <Link key={item.id} href={item.route} className="block text-xs py-1 text-slate-400 hover:text-white transition">
+                  <strong className="text-slate-200 block truncate">{item.title}</strong>
+                  <span className="text-[10px] text-slate-500 block truncate">{item.why}</span>
+                </Link>
+              )) : <p className="text-[11px] text-slate-500">All experiments & forecasts current.</p>}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* Awaiting Your Approval Section */}
       <section className="space-y-3">
         <div className="flex items-center justify-between">
@@ -286,7 +380,7 @@ export function ChiefOfStaffHome() {
         </div>
 
         {pendingApprovals.length === 0 ? (
-          <div className="p-6 rounded-xl bg-slate-900/40 border border-slate-800 text-center text-slate-400 text-xs">
+          <div className="chief-empty-state p-6 rounded-xl bg-slate-900/40 border border-slate-800 text-center text-slate-400 text-xs">
             No actions currently require your approval.
           </div>
         ) : (
@@ -399,7 +493,7 @@ export function ChiefOfStaffHome() {
         </div>
 
         {completedExecutions.length === 0 ? (
-          <div className="p-4 rounded-xl bg-slate-900/40 border border-slate-800 text-center text-slate-400 text-xs">
+          <div className="chief-empty-state p-4 rounded-xl bg-slate-900/40 border border-slate-800 text-center text-slate-400 text-xs">
             No actions completed yet today.
           </div>
         ) : (
@@ -419,7 +513,7 @@ export function ChiefOfStaffHome() {
       </section>
 
       {/* Quick Navigation Footer */}
-      <div className="pt-4 border-t border-slate-800 grid grid-cols-2 sm:grid-cols-4 gap-3 text-center text-xs">
+      <div className="chief-quick-links pt-4 border-t border-slate-800 grid grid-cols-2 sm:grid-cols-4 gap-3 text-center text-xs">
         <Link href="/chief-of-staff/inbox" className="p-3 rounded-lg bg-slate-900/40 hover:bg-slate-800 border border-slate-800 text-slate-300 transition">
           Action Inbox ({data?.proposals?.length || 0})
         </Link>

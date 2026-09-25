@@ -1,3 +1,4 @@
+import { DependencyPanel } from "@/features/founder-os/dependency-panel";
 import type { Metadata } from "next";
 import { PersonDetail } from "@/features/team/person-detail";
 
@@ -12,5 +13,5 @@ export default async function PersonDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  return <PersonDetail id={id} />;
+  return <><PersonDetail id={id} /><DependencyPanel type="person" id={id} /></>;
 }

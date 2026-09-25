@@ -9,6 +9,10 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "tsx --test tests/*.test.ts",
+    "test:e2e": "node scripts/e2e/run.mjs",
+    "test:e2e:tier1": "node scripts/e2e/run.mjs e2e/tier1",
+    "test:e2e:mobile": "node scripts/e2e/run.mjs e2e/tier1/mobile.spec.ts --project=mobile-iphone --project=mobile-android",
+    "test:e2e:cleanup": "node scripts/e2e/cleanup.mjs",
     "verify": "npm run lint && npm run typecheck && npm run test && npm run build"
   },
   "dependencies": {
@@ -23,6 +27,8 @@
     "zod": "latest"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.8",
+    "@playwright/test": "^1.63.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

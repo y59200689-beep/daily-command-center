@@ -1,5 +1,6 @@
+import { ExecutiveBriefing } from "@/features/founder-os/executive-briefing";
 import type { Metadata } from "next";
-import { ExecutiveHome } from "@/features/executive/executive-home";
+import { LegacyExecutiveReports } from "@/features/founder-os/legacy-executive-reports";
 
 export const metadata: Metadata = {
   title: "Executive Command Center",
@@ -7,5 +8,5 @@ export const metadata: Metadata = {
 };
 
 export default function ExecutivePage() {
-  return <ExecutiveHome />;
+  return <><ExecutiveBriefing /><LegacyExecutiveReports /></>;
 }

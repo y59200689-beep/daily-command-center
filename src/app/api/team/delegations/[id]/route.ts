@@ -17,6 +17,7 @@ const patchSchema = z.object({
   acknowledged_at: z.string().datetime().optional().nullable(),
   completed_at: z.string().datetime().optional().nullable(),
   completion_summary: z.string().max(3000).optional().nullable(),
+  founder_approval_required: z.boolean().optional(),
   blocked_reason: z.string().max(1000).optional().nullable(),
   notes: z.string().max(3000).optional().nullable(),
 });

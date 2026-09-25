@@ -128,6 +128,36 @@
 .chief-action-grid{gap:10px}.chief-card{gap:10px;padding:14px;transition:border-color .15s ease,box-shadow .15s ease}.chief-card:hover{transform:none;border-color:#cfe1d9;box-shadow:var(--shadow)}
 .chief-badge{padding:3px 7px;border:1px solid transparent;font-size:8px;letter-spacing:.025em}.chief-badge-critical{color:#a64d50;background:#fceced;border-color:#f3d7d8}.chief-badge-high,.chief-badge-moderate{color:#8b681f;background:#fbf5df;border-color:#f1e7bd}.chief-badge-low{color:var(--info);background:#ebf5f6;border-color:#d5eaed}.chief-badge-safe{color:var(--success);background:#e9f7f1;border-color:#d8eee5}
 .chief-payload-box{padding:10px;color:var(--ink);border:1px solid var(--line);border-radius:8px;background:var(--surface-secondary);font-size:11px}.chief-diff-current{color:var(--danger)}.chief-diff-proposed{color:var(--success)}
+
+/* Keep the Chief of Staff dashboard legible on light surfaces. */
+html[data-theme="light"] .chief-daily-brief { background: var(--surface); border-color: var(--line); }
+html[data-theme="light"] .chief-daily-brief h2,
+html[data-theme="light"] .chief-container .chief-card h3 { color: var(--ink); }
+html[data-theme="light"] .chief-container section h2.text-slate-400 { color: var(--muted); }
+html[data-theme="light"] .chief-daily-brief > .grid > div {
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+}
+html[data-theme="light"] .chief-daily-brief > .grid > div > span { color: var(--ink); }
+html[data-theme="light"] .chief-daily-brief > .grid > div:nth-child(2) > span { color: #885900; }
+html[data-theme="light"] .chief-daily-brief > .grid > div:nth-child(3) > span { color: #a53651; }
+html[data-theme="light"] .chief-daily-brief > .grid > div:nth-child(5) > span { color: #5140a8; }
+html[data-theme="light"] .chief-daily-brief > .grid > div:nth-child(6) > span { color: #086b82; }
+html[data-theme="light"] .chief-daily-brief .text-slate-200 { color: var(--ink); }
+html[data-theme="light"] .chief-daily-brief .text-slate-400,
+html[data-theme="light"] .chief-daily-brief .text-slate-500,
+html[data-theme="light"] .chief-daily-brief > div > .text-slate-400 { color: var(--muted); }
+html[data-theme="light"] .chief-daily-brief a:hover { color: var(--attention-dark); }
+html[data-theme="light"] .chief-empty-state,
+html[data-theme="light"] .chief-quick-links a,
+html[data-theme="light"] .chief-container .bg-slate-900\/40 {
+  background: var(--surface);
+  border-color: var(--line);
+  color: var(--muted);
+}
+html[data-theme="light"] .chief-quick-links { border-color: var(--line); }
+html[data-theme="light"] .chief-quick-links a { color: var(--ink); }
+html[data-theme="light"] .chief-quick-links a:hover { background: var(--surface-2); border-color: var(--line-strong); }
 .chief-mode-badge{color:var(--attention-dark)!important;border:1px solid #d4e7df!important;background:var(--surface-green-soft)!important}.chief-primary-link{color:#fff!important;border:1px solid var(--attention)!important;background:var(--attention)!important}.chief-primary-link:hover{background:var(--attention-hover)!important}
 .chief-next-action{border:1px solid #dcebd4;background:linear-gradient(135deg,var(--surface-green-soft),var(--surface-lime-soft));box-shadow:none}.chief-next-action-label{color:var(--attention-dark)}.chief-next-action-title{color:var(--ink)}.chief-next-action-copy{color:var(--muted)}.chief-next-action-cta{color:#fff!important;background:var(--attention)!important;box-shadow:none}.chief-next-action-cta:hover{background:var(--attention-hover)!important}
 @media(max-width:640px){.chief-container{padding:0;gap:10px}.chief-hero-card{padding:14px}}

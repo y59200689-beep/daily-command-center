@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { useEffect, useId, useRef, useSyncExternalStore, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { Icons } from "@/components/icons";
 
@@ -12,18 +12,15 @@ interface ModalProps {
   children: ReactNode;
   variant?: "default" | "task";
 }
+const subscribeToMount = () => () => {};
 let openModalCount = 0;
 
 export function Modal({ open, onClose, title, description, children, variant = "default" }: ModalProps) {
-  const [mounted, setMounted] = useState(false);
+  const mounted = useSyncExternalStore(subscribeToMount, () => true, () => false);
   const dialogRef = useRef<HTMLDivElement>(null);
   const onCloseRef = useRef(onClose);
   const titleId = useId();
   const descriptionId = useId();
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   useEffect(() => {
     onCloseRef.current = onClose;

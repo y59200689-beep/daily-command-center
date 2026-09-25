@@ -1,4 +1,5 @@
 "use client";
+import { LessonProposal } from "@/features/founder-os/workflow-panel";
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
@@ -117,6 +118,7 @@ export function LearningRetrospectiveDetailView({ id }: RetroDetailProps) {
 
   return (
     <div className="learning-container">
+      <LessonProposal kind="weekly" id={id} initial={lessonCandidates.map(i => i.content).join("\n")} />
       <div className="learning-hero">
         <div className="learning-hero-header">
           <div>

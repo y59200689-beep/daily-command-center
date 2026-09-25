@@ -158,7 +158,7 @@ test("V5 reactivation cards are present in both business and client contexts wit
 
 test("V5 Today uses a bounded, action-oriented business signal set", async () => {
   const [route, ui] = await Promise.all([readFile(new URL("../src/app/api/today/route.ts", import.meta.url), "utf8"), readFile(new URL("../src/features/today/today-dashboard.tsx", import.meta.url), "utf8")]);
-  assert.match(route, /businessSignals/); assert.match(route, /slice\(0,3\)/); assert.match(route, /Opportunity needs follow-up/); assert.match(route, /Proposal expires soon/); assert.match(route, /Approved scope change/);
+  assert.match(route, /businessSignals/); assert.match(route, /slice\(0,\s*3\)/); assert.match(route, /Opportunity needs follow-up/); assert.match(route, /Proposal expires soon/); assert.match(route, /Approved scope change/);
   assert.match(ui, /Worth protecting/); assert.match(ui, /businessSignals/);
 });
 
@@ -170,7 +170,7 @@ test("V5 weekly review builds business metrics through the existing review route
 
 test("V5 Gmail relationship flow includes owner-scoped lead and opportunity links without a second reply model", async () => {
   const [api, communication, context] = await Promise.all([readFile(new URL("../src/app/api/email-threads/[id]/route.ts", import.meta.url), "utf8"), readFile(new URL("../src/app/api/communication/route.ts", import.meta.url), "utf8"), readFile(new URL("../src/app/api/business/communication/[entity]/[id]/route.ts", import.meta.url), "utf8")]);
-  assert.match(api, /linked_lead_id/); assert.match(api, /linked_opportunity_id/); assert.match(api, /eq\("user_id",userId\)/);
+  assert.match(api, /linked_lead_id/); assert.match(api, /linked_opportunity_id/); assert.match(api, /eq\("user_id",\s*userId\)/);
   assert.match(communication, /suggested_lead/); assert.match(communication, /opportunities/);
   assert.match(context, /entitySchema/); assert.match(context, /linked_opportunity_id/); assert.match(context, /requireUser\(\)/);
 });

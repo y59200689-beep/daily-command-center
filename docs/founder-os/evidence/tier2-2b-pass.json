@@ -1,0 +1,11 @@
+{
+  "desktopPassed": 1,
+  "mobilePassed": 2,
+  "userId": "3f67f9b5-1961-42f2-b67c-77422de6a80a",
+  "email": "tier1-e2e-b1e167a2-32c3-4c1c-85d3-348f7711806d@example.com",
+  "runId": "b1e167a2-32c3-4c1c-85d3-348f7711806d",
+  "projectId": "local",
+  "remainingAuthUsers": 0,
+  "remainingOwnedRows": 0,
+  "evidence": "{\"name\":\"Tier 2B registry access health edit refresh propagation and recovery\",\"result\":{\"system\":\"e4bd969b-bdf5-4529-80d2-cceca5f90727\",\"access\":\"0c42afc2-e022-457c-b0a9-df698efe2463\",\"check\":\"84daf48f-5017-4582-962b-b883ebac3a7d\",\"errors\":[]}}\n{\"name\":\"Tier 2B registry access health edit refresh propagation and recovery\",\"result\":{\"system\":\"0bb05ccc-6cfb-4786-a0d8-6b3aa5ff6ab3\",\"access\":\"9debcf1b-a865-497b-a134-25c0732a1e77\",\"check\":\"07f2d0ee-01c8-47fe-a74a-51d9b2336c05\",\"errors\":[]}}\n{\"name\":\"Tier 2B registry access health edit refresh propagation and recovery\",\"result\":{\"system\":\"bfe36299-d6eb-49a7-9b64-c0c8939e2bf8\",\"access\":\"685641d0-68d5-4a87-ae03-361de221704a\",\"check\":\"c2638764-e8cd-4540-b43f-98c1aa8fb80d\",\"errors\":[]}}\n"
+}

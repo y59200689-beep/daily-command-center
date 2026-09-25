@@ -1,3 +1,5 @@
+import { loadFounderState } from "@/lib/founder-os/server";
+import type { Signal } from "@/lib/founder-os/intelligence";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   classifyActionRisk,
@@ -12,6 +14,7 @@ import {
 import { sendApprovedGmailDraft } from "./integrations/gmail";
 
 export interface ChiefOfStaffContext {
+  founderRecommendations: Signal[];
   nextAction: NextChiefAction;
   topMetrics: {
     preparedCount: number;
@@ -61,12 +64,21 @@ export interface ChiefOfStaffContext {
     status: string;
   }>;
   providers: Record<string, { connected: boolean; status: string }>;
+  dailyBrief: {
+    whatChanged: Array<{ id: string; title: string; route: string; why: string }>;
+    whatMatters: Array<{ id: string; title: string; route: string; why: string }>;
+    whatNeedsYou: Array<{ id: string; title: string; route: string; why: string }>;
+    whatCanWait: Array<{ id: string; title: string; route: string; why: string }>;
+    whatShouldBeDelegated: Array<{ id: string; title: string; route: string; why: string }>;
+    whatShouldBeLearned: Array<{ id: string; title: string; route: string; why: string }>;
+  };
 }
 
 export async function loadChiefOfStaffContext(
   client: SupabaseClient,
   userId: string
 ): Promise<ChiefOfStaffContext> {
+  const founderPromise = loadFounderState(client, userId).catch(() => null);
   // Parallel bounded queries with graceful fallbacks
   const [
     approvalsRes,
@@ -164,7 +176,65 @@ export async function loadChiefOfStaffContext(
     failedCount: failedExecutions.length,
   };
 
+  const founderState = await founderPromise;
+  const signals = founderState?.signals ?? [];
+  const dailyBrief = {
+    whatChanged: signals.filter(s => s.severity === "high" || s.severity === "critical").slice(0, 5).map(s => ({
+      id: s.id,
+      title: s.title,
+      route: s.route,
+      why: s.reasons[0] || s.impact || "Recent change requiring attention",
+    })),
+    whatMatters: signals.slice(0, 5).map(s => ({
+      id: s.id,
+      title: s.title,
+      route: s.route,
+      why: s.reasons.join(" "),
+    })),
+    whatNeedsYou: [
+      ...pendingApprovals.map(a => ({
+        id: a.id,
+        title: a.title,
+        route: "/approvals",
+        why: a.summary || "Requires founder approval before execution",
+      })),
+      ...signals.filter(s => s.domain === "decisions" || s.type.includes("DECISION") || s.type.includes("FOUNDER_DECISION")).map(s => ({
+        id: s.id,
+        title: s.title,
+        route: s.route,
+        why: s.action || "Founder decision required",
+      })),
+    ].slice(0, 5),
+    whatCanWait: signals.filter(s => s.severity === "medium").slice(0, 5).map(s => ({
+      id: s.id,
+      title: s.title,
+      route: s.route,
+      why: s.action || "Medium priority, scheduled for review",
+    })),
+    whatShouldBeDelegated: [
+      ...signals.filter(s => s.type === "DELEGATION_CANDIDATE" || s.type.includes("BOTTLENECK")).map(s => ({
+        id: s.id,
+        title: s.title,
+        route: s.route,
+        why: s.reasons.join(" "),
+      })),
+      ...proposals.filter(p => p.action_type === "delegate_task").map(p => ({
+        id: p.id,
+        title: p.title,
+        route: "/team/delegations",
+        why: p.reason || "Operational work suitable for delegation",
+      })),
+    ].slice(0, 5),
+    whatShouldBeLearned: signals.filter(s => s.domain === "learning" || s.type.includes("EXPERIMENT") || s.type.includes("FORECAST") || s.type.includes("ASSUMPTION")).map(s => ({
+      id: s.id,
+      title: s.title,
+      route: s.route,
+      why: s.action || "Empirical review due to update assumptions",
+    })).slice(0, 5),
+  };
+
   return {
+    founderRecommendations: founderState?.attention ?? [],
     nextAction,
     topMetrics,
     proposals,
@@ -173,6 +243,7 @@ export async function loadChiefOfStaffContext(
     executions,
     escalations,
     providers,
+    dailyBrief,
   };
 }
 

@@ -1,0 +1,11 @@
+import { test } from "@playwright/test";
+import { snapshotRegistry } from "../../scripts/e2e/registry.mjs";
+import { businessWorkflow } from "./workflows";
+test.afterEach(()=>snapshotRegistry());
+test("Phase 2A business and KPI authenticated workflow",async({page})=>{test.setTimeout(300000);await businessWorkflow(page);});
+import { infrastructureWorkflow } from "./workflows";
+test("Phase 2B infrastructure access and technical health",async({page})=>{test.setTimeout(300000);await infrastructureWorkflow(page);});
+import { personalWorkflow } from './workflows';
+test('Phase 2C personal wealth mobility and documents',async({page})=>{test.setTimeout(300000);await personalWorkflow(page);});
+import { relationshipWorkflow } from './workflows';
+test('Phase 2D relationships commitments capture and propagation',async({page})=>{test.setTimeout(300000);await relationshipWorkflow(page);});

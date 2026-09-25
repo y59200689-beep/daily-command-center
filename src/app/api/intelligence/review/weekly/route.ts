@@ -30,18 +30,21 @@ async function withBusinessReview(supabase: Awaited<ReturnType<typeof requireUse
   return { ...review, business: { ...weeklyBusinessMetrics({ leadsCreated: leads.count ?? 0, opportunitiesCreated: opportunities.count ?? 0, opportunitiesAdvanced: stages.length, proposalsSent: (proposals.data ?? []).filter((item) => item.status === "sent").length, dealsWon: stages.filter((item) => item.to_stage === "won").length, dealsLost: stages.filter((item) => item.to_stage === "lost").length, trackedSeconds: (focus.data ?? []).reduce((sum, item) => sum + Number(item.duration_seconds ?? 0), 0), scopeCreep: scope.data?.length ?? 0, profitabilityWarnings: 0, reactivationCandidates: 0 }), currencies } };
 }
 async function withFounderReview(supabase: Awaited<ReturnType<typeof requireUser>>["supabase"], userId: string, review: Awaited<ReturnType<typeof withBusinessReview>>) {
-  const company = await supabase.from("companies").select("id").eq("user_id", userId).eq("active", true).maybeSingle(); if (company.error) throw company.error; if (!company.data) return review;
+  const companies = await supabase.from("companies").select("id").eq("user_id", userId).eq("active", true); if (companies.error) throw companies.error; if (!companies.data?.length) return review;
+  const companyIds = companies.data.map(company => company.id);
   const start = `${review.periodStart}T00:00:00.000Z`; const end = `${review.periodEnd}T23:59:59.999Z`;
   const [orders, deployments, incidents, support, usage, funnels] = await Promise.all([
-    supabase.from("commerce_orders").select("status,total_amount,currency").eq("user_id", userId).eq("company_id", company.data.id).gte("created_at", start).lte("created_at", end),
-    supabase.from("deployment_records").select("status,environment").eq("user_id", userId).eq("company_id", company.data.id).gte("created_at", start).lte("created_at", end),
-    supabase.from("incidents").select("id").eq("user_id", userId).eq("company_id", company.data.id).gte("started_at", start).lte("started_at", end),
-    supabase.from("support_cases").select("id,status").eq("user_id", userId).eq("company_id", company.data.id).gte("created_at", start).lte("created_at", end),
-    supabase.from("ai_usage_records").select("estimated_cost,status,currency").eq("user_id", userId).eq("company_id", company.data.id).gte("occurred_at", start).lte("occurred_at", end),
-    supabase.from("company_funnel_snapshots").select("sessions,orders_confirmed,orders_created").eq("user_id", userId).eq("company_id", company.data.id).gte("period_start", review.periodStart).lte("period_end", review.periodEnd).order("period_end", { ascending: false }).limit(1),
+    supabase.from("commerce_orders").select("status,total_amount,currency").eq("user_id", userId).in("company_id", companyIds).gte("created_at", start).lte("created_at", end),
+    supabase.from("deployment_records").select("status,environment").eq("user_id", userId).in("company_id", companyIds).gte("created_at", start).lte("created_at", end),
+    supabase.from("incidents").select("id").eq("user_id", userId).in("company_id", companyIds).gte("started_at", start).lte("started_at", end),
+    supabase.from("support_cases").select("id,status").eq("user_id", userId).in("company_id", companyIds).gte("created_at", start).lte("created_at", end),
+    supabase.from("ai_usage_records").select("estimated_cost,status,currency").eq("user_id", userId).in("company_id", companyIds).gte("occurred_at", start).lte("occurred_at", end),
+    supabase.from("company_funnel_snapshots").select("company_id,sessions,orders_confirmed,orders_created").eq("user_id", userId).in("company_id", companyIds).gte("period_start", review.periodStart).lte("period_end", review.periodEnd).order("period_end", { ascending: false }),
   ]); const failed = [orders, deployments, incidents, support, usage, funnels].find((result) => result.error); if (failed?.error) throw failed.error;
   const currencies: Record<string, number> = {}; for (const order of orders.data ?? []) if (!["canceled", "failed_payment", "refunded"].includes(order.status)) currencies[String(order.currency ?? "MAD")] = (currencies[String(order.currency ?? "MAD")] ?? 0) + Number(order.total_amount ?? 0);
-  const funnel = funnels.data?.[0] ?? null; const orderCount = Number(funnel?.orders_confirmed ?? funnel?.orders_created ?? 0); const sessions = Number(funnel?.sessions ?? 0);
+  const latestFunnels = new Map<string, NonNullable<typeof funnels.data>[number]>();
+  for (const item of funnels.data ?? []) if (!latestFunnels.has(item.company_id)) latestFunnels.set(item.company_id, item);
+  const funnel = latestFunnels.size > 0; const orderCount = [...latestFunnels.values()].reduce((sum, item) => sum + Number(item.orders_confirmed ?? item.orders_created ?? 0), 0); const sessions = [...latestFunnels.values()].reduce((sum, item) => sum + Number(item.sessions ?? 0), 0);
   return { ...review, founder: { revenue: currencies, orders: (orders.data ?? []).filter((item) => !["canceled", "failed_payment", "refunded"].includes(item.status)).length, failedProductionDeployments: (deployments.data ?? []).filter((item) => item.environment === "production" && item.status === "failed").length, incidents: incidents.data?.length ?? 0, supportCases: support.data?.length ?? 0, aiRequests: usage.data?.length ?? 0, aiFailures: (usage.data ?? []).filter((item) => item.status === "failed").length, funnel: funnel ? { sessions, conversion: sessions > 0 ? orderCount / sessions : null } : null } };
 }
 async function withLifeReview(supabase: Awaited<ReturnType<typeof requireUser>>["supabase"], userId: string, review: Awaited<ReturnType<typeof withFounderReview>>) {

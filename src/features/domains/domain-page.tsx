@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { AttachmentSection } from "@/components/attachment-section";
 import { Icons } from "@/components/icons";
@@ -37,16 +38,16 @@ type Config = {
 const f = (key: string, label: string, type?: Field["type"], options?: string[], required = false, relation?: Field["relation"]): Field => ({ key, label, type, options, required, relation });
 const c = (eyebrow: string, title: string, intro: string, action: string, columns: string[], titleField: string, secondary: string, tertiary: string, fields: Field[]): Config => ({ eyebrow, title, intro, action, columns, titleField, secondary, tertiary, fields });
 const configs: Record<DomainKey, Config> = {
-    tasks: c("Execution", "Tasks", "A deliberate list of commitments—not a graveyard of good intentions.", "New task", ["Task", "Status", "Due"], "title", "status", "due_date", [f("title", "Task", "text", undefined, true), f("description", "Notes", "textarea"), f("status", "Status", "select", ["inbox", "planned", "in_progress", "waiting", "blocked", "completed", "cancelled"]), f("priority", "Priority", "select", ["none", "low", "medium", "high", "urgent"]), f("due_date", "Due date", "date")]),
-    inbox: c("Triage", "Inbox", "Capture quickly, then decide what each item becomes.", "Capture", ["Captured item", "Detected as", "Captured"], "raw_text", "detected_type", "created_at", [f("raw_text", "Capture", "textarea", undefined, true), f("detected_type", "Type", "select", ["inbox", "task", "note", "idea", "decision", "follow-up"]), f("status", "Triage status", "select", ["unprocessed", "processed", "archived"])]),
+    tasks: c("Execution", "Tasks", "A deliberate list of commitments—not a graveyard of good intentions.", "New task", ["Task", "Status", "Due"], "title", "status", "due_date", [f("title", "Task", "text", undefined, true), f("description", "Notes", "textarea"), f("status", "Status", "select", ["inbox", "planned", "in_progress", "waiting", "blocked", "completed", "cancelled"]), f("priority", "Priority", "select", ["none", "low", "medium", "high", "urgent"]), f("work_classification", "Work classification", "select", ["standard", "founder_only", "delegate", "automate_candidate"]), f("due_date", "Due date", "date")]),
+    inbox: c("Triage", "Inbox", "Capture quickly, then decide what each item becomes.", "Capture", ["Captured item", "Detected as", "Captured"], "raw_text", "detected_type", "created_at", [f("raw_text", "Capture", "textarea", undefined, true), f("detected_type", "Type", "select", ["inbox", "task", "note", "idea", "decision", "follow-up", "issue", "risk", "commitment", "contact", "experiment"]), f("status", "Triage status", "select", ["unprocessed", "processed", "archived"])]),
     projects: c("Workspace", "Projects", "See momentum, risk, and the next meaningful move.", "New project", ["Project", "Status", "Progress"], "name", "status", "progress", [f("name", "Project name", "text", undefined, true), f("description", "Description", "textarea"), f("status", "Status", "select", ["idea", "planning", "active", "paused", "completed", "archived"]), f("progress", "Progress", "number"), f("value_amount", "Project value", "number"), f("currency", "Currency"), f("target_date", "Target date", "date")]),
     clients: c("Relationships", "Clients", "Keep promises, context, and follow-ups close together.", "New client", ["Client", "Company", "Next contact"], "name", "company", "next_follow_up_at", [f("name", "Client name", "text", undefined, true), f("company", "Company"), f("email", "Email"), f("phone", "Phone"), f("notes", "Notes", "textarea")]),
     followups: c("Relationships", "Follow-ups", "Keep every promised check-in visible.", "New follow-up", ["Follow-up", "Status", "Due"], "title", "status", "due_at", [f("title", "Follow-up", "text", undefined, true), f("due_at", "Due", "datetime-local"), f("status", "Status", "select", ["open", "done", "cancelled"]), f("notes", "Notes", "textarea")]),
     waiting: c("Open loops", "Waiting", "Know exactly where momentum depends on someone else.", "Track request", ["Waiting for", "Contact", "Expected"], "title", "contact", "expected_by", [f("title", "Waiting for", "text", undefined, true), f("contact", "Contact"), f("expected_by", "Expected by", "datetime-local"), f("status", "Status", "select", ["waiting", "received", "cancelled"]), f("notes", "Notes", "textarea")]),
     notes: c("Second brain", "Notes", "Working knowledge with context and a way back to the source.", "New note", ["Note", "Category", "Updated"], "title", "category", "updated_at", [f("title", "Title", "text", undefined, true), f("content", "Note", "textarea"), f("category", "Category")]),
-    goals: c("Direction", "Goals", "Connect the week in front of you to the quarter you want.", "New goal", ["Goal", "Period", "Progress"], "title", "period", "progress", [f("title", "Goal", "text", undefined, true), f("description", "Description", "textarea"), f("period", "Period", "select", ["quarter", "month", "week"]), f("target_date", "Target date", "date"), f("progress", "Progress", "number")]),
+    goals: c("Direction", "Goals", "Connect the week in front of you to the quarter you want.", "New goal", ["Goal", "Period", "Progress"], "title", "period", "progress", [f("title", "Goal", "text", undefined, true), f("description", "Description", "textarea"), f("period", "Period", "select", ["year", "quarter", "month", "week"]), f("target_date", "Target date", "date"), f("progress", "Progress", "number")]),
     ideas: c("Possibilities", "Idea vault", "Interesting is enough. Ideas do not need to become obligations.", "Capture idea", ["Idea", "Potential", "State"], "title", "potential", "status", [f("title", "Idea", "text", undefined, true), f("description", "Description", "textarea"), f("potential", "Potential", "select", ["low", "medium", "high", "huge"]), f("status", "State")]),
-    decisions: c("Memory", "Decision log", "Keep the why, impact, and review point—not just the outcome.", "Log decision", ["Decision", "Impact", "Review"], "title", "impact", "review_date", [f("title", "Decision title", "text", undefined, true), f("decision", "Outcome", "textarea", undefined, true), f("reasoning", "Reasoning", "textarea"), f("impact", "Impact", "select", ["low","medium","high","critical"]), f("confidence", "Confidence", "select", ["low","medium","high"]), f("status", "Status", "select", ["active","review_due","superseded","reversed","archived"]), f("decision_date", "Date", "date"), f("review_date", "Review date", "date")]),
+    decisions: c("Memory", "Decision log", "Keep the why, impact, and review point—not just the outcome.", "Log decision", ["Decision", "Impact", "Review"], "title", "impact", "review_date", [f("title", "Decision title", "text", undefined, true), f("decision", "Outcome", "textarea", undefined, true), f("reasoning", "Reasoning", "textarea"), f("impact", "Impact", "select", ["low","medium","high","critical"]), f("confidence", "Confidence", "select", ["low","medium","high"]), f("status", "Status", "select", ["active","review_due","superseded","reversed","archived","proposed","under_review","decided","implemented","validated"]), f("decision_date", "Date", "date"), f("review_date", "Review date", "date")]),
     prompts: c("Library", "Prompts", "Reusable instructions with variables, versions, and a record of what works.", "New prompt", ["Prompt", "Category", "Uses"], "title", "category", "usage_count", [f("title", "Prompt name", "text", undefined, true), f("prompt_text", "Instructions", "textarea", undefined, true), f("category", "Category", "select", ["Coding","Marketing","Design","Image Generation","Business","Research","Writing","Other"]), f("description", "Description", "textarea"), f("rating", "Usefulness rating (1–5)", "number")]),
     invoices: c("Business pulse · MAD", "Invoices", "Track what has been billed, paid, and linked to client work.", "New invoice", ["Invoice", "Status", "Remaining"], "invoice_number", "status", "amount_remaining", [f("invoice_number", "Invoice number"), f("title", "Title", "text", undefined, true), f("description", "Description", "textarea"), f("subtotal", "Subtotal", "number", undefined, true), f("tax_amount", "Tax", "number"), f("discount_amount", "Discount", "number"), f("currency", "Currency"), f("status", "Status", "select", ["draft", "sent", "partial", "paid", "overdue", "cancelled"]), f("issue_date", "Issue date", "date"), f("due_date", "Due date", "date"), f("external_reference", "External reference"), f("notes", "Notes", "textarea")]),
     payments: c("Cash received", "Payments", "Immutable receipts recorded against an owned invoice.", "Record payment", ["Reference", "Method", "Amount"], "reference", "payment_method", "amount", [f("invoice_id","Invoice ID","text",undefined,true),f("amount","Amount","number",undefined,true),f("currency","Currency"),f("payment_date","Payment date","date",undefined,true),f("payment_method","Payment method"),f("reference","Reference"),f("notes","Notes","textarea")]),
@@ -63,10 +64,15 @@ const configs: Record<DomainKey, Config> = {
     settings: c("System", "Settings", "Tune the command center to the way you work.", "Save changes", [], "title", "status", "created_at", [])
 };
 const relationshipFields: Partial<Record<DomainKey, Field[]>> = { tasks: [f("project_id", "Project", "relation", undefined, false, "projects"), f("client_id", "Client", "relation", undefined, false, "clients"), f("goal_id", "Goal", "relation", undefined, false, "goals")], projects: [f("client_id", "Client", "relation", undefined, false, "clients"), f("goal_id", "Goal", "relation", undefined, false, "goals")], followups: [f("client_id", "Client", "relation", undefined, false, "clients"), f("project_id", "Project", "relation", undefined, false, "projects")], waiting: [f("client_id", "Client", "relation", undefined, false, "clients"), f("project_id", "Project", "relation", undefined, false, "projects")], notes: [f("project_id", "Project", "relation", undefined, false, "projects"),f("client_id","Client","relation",undefined,false,"clients")], ideas: [f("project_id", "Project", "relation", undefined, false, "projects")], decisions: [f("project_id", "Project", "relation", undefined, false, "projects"),f("client_id","Client","relation",undefined,false,"clients")], prompts: [f("project_id", "Project", "relation", undefined, false, "projects"),f("client_id","Client","relation",undefined,false,"clients"),f("campaign_id","Campaign","relation",undefined,false,"campaigns")], invoices: [f("client_id", "Client", "relation", undefined, false, "clients"), f("project_id", "Project", "relation", undefined, false, "projects")], expenses: [f("client_id", "Client", "relation", undefined, false, "clients"),f("project_id", "Project", "relation", undefined, false, "projects")],subscriptions:[f("project_id","Project","relation",undefined,false,"projects")],campaigns:[f("client_id","Client","relation",undefined,true,"clients"),f("project_id","Project","relation",undefined,false,"projects")], finance: [f("client_id", "Client", "relation", undefined, false, "clients"), f("project_id", "Project", "relation", undefined, false, "projects")], content: [f("client_id", "Client", "relation", undefined, false, "clients"), f("project_id", "Project", "relation", undefined, false, "projects"),f("campaign_id","Campaign","relation",undefined,false,"campaigns"),f("prompt_id","Prompt","relation",undefined,false,"prompts")] };
+configs.decisions.fields.push(f("options_considered", "Options considered", "textarea"), f("selected_option", "Selected option"), f("assumptions", "Assumptions", "textarea"), f("expected_outcome", "Expected outcome", "textarea"), f("expected_metric", "Expected metric"), f("actual_outcome", "Actual outcome", "textarea"), f("variance", "Variance from expectation", "textarea"), f("lesson_learned", "Lesson (proposed to Operating Memory)", "textarea"), f("owner_label", "Owner"), f("deadline", "Decision deadline", "date"), f("reversibility", "Reversibility", "select", ["reversible", "costly", "irreversible"]), f("financial_exposure", "Financial exposure", "number"), f("currency", "Currency"));
+configs.waiting.fields.push(f("followup_date", "Follow-up date", "date"), f("importance", "Importance", "select", ["medium", "low", "high", "critical"]), f("direction", "Direction", "select", ["owed_to_me", "owed_by_me"]), f("owner_label", "Owner"), f("impact", "Impact", "textarea"), f("blocking_revenue", "Blocking revenue", "select", ["false", "true"]));
+configs.content.fields.push(f("audience", "Audience"), f("impressions", "Impressions / views", "number"), f("clicks", "Clicks", "number"), f("leads", "Leads", "number"), f("conversions", "Conversions", "number"), f("attributed_revenue", "Attributed revenue", "number"), f("production_cost", "Production cost", "number"), f("metric_currency", "Metrics currency"), f("learning", "Learning", "textarea"));
+configs.fitness.fields.push(f("perceived_exertion", "Perceived exertion (1–10)", "number"));
 configs.tasks.fields.push(f("daily_position", "Today’s win position", "select", ["", "1", "2", "3"]));
+configs.tasks.fields.push(f("target_count", "Target total", "number"), f("current_count", "Current progress", "number"), f("daily_target", "Daily target", "number"));
 for (const [key, fields] of Object.entries(relationshipFields))
     configs[key as DomainKey].fields.push(...fields);
-const emptyValues = (config: Config) => Object.fromEntries(config.fields.map((field) => [field.key, field.options?.[0] ?? (field.key === "currency" ? "MAD" : field.key === "timezone" ? "Africa/Casablanca" : "")]));
+const emptyValues = (config: Config) => Object.fromEntries(config.fields.map((field) => [field.key, field.options?.[0] ?? (["currency", "metric_currency"].includes(field.key) ? "MAD" : field.key === "timezone" ? "Africa/Casablanca" : "")]));
 const display = (value: unknown) => value == null || value === "" ? "—" : String(value).replaceAll("_", " ");
 export function isTaskPastDue(record: DomainRecord): boolean {
     const status = String(record.status ?? "");
@@ -97,6 +103,7 @@ export function DomainPage({ domain, embedded = false, onMutationSuccess, refres
     onMutationSuccess?: () => void | Promise<void>;
     refreshToken?: number;
 }) {
+    const router = useRouter();
     const config = configs[domain];
     const [records, setRecords] = useState<DomainRecord[]>([]);
     const [loading, setLoading] = useState(true);
@@ -111,12 +118,11 @@ export function DomainPage({ domain, embedded = false, onMutationSuccess, refres
                 const params = new URLSearchParams(window.location.search);
                 const viewParam = params.get("view");
                 if (viewParam === "board" || viewParam === "list") return viewParam;
-                const saved = localStorage.getItem("dcc-task-view");
-                if (saved === "board" || saved === "list") return saved;
             } catch {}
         }
-        return "list";
+        return "board";
     });
+    const [calendarMonthOffset, setCalendarMonthOffset] = useState(0);
     const [calendarView, setCalendarView] = useState<"month" | "agenda">(() => {
         if (typeof window !== "undefined") {
             try {
@@ -130,18 +136,13 @@ export function DomainPage({ domain, embedded = false, onMutationSuccess, refres
         return "month";
     });
 
-    useEffect(() => {
+    useDeferredEffect(useCallback(() => {
         try {
             const params = new URLSearchParams(window.location.search);
             const viewParam = params.get("view");
             if (viewParam === "board" || viewParam === "list") {
                 setTaskView(viewParam);
-            } else {
-                const saved = localStorage.getItem("dcc-task-view");
-                if (saved === "board" || saved === "list") {
-                    setTaskView(saved);
-                }
-            }
+            } else setTaskView(window.matchMedia("(max-width: 767px)").matches ? "list" : "board");
             const calParam = params.get("calView");
             if (calParam === "month" || calParam === "agenda") {
                 setCalendarView(calParam);
@@ -152,12 +153,11 @@ export function DomainPage({ domain, embedded = false, onMutationSuccess, refres
                 }
             }
         } catch {}
-    }, []);
+    }, []));
 
     const handleSetTaskView = (view: "list" | "board") => {
         setTaskView(view);
         try {
-            localStorage.setItem("dcc-task-view", view);
             const url = new URL(window.location.href);
             url.searchParams.set("view", view);
             window.history.replaceState({}, "", url.toString());
@@ -236,6 +236,10 @@ export function DomainPage({ domain, embedded = false, onMutationSuccess, refres
         setError("");
         try {
             const body = Object.fromEntries(config.fields.map((field) => [field.key, normalizeInput(values[field.key], field)]).filter(([, value]) => value !== ""));
+            if (domain === "tasks" && editing) {
+                body.target_count = values.target_count ? Number(values.target_count) : null;
+                body.daily_target = values.daily_target ? Number(values.daily_target) : null;
+            }
             if (domain === "tasks" && body.status === "completed" && !body.completed_at) {
                 body.completed_at = new Date().toISOString();
             }
@@ -387,6 +391,8 @@ export function DomainPage({ domain, embedded = false, onMutationSuccess, refres
             const fuRes = await fetch("/api/entities/followups", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ title: rawText, status: "open" }) });
             if (!fuRes.ok) { const d = await fuRes.json(); showToast(d.error ?? "Follow-up could not be created.", "error"); return; }
         }
+        const operatingRoutes: Record<string, string> = { issue: "/issues", risk: "/risks/register", commitment: "/commitments", contact: "/relationships", experiment: "/experiments" };
+        if (operatingRoutes[detectedType]) { router.push(`${operatingRoutes[detectedType]}?capture=${record.id}`); return; }
         // Mark inbox item as processed
         const response = await fetch(`/api/entities/inbox/${record.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: "processed" }) });
         const data = await response.json();
@@ -414,12 +420,13 @@ export function DomainPage({ domain, embedded = false, onMutationSuccess, refres
         {domain === "calendar" ? <CalendarConflicts onEdit={begin} onResolved={load} /> : null}
         <div className={`domain-toolbar ${domain === "tasks" ? "task-toolbar" : ""}`}><SearchInput ref={inputRef} id={`${domain}-search`} label={`Search ${domain}`} value={query} onChange={(event) => {setQuery(event.target.value);setPage(1)}} onClear={() => {setQuery("");setPage(1)}} placeholder={`Search ${domain}…`}/><div className="domain-toolbar__controls">{domain === "tasks" ? <><div className="view-switch task-view-switch" aria-label="Task view"><button type="button" className={taskView === "list" ? "active" : ""} aria-pressed={taskView === "list"} onClick={() => handleSetTaskView("list")}><Icons.ListTodo size={14}/>List</button><button type="button" className={taskView === "board" ? "active" : ""} aria-pressed={taskView === "board"} onClick={() => handleSetTaskView("board")}><Icons.BriefcaseBusiness size={14}/>Board</button></div><label className="compact-select"><span>Status</span><select aria-label="Filter tasks by status" value={statusFilter} onChange={(event) => {setStatusFilter(event.target.value);setPage(1)}}><option value="open">Open</option><option value="all">All statuses</option><option value="inbox">Inbox</option><option value="planned">Planned</option><option value="in_progress">In progress</option><option value="waiting">Waiting</option><option value="still_waiting">Still Waiting</option><option value="blocked">Blocked</option><option value="completed">Completed</option><option value="cancelled">Cancelled</option></select></label><label className="compact-select"><span>Priority</span><select aria-label="Filter tasks by priority" value={priorityFilter} onChange={(event) => {setPriorityFilter(event.target.value);setPage(1)}}><option value="all">All priorities</option><option value="urgent">Urgent</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option><option value="none">No priority</option></select></label><label className="compact-select"><span>Sort</span><select aria-label="Sort tasks" value={taskSort} onChange={(event) => {setTaskSort(event.target.value);setPage(1)}}><option value="updated">Recently updated</option><option value="due">Due date</option><option value="priority">Priority</option><option value="title">Task name</option></select></label></> : null}{domain === "calendar" ? <div className="view-switch" aria-label="Calendar view"><button className={calendarView === "month" ? "active" : ""} onClick={() => handleSetCalendarView("month")}>Month</button><button className={calendarView === "agenda" ? "active" : ""} onClick={() => handleSetCalendarView("agenda")}>Agenda</button></div> : null}{domain !== "tasks" ? <span className="record-count">{total} {total === 1 ? "item" : "items"}</span> : null}</div></div>
         {error && !open ? <ErrorState error={error} retry={load}/> : null}
-        {loading ? <div className="loading-state" aria-live="polite"><span className="loading-spinner"/><p>Loading {config.title.toLowerCase()}…</p></div> : domain === "projects" ? <ProjectGrid rows={rows} onEdit={begin}/> : domain === "tasks" ? taskView === "list" ? <TaskTable rows={rows} onEdit={begin} onToggle={toggleTask} empty={<EmptyState query={query} title={config.title} action={config.action} clear={() => setQuery("")} create={() => begin()}/>}/> : <TaskBoard rows={rows} onEdit={begin} onToggle={toggleTask} onMoveTask={moveTask} onAddTaskInStatus={handleAddTaskInStatus} empty={<EmptyState query={query} title={config.title} action={config.action} clear={() => setQuery("")} create={() => begin()}/>}/> : domain === "inbox" ? <InboxList rows={rows} onEdit={begin} onResolve={resolveInbox} empty={<EmptyState query={query} title={config.title} action={config.action} clear={() => setQuery("")} create={() => begin()}/>}/> : domain === "calendar" ? <CalendarWorkspace rows={rows} view={calendarView} onEdit={begin} empty={<EmptyState query={query} title={config.title} action={config.action} clear={() => setQuery("")} create={() => begin()}/>}/> : <StandardTable columns={config.columns} rows={rows} config={config} onEdit={begin} empty={<EmptyState query={query} title={config.title} action={config.action} clear={() => setQuery("")} create={() => begin()}/>}/>}
+        {loading ? <div className="loading-state" aria-live="polite"><span className="loading-spinner"/><p>Loading {config.title.toLowerCase()}…</p></div> : domain === "projects" ? <ProjectGrid rows={rows} onEdit={begin}/> : domain === "tasks" ? taskView === "list" ? <TaskTable rows={rows} onEdit={begin} onToggle={toggleTask} empty={<EmptyState query={query} title={config.title} action={config.action} clear={() => setQuery("")} create={() => begin()}/>}/> : <TaskBoard rows={rows} onEdit={begin} onToggle={toggleTask} onMoveTask={moveTask} onAddTaskInStatus={handleAddTaskInStatus} empty={<EmptyState query={query} title={config.title} action={config.action} clear={() => setQuery("")} create={() => begin()}/>}/> : domain === "inbox" ? <InboxList rows={rows} onEdit={begin} onResolve={resolveInbox} empty={<EmptyState query={query} title={config.title} action={config.action} clear={() => setQuery("")} create={() => begin()}/>}/> : domain === "calendar" ? <CalendarWorkspace rows={rows} view={calendarView} monthOffset={calendarMonthOffset} changeMonth={setCalendarMonthOffset} onEdit={begin} empty={<EmptyState query={query} title={config.title} action={config.action} clear={() => setQuery("")} create={() => begin()}/>}/> : <StandardTable columns={config.columns} rows={rows} config={config} onEdit={begin} empty={<EmptyState query={query} title={config.title} action={config.action} clear={() => setQuery("")} create={() => begin()}/>}/>}
         {total > 50 || page > 1 ? <nav className="dataset-pagination" aria-label={`${config.title} pagination`}><p className="dataset-note">Showing {rows.length?((page-1)*50)+1:0}–{Math.min(page*50,total)} of {total}</p><div><Button emphasis="ghost" disabled={page===1} onClick={()=>setPage((current)=>Math.max(1,current-1))}>Previous</Button><Button emphasis="ghost" disabled={page*50>=total} onClick={()=>setPage((current)=>current+1)}>Next</Button></div></nav> : null}
         <Modal open={open} onClose={() => setOpen(false)} variant={domain === "tasks" ? "task" : "default"} title={editing ? domain === "tasks" ? "Task details" : `Edit ${config.title.toLowerCase().replace(/s$/, "")}` : config.action} description={domain === "tasks" ? "Update the work, its urgency, timing, and relationships." : "Changes are saved to your private workspace."}>
             {editing && domain === "calendar" ? <div className="meeting-capture-entry"><Link className="button button--outline button--neutral" href={`/meeting/${editing.id}/capture`}>Capture meeting outcome</Link><Link className="button button--ghost button--neutral" href={`/meeting/${editing.id}`}>Open meeting brief</Link></div> : null}
             {domain === "tasks" ? (
                 <TaskDetailForm
+                    key={editing?.id ?? "new-task"}
                     fields={config.fields}
                     values={values}
                     setValues={setValues}
@@ -622,7 +629,6 @@ function TaskBoard({
     onAddTaskInStatus: (status: string) => void;
     empty: ReactNode;
 }) {
-    if (!rows.length) return <div className="data-surface">{empty}</div>;
     const columns = ["inbox", "planned", "in_progress", "waiting", "still_waiting", "blocked", "completed", "cancelled"] as const;
 
     const [columnColors, setColumnColors] = useState<Record<string, string>>({});
@@ -632,14 +638,16 @@ function TaskBoard({
     const [dragOverCardId, setDragOverCardId] = useState<string | null>(null);
     const [dropPosition, setDropPosition] = useState<"before" | "after" | null>(null);
 
-    useEffect(() => {
+    useDeferredEffect(useCallback(() => {
         try {
             const saved = localStorage.getItem(COLUMN_COLORS_KEY);
             if (saved) {
                 setColumnColors(JSON.parse(saved));
             }
         } catch {}
-    }, []);
+    }, []));
+
+    if (!rows.length) return <div className="data-surface">{empty}</div>;
 
     const handleSelectColor = (status: string, hex: string) => {
         setColumnColors((prev) => {
@@ -949,13 +957,13 @@ function QuickCreateRelationModal({
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState("");
 
-    useEffect(() => {
+    useDeferredEffect(useCallback(() => {
         if (open) {
             setName("");
             setSecondary(relation === "goals" ? "quarter" : "");
             setError("");
         }
-    }, [open, relation]);
+    }, [open, relation]));
 
     if (!open || !relation) return null;
 
@@ -1282,7 +1290,7 @@ function TaskDetailForm({ fields, values, setValues, editing, saving, error, arc
                 {renderField("daily_position")}
                 {renderField("project_id")}
                 {renderField("client_id")}
-                {renderField("goal_id")}
+                {renderField("goal_id")}{renderField("work_classification")}
             </div>
 
             {/* ── Recurrence Panel ───────────────────────────────── */}
@@ -1347,15 +1355,15 @@ function InboxList({ rows, onEdit, onResolve, empty }: { rows: DomainRecord[]; o
     return <div className="inbox-workbench"><div className="inbox-summary"><strong>{unprocessed.length}</strong><span>to triage</span><p>Clarify the type, then clear the item when it has a home.</p></div><div className="inbox-list">{rows.map((record) => <article className={record.status === "processed" ? "inbox-item is-processed" : "inbox-item"} key={record.id}><div className="inbox-item__mark"><Icons.Inbox size={15}/></div><div><p>{display(record.raw_text)}</p><span>{display(record.detected_type)} · {new Date(String(record.created_at)).toLocaleDateString()}</span></div><div className="inbox-item__actions"><Button emphasis="ghost" onClick={() => onEdit(record)}>Organize</Button>{record.status !== "processed" ? <Button emphasis="outline" onClick={() => void onResolve(record)}><Icons.Check size={14}/> Clear</Button> : <span className="status status--completed">Cleared</span>}</div></article>)}</div></div>;
 }
 
-function CalendarWorkspace({ rows, view, onEdit, empty }: { rows: DomainRecord[]; view: "month" | "agenda"; onEdit: (record: DomainRecord) => void; empty: ReactNode }) {
+function CalendarWorkspace({ rows, view, monthOffset, changeMonth, onEdit, empty }: { rows: DomainRecord[]; view: "month" | "agenda"; monthOffset: number; changeMonth: (next: number) => void; onEdit: (record: DomainRecord) => void; empty: ReactNode }) {
     const today = new Date();
-    const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+    const monthStart = new Date(today.getFullYear(), today.getMonth() + monthOffset, 1);
     const gridStart = new Date(monthStart); gridStart.setDate(1 - monthStart.getDay());
     const days = Array.from({ length: 42 }, (_, index) => { const date = new Date(gridStart); date.setDate(gridStart.getDate() + index); return date; });
     const eventMap = new Map<string, DomainRecord[]>();
     rows.forEach((record) => { const key = String(record.starts_at ?? "").slice(0, 10); if (!key) return; eventMap.set(key, [...(eventMap.get(key) ?? []), record]); });
     if (view === "agenda") return <div className="calendar-agenda">{rows.length ? rows.slice().sort((a,b) => String(a.starts_at).localeCompare(String(b.starts_at))).map((record) => <button className="calendar-agenda__row" onClick={() => onEdit(record)} key={record.id}><time><strong>{new Date(String(record.starts_at)).toLocaleDateString([], { month: "short", day: "numeric" })}</strong><span>{new Date(String(record.starts_at)).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span></time><span className="calendar-event-mark"/><span><strong>{display(record.title)}</strong><small>{display(record.description ?? record.timezone)}</small></span><Icons.ChevronRight size={16}/></button>) : empty}</div>;
-    return <><section className="calendar-board" aria-label={`${today.toLocaleDateString([], { month: "long", year: "numeric" })} calendar`}><div className="calendar-board__heading"><div><strong>{today.toLocaleDateString([], { month: "long" })}</strong><span>{today.getFullYear()}</span></div><span>{rows.length} scheduled</span></div><div className="calendar-weekdays" aria-hidden="true">{["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map((day) => <span key={day}>{day}</span>)}</div><div className="calendar-month">{days.map((date) => { const key = localDateKey(date); const events = eventMap.get(key) ?? []; const outside = date.getMonth() !== today.getMonth(); const isToday = key === localDateKey(today); return <div className={`calendar-day ${outside ? "is-outside" : ""} ${isToday ? "is-today" : ""}`} key={key}><time dateTime={key}>{date.getDate()}</time><div>{events.slice(0,3).map((record) => <button onClick={() => onEdit(record)} title={String(record.title)} key={record.id}><span>{new Date(String(record.starts_at)).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})}</span>{display(record.title)}</button>)}{events.length > 3 ? <small>+{events.length - 3} more</small> : null}</div></div>; })}</div></section>{rows.length ? <div className="calendar-mobile-agenda">{rows.slice().sort((a,b) => String(a.starts_at).localeCompare(String(b.starts_at))).map((record) => <button className="calendar-agenda__row" onClick={() => onEdit(record)} key={record.id}><time><strong>{new Date(String(record.starts_at)).toLocaleDateString([], { month: "short", day: "numeric" })}</strong><span>{new Date(String(record.starts_at)).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span></time><span className="calendar-event-mark"/><span><strong>{display(record.title)}</strong><small>{display(record.description ?? record.timezone)}</small></span><Icons.ChevronRight size={16}/></button>)}</div> : <div className="calendar-zero-prompt">{empty}</div>}</>;
+    return <>{!rows.length ? <div className="calendar-zero-prompt calendar-zero-prompt--near">{empty}</div> : null}<section className="calendar-board" aria-label={`${monthStart.toLocaleDateString([], { month: "long", year: "numeric" })} calendar`}><div className="calendar-board__heading"><div><strong>{monthStart.toLocaleDateString([], { month: "long" })}</strong><span>{monthStart.getFullYear()}</span></div><div className="calendar-board__controls"><button type="button" aria-label="Previous month" onClick={() => changeMonth(monthOffset - 1)}><Icons.ChevronLeft size={15}/></button><button type="button" onClick={() => changeMonth(0)} disabled={monthOffset === 0}>Today</button><button type="button" aria-label="Next month" onClick={() => changeMonth(monthOffset + 1)}><Icons.ChevronRight size={15}/></button><span>{rows.filter((record) => String(record.starts_at ?? "").slice(0,7) === localDateKey(monthStart).slice(0,7)).length} scheduled</span></div></div><div className="calendar-weekdays" aria-hidden="true">{["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map((day) => <span key={day}>{day}</span>)}</div><div className="calendar-month">{days.map((date) => { const key = localDateKey(date); const events = eventMap.get(key) ?? []; const outside = date.getMonth() !== monthStart.getMonth(); const isToday = key === localDateKey(today); return <div className={`calendar-day ${outside ? "is-outside" : ""} ${isToday ? "is-today" : ""}`} key={key}><time dateTime={key}>{date.getDate()}</time><div>{events.slice(0,3).map((record) => <button onClick={() => onEdit(record)} title={String(record.title)} key={record.id}><span>{new Date(String(record.starts_at)).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})}</span>{display(record.title)}</button>)}{events.length > 3 ? <small>+{events.length - 3} more</small> : null}</div></div>; })}</div></section>{rows.length ? <div className="calendar-mobile-agenda">{rows.slice().sort((a,b) => String(a.starts_at).localeCompare(String(b.starts_at))).map((record) => <button className="calendar-agenda__row" onClick={() => onEdit(record)} key={record.id}><time><strong>{new Date(String(record.starts_at)).toLocaleDateString([], { month: "short", day: "numeric" })}</strong><span>{new Date(String(record.starts_at)).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span></time><span className="calendar-event-mark"/><span><strong>{display(record.title)}</strong><small>{display(record.description ?? record.timezone)}</small></span><Icons.ChevronRight size={16}/></button>)}</div> : null}</>;
 }
 
 function localDateKey(date: Date) { return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")}`; }
@@ -1524,4 +1532,4 @@ finally {
 }
 function SettingsView({ config }: {
     config: Config;
-}) { return <div className="domain-page"><header className="task-context-header"><div><nav className="task-context-header__breadcrumb" aria-label="Breadcrumb"><span>Workspace</span><span>/</span><span className="current">{config.title}</span></nav><div className="task-context-header__title-row"><h1>{config.title}</h1></div><p className="task-context-header__description">{config.intro}</p></div></header><div className="data-surface"><Link className="data-row" href="/settings/integrations"><strong>Integrations</strong><span>Calendar, mail, files, code, and fitness services</span><span>Manage</span><Icons.MoreHorizontal size={17}/></Link><Link className="data-row" href="/settings/notifications"><strong>Notifications</strong><span>Control which signals can enter Today</span><span>Manage</span><Icons.MoreHorizontal size={17}/></Link></div></div>; }
+}) { const areas = [{heading:"Workspace", links:[{href:"/settings/integrations",title:"Integrations",detail:"Review connected calendar, mail, files, code, and fitness services"},{href:"/settings/notifications",title:"Notifications",detail:"Control which signals can enter Today"}]},{heading:"Operating systems",links:[{href:"/settings/business",title:"Business",detail:"Configure business operating preferences"},{href:"/settings/chief-of-staff",title:"Chief of Staff",detail:"Review autonomy and action safety settings"}]}]; return <div className="domain-page"><header className="task-context-header"><div><nav className="task-context-header__breadcrumb" aria-label="Breadcrumb"><span>Workspace</span><span>/</span><span className="current">{config.title}</span></nav><div className="task-context-header__title-row"><h1>{config.title}</h1></div><p className="task-context-header__description">{config.intro}</p></div></header>{areas.map((area)=><section className="settings-area" key={area.heading}><h2>{area.heading}</h2><div className="data-surface">{area.links.map((item)=><Link className="data-row" href={item.href} key={item.href}><strong>{item.title}</strong><span>{item.detail}</span><span>Manage</span><Icons.MoreHorizontal size={17}/></Link>)}</div></section>)}</div>; }
