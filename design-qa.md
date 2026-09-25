@@ -1,5 +1,14 @@
 # Daily Command Center — UI/UX QA ledger
 
+## Floating navigation update — 25 September 2026
+
+- Reference: `/Users/youssefmahir/Downloads/ChatGPT Image Sep 25, 2026, 09_45_43 AM.png`.
+- Browser inspection: the icon rail remains visible while the floating Home menu overlays `/tasks`; grouped links, purple capture action, rounded white panel, and account footer follow the supplied reference.
+- Interaction: selecting Calendar from the floating Home menu reached `/calendar` and left only the icon rail visible. The menu also supports area switching, outside-click dismissal, Escape, and the header/keyboard toggle.
+- Verification: TypeScript, focused ESLint, 8 focused tests, and `git diff --check` passed. The existing mobile drawer and bottom navigation remain in place.
+- Visual limit: the reference includes recent-item pins and count badges that were not implemented because this navigation has no corresponding persisted recent or count data.
+- final result: passed
+
 - Visual authority: `/Users/youssefmahir/Downloads/eaa9706fb6d97bce86bb7f2a46d9cd3d.jpg`
 - Workspace route definitions inventoried: 150
 - API route definitions inventoried: 248

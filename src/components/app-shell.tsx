@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useDeferredEffect } from "@/lib/use-deferred-effect";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { CommandPalette } from "@/components/command-palette";
@@ -60,45 +59,35 @@ function Shell({ children,user }: { children: ReactNode;user:ShellUser }) {
   const [mobileMenu, setMobileMenu] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
+  const [selectedArea, setSelectedArea] = useState<string | null>(null);
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
   const accountRef = useRef<HTMLDivElement>(null);
   const accountButtonRef = useRef<HTMLButtonElement>(null);
   const theme = useTheme();
   const dark = theme === "dark";
   const currentArea = workspaceAreas.find((area) => area.matches.some((href) => pathname === href || pathname.startsWith(`${href}/`))) ?? workspaceAreas[0];
+  const panelArea = mobileMenu ? currentArea : workspaceAreas.find((area) => area.label === selectedArea) ?? currentArea;
   const currentRoute = Object.keys(routeLabels).sort((a, b) => b.length - a.length).find((href) => pathname === href || pathname.startsWith(`${href}/`));
   const pageTitle = currentRoute ? routeLabels[currentRoute] : "Daily Command";
 
-  useDeferredEffect(useCallback(() => {
-    try {
-      const saved = localStorage.getItem("dcc-sidebar-collapsed");
-      if (saved === "true") setSidebarCollapsed(true);
-    } catch {}
-  }, []));
-
   const toggleSidebar = useCallback(() => {
-    setSidebarCollapsed((prev) => {
-      const next = !prev;
-      try {
-        localStorage.setItem("dcc-sidebar-collapsed", String(next));
-      } catch {}
-      return next;
-    });
-  }, []);
+    setSelectedArea(currentArea.label);
+    setSidebarCollapsed((prev) => !prev);
+  }, [currentArea.label]);
 
   const collapseSidebar = useCallback(() => {
     setSidebarCollapsed(true);
-    try {
-      localStorage.setItem("dcc-sidebar-collapsed", "true");
-    } catch {}
   }, []);
 
-  const expandSidebar = useCallback(() => {
-    setSidebarCollapsed(false);
-    try {
-      localStorage.setItem("dcc-sidebar-collapsed", "false");
-    } catch {}
-  }, []);
+  useEffect(() => {
+    if (sidebarCollapsed) return;
+    function escape(event: KeyboardEvent) {
+      if (event.key === "Escape") collapseSidebar();
+    }
+    window.addEventListener("keydown", escape);
+    return () => window.removeEventListener("keydown", escape);
+  }, [sidebarCollapsed, collapseSidebar]);
 
   const toggleTheme = useCallback(() => {
     setTheme(dark ? "light" : "dark");
@@ -178,32 +167,33 @@ function Shell({ children,user }: { children: ReactNode;user:ShellUser }) {
       <aside className="global-rail" aria-label="Global navigation">
         <Link href="/today" className="rail-brand" aria-label="Daily Command home" title="Daily Command"><Icons.Target size={19} strokeWidth={2.25}/></Link>
         <nav className="global-rail__nav">
-          {workspaceAreas.map(({ label, href, icon: Icon, matches }) => {
-            const active = matches.some((match) => pathname === match || pathname.startsWith(`${match}/`));
+          {workspaceAreas.map(({ label, icon: Icon }) => {
+            const active = !sidebarCollapsed ? panelArea.label === label : currentArea.label === label;
             return (
-              <Link
+              <button
+                type="button"
                 className={active ? "rail-link rail-link--active" : "rail-link"}
-                href={href}
                 key={label}
                 title={label}
+                aria-label={`Open ${label} navigation`}
+                aria-expanded={!sidebarCollapsed && panelArea.label === label}
                 onClick={() => {
-                  if (active && sidebarCollapsed) {
-                    expandSidebar();
-                  }
+                  if (!sidebarCollapsed && panelArea.label === label) collapseSidebar();
+                  else { setSelectedArea(label); setSidebarCollapsed(false); }
                 }}
               >
                 <Icon size={18} strokeWidth={1.8}/>
                 <span>{label}</span>
-              </Link>
+              </button>
             );
           })}
         </nav>
-        <div className="global-rail__footer"><Link className={pathname.startsWith("/settings") ? "rail-link rail-link--active" : "rail-link"} href="/settings" title="Settings"><Icons.Settings size={18}/><span>Settings</span></Link></div>
+        <div className="global-rail__footer"><button className="rail-account" type="button" aria-label="Open account menu" onClick={() => setAccountOpen((open) => !open)}>{user.initials}</button></div>
       </aside>
-      <aside className={`sidebar contextual-sidebar ${mobileMenu ? "sidebar--open" : ""}`} aria-label={`${currentArea.label} navigation`}>
+      <aside className={`sidebar contextual-sidebar ${mobileMenu ? "sidebar--open" : ""}`} aria-label={`${panelArea.label} navigation`} hidden={sidebarCollapsed && !mobileMenu} inert={sidebarCollapsed && !mobileMenu}>
         <div className="contextual-sidebar__heading">
           <span className="brand__mark"><Icons.Target size={15} strokeWidth={2.2}/></span>
-          <span><strong>{currentArea.label}</strong><small>Daily Command</small></span>
+          <span><strong>{panelArea.label}</strong><small>Daily Command</small></span>
           <button
             className="icon-button contextual-sidebar__collapse"
             type="button"
@@ -218,21 +208,23 @@ function Shell({ children,user }: { children: ReactNode;user:ShellUser }) {
         <nav className="mobile-area-switcher" aria-label="Workspace areas">
           {workspaceAreas.map(({ label, href, icon: Icon, matches }) => { const active = matches.some((match) => pathname === match || pathname.startsWith(`${match}/`)); return <Link href={href} key={label} className={active ? "mobile-area-switcher__link is-active" : "mobile-area-switcher__link"} aria-current={active ? "page" : undefined} onClick={() => setMobileMenu(false)}><Icon size={16}/><span>{label}</span></Link>; })}
         </nav>
-        <button className="sidebar-create" type="button" onClick={() => setCaptureOpen(true)}><Icons.Plus size={16}/><span>New capture</span><kbd>C</kbd></button>
         <nav className="sidebar__nav">
+          <button className="sidebar-create" type="button" onClick={() => setCaptureOpen(true)}><span className="sidebar-create__icon"><Icons.Plus size={20}/></span><span>New capture</span><kbd>C</kbd></button>
           <div className="contextual-sidebar__quick"><button type="button" onClick={() => setPaletteOpen(true)}><Icons.Search size={15}/><span>Search</span><kbd>⌘K</kbd></button></div>
-          {currentArea.groups.map((group) => {
-            const activeGroup = group.items.some(([, href]) => pathname === href || pathname.startsWith(`${href}/`));
-            return <details className="nav-group" key={group.label} open={activeGroup}>
-              <summary><span>{group.label}</span><Icons.ChevronDown size={13}/></summary>
-              <div>{group.items.map(([label, href, Icon]) => <Link className={pathname === href || pathname.startsWith(`${href}/`) ? "nav-link nav-link--active" : "nav-link"} href={href} key={href} onClick={() => setMobileMenu(false)}><Icon size={16} strokeWidth={1.7} /><span>{label}</span>{label === "Inbox" ? <InboxBadge/> : null}</Link>)}</div>
+          {panelArea.groups.map((group) => {
+            const groupKey = `${panelArea.label}-${group.label}`;
+            return <details className="nav-group" key={groupKey} open={openGroups[groupKey] ?? true}>
+              <summary onClick={(event) => { event.preventDefault(); setOpenGroups((previous) => ({ ...previous, [groupKey]: !(previous[groupKey] ?? true) })); }}><span>{group.label}</span><Icons.ChevronDown size={13}/></summary>
+              <div>{group.items.map(([label, href, Icon]) => <Link className={currentRoute === href ? "nav-link nav-link--active" : "nav-link"} href={href} key={href} aria-current={currentRoute === href ? "page" : undefined} onClick={() => { setMobileMenu(false); collapseSidebar(); }}><span className="nav-link__icon"><Icon size={16} strokeWidth={1.7} /></span><span>{label}</span>{label === "Inbox" ? <InboxBadge/> : null}</Link>)}</div>
             </details>;
           })}
         </nav>
         <div className="sidebar__footer">
           <button className="nav-link" onClick={toggleTheme}>{dark ? <Icons.Sun size={16}/> : <Icons.Moon size={16}/>}<span>{dark ? "Light mode" : "Dark mode"}</span></button>
+          <div className="sidebar-profile"><span className="sidebar-profile__avatar">{user.initials}</span><span><strong>{user.name}</strong><small>{user.email}</small></span></div>
         </div>
       </aside>
+      {!sidebarCollapsed ? <button className="desktop-sidebar-scrim" type="button" aria-label="Close navigation" onClick={collapseSidebar} /> : null}
       {mobileMenu ? <button className="sidebar-scrim" aria-label="Close navigation" onClick={() => setMobileMenu(false)} /> : null}
       <div className="workspace">
         <header className="desktop-topbar">

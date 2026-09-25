@@ -69,6 +69,7 @@ configs.waiting.fields.push(f("followup_date", "Follow-up date", "date"), f("imp
 configs.content.fields.push(f("audience", "Audience"), f("impressions", "Impressions / views", "number"), f("clicks", "Clicks", "number"), f("leads", "Leads", "number"), f("conversions", "Conversions", "number"), f("attributed_revenue", "Attributed revenue", "number"), f("production_cost", "Production cost", "number"), f("metric_currency", "Metrics currency"), f("learning", "Learning", "textarea"));
 configs.fitness.fields.push(f("perceived_exertion", "Perceived exertion (1–10)", "number"));
 configs.tasks.fields.push(f("daily_position", "Today’s win position", "select", ["", "1", "2", "3"]));
+configs.tasks.fields.push(f("target_count", "Target total", "number"), f("current_count", "Current progress", "number"), f("daily_target", "Daily target", "number"));
 for (const [key, fields] of Object.entries(relationshipFields))
     configs[key as DomainKey].fields.push(...fields);
 const emptyValues = (config: Config) => Object.fromEntries(config.fields.map((field) => [field.key, field.options?.[0] ?? (["currency", "metric_currency"].includes(field.key) ? "MAD" : field.key === "timezone" ? "Africa/Casablanca" : "")]));
@@ -117,11 +118,9 @@ export function DomainPage({ domain, embedded = false, onMutationSuccess, refres
                 const params = new URLSearchParams(window.location.search);
                 const viewParam = params.get("view");
                 if (viewParam === "board" || viewParam === "list") return viewParam;
-                const saved = localStorage.getItem("dcc-task-view");
-                if (saved === "board" || saved === "list") return saved;
             } catch {}
         }
-        return "list";
+        return "board";
     });
     const [calendarView, setCalendarView] = useState<"month" | "agenda">(() => {
         if (typeof window !== "undefined") {
@@ -142,12 +141,7 @@ export function DomainPage({ domain, embedded = false, onMutationSuccess, refres
             const viewParam = params.get("view");
             if (viewParam === "board" || viewParam === "list") {
                 setTaskView(viewParam);
-            } else {
-                const saved = localStorage.getItem("dcc-task-view");
-                if (saved === "board" || saved === "list") {
-                    setTaskView(saved);
-                }
-            }
+            } else setTaskView("board");
             const calParam = params.get("calView");
             if (calParam === "month" || calParam === "agenda") {
                 setCalendarView(calParam);
@@ -163,7 +157,6 @@ export function DomainPage({ domain, embedded = false, onMutationSuccess, refres
     const handleSetTaskView = (view: "list" | "board") => {
         setTaskView(view);
         try {
-            localStorage.setItem("dcc-task-view", view);
             const url = new URL(window.location.href);
             url.searchParams.set("view", view);
             window.history.replaceState({}, "", url.toString());
@@ -242,6 +235,10 @@ export function DomainPage({ domain, embedded = false, onMutationSuccess, refres
         setError("");
         try {
             const body = Object.fromEntries(config.fields.map((field) => [field.key, normalizeInput(values[field.key], field)]).filter(([, value]) => value !== ""));
+            if (domain === "tasks" && editing) {
+                body.target_count = values.target_count ? Number(values.target_count) : null;
+                body.daily_target = values.daily_target ? Number(values.daily_target) : null;
+            }
             if (domain === "tasks" && body.status === "completed" && !body.completed_at) {
                 body.completed_at = new Date().toISOString();
             }
@@ -428,6 +425,7 @@ export function DomainPage({ domain, embedded = false, onMutationSuccess, refres
             {editing && domain === "calendar" ? <div className="meeting-capture-entry"><Link className="button button--outline button--neutral" href={`/meeting/${editing.id}/capture`}>Capture meeting outcome</Link><Link className="button button--ghost button--neutral" href={`/meeting/${editing.id}`}>Open meeting brief</Link></div> : null}
             {domain === "tasks" ? (
                 <TaskDetailForm
+                    key={editing?.id ?? "new-task"}
                     fields={config.fields}
                     values={values}
                     setValues={setValues}

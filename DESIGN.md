@@ -52,6 +52,8 @@ Daily Command Center is a calm personal workbench for an operator moving between
 
 The interface takes structural cues from mature productivity software without imitating any one product: Slack-like separation of frequent navigation from workspace depth, Notion-like contextual detail, and the purposeful view controls common to Monday and ClickUp. Avoid dashboard mosaics, motivational hero copy, mint-tinted canvases, decorative metrics, and inflated empty cards.
 
+The desktop navigation keeps the slim icon rail visible at all times. Each area icon opens a floating contextual menu over the current page; choosing a destination closes the menu. The menu follows the supplied Personal sidebar reference with a rounded white surface, purple capture action, grouped icon rows, and a compact account card. Small screens retain the existing mobile drawer and bottom navigation.
+
 Runtime variables in `src/app/product-system.css` are canonical (token mapping model B). This file mirrors accepted semantic values and explains intent. Legacy feature selectors remain in `src/app/globals.css` during migration, but shared shell and workflow styling must consume the canonical variables.
 
 ## Colors

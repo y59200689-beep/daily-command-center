@@ -288,7 +288,7 @@ export function ChiefOfStaffHome() {
 
       {/* Chief of Staff Daily Brief */}
       {data?.dailyBrief && (
-        <section className="chief-hero-card mt-6 p-5 rounded-2xl bg-slate-900/60 border border-slate-800">
+        <section className="chief-hero-card chief-daily-brief mt-6 p-5 rounded-2xl bg-slate-900/60 border border-slate-800">
           <div className="flex items-center justify-between mb-4">
             <div>
               <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-400 block mb-0.5">Synthesis Brief</span>
@@ -379,7 +379,7 @@ export function ChiefOfStaffHome() {
         </div>
 
         {pendingApprovals.length === 0 ? (
-          <div className="p-6 rounded-xl bg-slate-900/40 border border-slate-800 text-center text-slate-400 text-xs">
+          <div className="chief-empty-state p-6 rounded-xl bg-slate-900/40 border border-slate-800 text-center text-slate-400 text-xs">
             No actions currently require your approval.
           </div>
         ) : (
@@ -492,7 +492,7 @@ export function ChiefOfStaffHome() {
         </div>
 
         {completedExecutions.length === 0 ? (
-          <div className="p-4 rounded-xl bg-slate-900/40 border border-slate-800 text-center text-slate-400 text-xs">
+          <div className="chief-empty-state p-4 rounded-xl bg-slate-900/40 border border-slate-800 text-center text-slate-400 text-xs">
             No actions completed yet today.
           </div>
         ) : (
@@ -512,7 +512,7 @@ export function ChiefOfStaffHome() {
       </section>
 
       {/* Quick Navigation Footer */}
-      <div className="pt-4 border-t border-slate-800 grid grid-cols-2 sm:grid-cols-4 gap-3 text-center text-xs">
+      <div className="chief-quick-links pt-4 border-t border-slate-800 grid grid-cols-2 sm:grid-cols-4 gap-3 text-center text-xs">
         <Link href="/chief-of-staff/inbox" className="p-3 rounded-lg bg-slate-900/40 hover:bg-slate-800 border border-slate-800 text-slate-300 transition">
           Action Inbox ({data?.proposals?.length || 0})
         </Link>
