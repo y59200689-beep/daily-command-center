@@ -245,6 +245,7 @@ function Shell({ children,user }: { children: ReactNode;user:ShellUser }) {
           <div className="topbar-actions">
             <button className="icon-button topbar-capture" type="button" onClick={() => setCaptureOpen(true)} aria-label="Quick capture"><Icons.Plus size={18}/></button>
             <NotificationCenter />
+            <button className="icon-button topbar-theme" type="button" onClick={toggleTheme} aria-label={dark ? "Switch to light mode" : "Switch to dark mode"} title={dark ? "Light mode" : "Dark mode"} aria-pressed={dark}>{dark ? <Icons.Sun size={17}/> : <Icons.Moon size={17}/>}</button>
             <div className="account-control" ref={accountRef}>
             {accountOpen ? <div className="account-menu" id="account-menu" aria-label="Account">
               <div className="account-menu__identity" role="presentation"><span className="avatar">{user.initials}</span><span><strong>{user.name}</strong><small>{user.email}</small></span></div>

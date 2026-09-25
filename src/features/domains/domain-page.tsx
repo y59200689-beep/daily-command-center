@@ -14,6 +14,11 @@ import { useDeferredEffect } from "@/lib/use-deferred-effect";
 import { announceWorkspaceMutation } from "@/lib/workspace-mutations";
 import { DatePicker } from "@/components/ui/date-picker";
 import { CalendarConflicts } from "@/features/calendar/calendar-conflicts";
+import { CalendarDashboard } from "@/features/calendar/calendar-dashboard";
+import { ProjectDashboard } from "@/features/domains/project-dashboard";
+import { InboxWorkbench } from "@/features/inbox/inbox-workbench";
+import "./task-board-design.css";
+import "./task-list-design.css";
 type DomainKey = PersistedDomain | "assistant" | "settings";
 const attachmentEntities = { tasks: "task", projects: "project", clients: "client", notes: "note", content: "content", decisions: "decision", invoices: "invoice" } as const;
 type Field = {
@@ -123,17 +128,15 @@ export function DomainPage({ domain, embedded = false, onMutationSuccess, refres
         return "board";
     });
     const [calendarMonthOffset, setCalendarMonthOffset] = useState(0);
-    const [calendarView, setCalendarView] = useState<"month" | "agenda">(() => {
+    const [calendarView, setCalendarView] = useState<"day" | "week" | "month" | "agenda">(() => {
         if (typeof window !== "undefined") {
             try {
                 const params = new URLSearchParams(window.location.search);
                 const calParam = params.get("calView");
-                if (calParam === "month" || calParam === "agenda") return calParam;
-                const saved = localStorage.getItem("dcc-calendar-view");
-                if (saved === "month" || saved === "agenda") return saved;
+                if (calParam === "day" || calParam === "week" || calParam === "month" || calParam === "agenda") return calParam;
             } catch {}
         }
-        return "month";
+        return "day";
     });
 
     useDeferredEffect(useCallback(() => {
@@ -144,14 +147,9 @@ export function DomainPage({ domain, embedded = false, onMutationSuccess, refres
                 setTaskView(viewParam);
             } else setTaskView(window.matchMedia("(max-width: 767px)").matches ? "list" : "board");
             const calParam = params.get("calView");
-            if (calParam === "month" || calParam === "agenda") {
+            if (calParam === "day" || calParam === "week" || calParam === "month" || calParam === "agenda") {
                 setCalendarView(calParam);
-            } else {
-                const savedCal = localStorage.getItem("dcc-calendar-view");
-                if (savedCal === "month" || savedCal === "agenda") {
-                    setCalendarView(savedCal);
-                }
-            }
+            } else setCalendarView("day");
         } catch {}
     }, []));
 
@@ -164,7 +162,7 @@ export function DomainPage({ domain, embedded = false, onMutationSuccess, refres
         } catch {}
     };
 
-    const handleSetCalendarView = (view: "month" | "agenda") => {
+    const handleSetCalendarView = (view: "day" | "week" | "month" | "agenda") => {
         setCalendarView(view);
         try {
             localStorage.setItem("dcc-calendar-view", view);
@@ -229,6 +227,17 @@ export function DomainPage({ domain, embedded = false, onMutationSuccess, refres
             setValues(initial);
         }
         setOpen(true);
+    }
+    async function rescheduleCalendarEvent(record: DomainRecord, startsAt: string, endsAt: string) {
+        try {
+            const response = await fetch(`/api/entities/calendar/${record.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ starts_at: startsAt, ends_at: endsAt }) });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error ?? "Event could not be updated.");
+            setRecords(current => current.map(item => item.id === record.id ? { ...item, ...data.record } : item));
+            showToast("Event time updated.", "success");
+        } catch (reason) {
+            showToast(reason instanceof Error ? reason.message : "Event could not be updated.", "error");
+        }
     }
     async function save(event: React.FormEvent) {
         event.preventDefault();
@@ -415,12 +424,12 @@ export function DomainPage({ domain, embedded = false, onMutationSuccess, refres
             begin(undefined, { status });
         }
     }
-    return <div className={`domain-page ${embedded ? "domain-page--embedded" : ""}`}>
-        {embedded ? <div className="embedded-heading"><div><p className="eyebrow">Manage records</p><h2>{config.title}</h2></div><Button intent="brand" onClick={() => begin()}><Icons.Plus size={16}/>{config.action}</Button></div> : domain === "tasks" ? <header className="task-context-header"><div><div className="task-context-header__path"><Icons.ListTodo size={15}/><span>My work</span><Icons.ChevronRight size={13}/><strong>Tasks</strong></div><h1>Tasks</h1><p>Plan, prioritize, and move work forward.</p></div><div className="task-context-header__actions"><span className="task-total"><strong>{total}</strong> total</span><Button intent="brand" onClick={() => begin()}><Icons.Plus size={16}/>New task</Button></div></header> : <header className="task-context-header domain-context-header"><div><div className="task-context-header__path"><span>{config.eyebrow}</span><Icons.ChevronRight size={13}/><strong>{config.title}</strong></div><h1>{config.title}</h1><p>{config.intro}</p></div><div className="task-context-header__actions"><span className="task-total"><strong>{total}</strong> total</span><Button intent="brand" onClick={() => begin()}><Icons.Plus size={16}/>{config.action}</Button></div></header>}
+    return <div className={`domain-page ${embedded ? "domain-page--embedded" : ""} ${domain === "inbox" ? "domain-page--inbox" : ""}`}>
+        {domain === "inbox" ? null : embedded ? <div className="embedded-heading"><div><p className="eyebrow">Manage records</p><h2>{config.title}</h2></div><Button intent="brand" onClick={() => begin()}><Icons.Plus size={16}/>{config.action}</Button></div> : domain === "tasks" ? <header className="task-context-header"><div><div className="task-context-header__path"><Icons.ListTodo size={15}/><span>My work</span><Icons.ChevronRight size={13}/><strong>Tasks</strong></div><h1>Tasks</h1><p>Plan, prioritize, and move work forward.</p></div><div className="task-context-header__actions"><span className="task-total"><strong>{total}</strong> total</span><Button intent="brand" onClick={() => begin()}><Icons.Plus size={16}/>New task</Button></div></header> : <header className="task-context-header domain-context-header"><div><div className="task-context-header__path"><span>{config.eyebrow}</span><Icons.ChevronRight size={13}/><strong>{config.title}</strong></div><h1>{config.title}</h1><p>{config.intro}</p></div><div className="task-context-header__actions"><span className="task-total"><strong>{total}</strong> total</span><Button intent="brand" onClick={() => begin()}><Icons.Plus size={16}/>{config.action}</Button></div></header>}
         {domain === "calendar" ? <CalendarConflicts onEdit={begin} onResolved={load} /> : null}
-        <div className={`domain-toolbar ${domain === "tasks" ? "task-toolbar" : ""}`}><SearchInput ref={inputRef} id={`${domain}-search`} label={`Search ${domain}`} value={query} onChange={(event) => {setQuery(event.target.value);setPage(1)}} onClear={() => {setQuery("");setPage(1)}} placeholder={`Search ${domain}…`}/><div className="domain-toolbar__controls">{domain === "tasks" ? <><div className="view-switch task-view-switch" aria-label="Task view"><button type="button" className={taskView === "list" ? "active" : ""} aria-pressed={taskView === "list"} onClick={() => handleSetTaskView("list")}><Icons.ListTodo size={14}/>List</button><button type="button" className={taskView === "board" ? "active" : ""} aria-pressed={taskView === "board"} onClick={() => handleSetTaskView("board")}><Icons.BriefcaseBusiness size={14}/>Board</button></div><label className="compact-select"><span>Status</span><select aria-label="Filter tasks by status" value={statusFilter} onChange={(event) => {setStatusFilter(event.target.value);setPage(1)}}><option value="open">Open</option><option value="all">All statuses</option><option value="inbox">Inbox</option><option value="planned">Planned</option><option value="in_progress">In progress</option><option value="waiting">Waiting</option><option value="still_waiting">Still Waiting</option><option value="blocked">Blocked</option><option value="completed">Completed</option><option value="cancelled">Cancelled</option></select></label><label className="compact-select"><span>Priority</span><select aria-label="Filter tasks by priority" value={priorityFilter} onChange={(event) => {setPriorityFilter(event.target.value);setPage(1)}}><option value="all">All priorities</option><option value="urgent">Urgent</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option><option value="none">No priority</option></select></label><label className="compact-select"><span>Sort</span><select aria-label="Sort tasks" value={taskSort} onChange={(event) => {setTaskSort(event.target.value);setPage(1)}}><option value="updated">Recently updated</option><option value="due">Due date</option><option value="priority">Priority</option><option value="title">Task name</option></select></label></> : null}{domain === "calendar" ? <div className="view-switch" aria-label="Calendar view"><button className={calendarView === "month" ? "active" : ""} onClick={() => handleSetCalendarView("month")}>Month</button><button className={calendarView === "agenda" ? "active" : ""} onClick={() => handleSetCalendarView("agenda")}>Agenda</button></div> : null}{domain !== "tasks" ? <span className="record-count">{total} {total === 1 ? "item" : "items"}</span> : null}</div></div>
+        {domain === "inbox" || domain === "calendar" || domain === "projects" ? null : <div className={`domain-toolbar ${domain === "tasks" ? "task-toolbar" : ""}`}><SearchInput ref={inputRef} id={`${domain}-search`} label={`Search ${domain}`} value={query} onChange={(event) => {setQuery(event.target.value);setPage(1)}} onClear={() => {setQuery("");setPage(1)}} placeholder={`Search ${domain}…`}/><div className="domain-toolbar__controls">{domain === "tasks" ? <><div className="view-switch task-view-switch" aria-label="Task view"><button type="button" className={taskView === "list" ? "active" : ""} aria-pressed={taskView === "list"} onClick={() => handleSetTaskView("list")}><Icons.ListTodo size={14}/>List</button><button type="button" className={taskView === "board" ? "active" : ""} aria-pressed={taskView === "board"} onClick={() => handleSetTaskView("board")}><Icons.BriefcaseBusiness size={14}/>Board</button></div><label className="compact-select"><span>Status</span><select aria-label="Filter tasks by status" value={statusFilter} onChange={(event) => {setStatusFilter(event.target.value);setPage(1)}}><option value="open">Open</option><option value="all">All statuses</option><option value="inbox">Inbox</option><option value="planned">Planned</option><option value="in_progress">In progress</option><option value="waiting">Waiting</option><option value="still_waiting">Still Waiting</option><option value="blocked">Blocked</option><option value="completed">Completed</option><option value="cancelled">Cancelled</option></select></label><label className="compact-select"><span>Priority</span><select aria-label="Filter tasks by priority" value={priorityFilter} onChange={(event) => {setPriorityFilter(event.target.value);setPage(1)}}><option value="all">All priorities</option><option value="urgent">Urgent</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option><option value="none">No priority</option></select></label><label className="compact-select"><span>Sort</span><select aria-label="Sort tasks" value={taskSort} onChange={(event) => {setTaskSort(event.target.value);setPage(1)}}><option value="updated">Recently updated</option><option value="due">Due date</option><option value="priority">Priority</option><option value="title">Task name</option></select></label></> : null}{domain !== "tasks" ? <span className="record-count">{total} {total === 1 ? "item" : "items"}</span> : null}</div></div>}
         {error && !open ? <ErrorState error={error} retry={load}/> : null}
-        {loading ? <div className="loading-state" aria-live="polite"><span className="loading-spinner"/><p>Loading {config.title.toLowerCase()}…</p></div> : domain === "projects" ? <ProjectGrid rows={rows} onEdit={begin}/> : domain === "tasks" ? taskView === "list" ? <TaskTable rows={rows} onEdit={begin} onToggle={toggleTask} empty={<EmptyState query={query} title={config.title} action={config.action} clear={() => setQuery("")} create={() => begin()}/>}/> : <TaskBoard rows={rows} onEdit={begin} onToggle={toggleTask} onMoveTask={moveTask} onAddTaskInStatus={handleAddTaskInStatus} empty={<EmptyState query={query} title={config.title} action={config.action} clear={() => setQuery("")} create={() => begin()}/>}/> : domain === "inbox" ? <InboxList rows={rows} onEdit={begin} onResolve={resolveInbox} empty={<EmptyState query={query} title={config.title} action={config.action} clear={() => setQuery("")} create={() => begin()}/>}/> : domain === "calendar" ? <CalendarWorkspace rows={rows} view={calendarView} monthOffset={calendarMonthOffset} changeMonth={setCalendarMonthOffset} onEdit={begin} empty={<EmptyState query={query} title={config.title} action={config.action} clear={() => setQuery("")} create={() => begin()}/>}/> : <StandardTable columns={config.columns} rows={rows} config={config} onEdit={begin} empty={<EmptyState query={query} title={config.title} action={config.action} clear={() => setQuery("")} create={() => begin()}/>}/>}
+        {loading ? <div className="loading-state" aria-live="polite"><span className="loading-spinner"/><p>Loading {config.title.toLowerCase()}…</p></div> : domain === "projects" ? <ProjectDashboard rows={rows} onEdit={begin} onCreate={() => begin()}/> : domain === "tasks" ? taskView === "list" ? <TaskTable rows={rows} onEdit={begin} onToggle={toggleTask} empty={<EmptyState query={query} title={config.title} action={config.action} clear={() => setQuery("")} create={() => begin()}/>}/> : <TaskBoard rows={rows} onEdit={begin} onToggle={toggleTask} onMoveTask={moveTask} onAddTaskInStatus={handleAddTaskInStatus} empty={<EmptyState query={query} title={config.title} action={config.action} clear={() => setQuery("")} create={() => begin()}/>}/> : domain === "inbox" ? <InboxWorkbench rows={rows} query={query} setQuery={setQuery} onEdit={begin} onResolve={resolveInbox} onCapture={() => begin()} loading={loading}/> : domain === "calendar" ? <CalendarDashboard rows={rows} view={calendarView} onViewChange={handleSetCalendarView} monthOffset={calendarMonthOffset} changeMonth={setCalendarMonthOffset} onEdit={begin} onCreate={(defaults) => begin(undefined, defaults)} onReschedule={rescheduleCalendarEvent}/> : <StandardTable columns={config.columns} rows={rows} config={config} onEdit={begin} empty={<EmptyState query={query} title={config.title} action={config.action} clear={() => setQuery("")} create={() => begin()}/>}/>}
         {total > 50 || page > 1 ? <nav className="dataset-pagination" aria-label={`${config.title} pagination`}><p className="dataset-note">Showing {rows.length?((page-1)*50)+1:0}–{Math.min(page*50,total)} of {total}</p><div><Button emphasis="ghost" disabled={page===1} onClick={()=>setPage((current)=>Math.max(1,current-1))}>Previous</Button><Button emphasis="ghost" disabled={page*50>=total} onClick={()=>setPage((current)=>current+1)}>Next</Button></div></nav> : null}
         <Modal open={open} onClose={() => setOpen(false)} variant={domain === "tasks" ? "task" : "default"} title={editing ? domain === "tasks" ? "Task details" : `Edit ${config.title.toLowerCase().replace(/s$/, "")}` : config.action} description={domain === "tasks" ? "Update the work, its urgency, timing, and relationships." : "Changes are saved to your private workspace."}>
             {editing && domain === "calendar" ? <div className="meeting-capture-entry"><Link className="button button--outline button--neutral" href={`/meeting/${editing.id}/capture`}>Capture meeting outcome</Link><Link className="button button--ghost button--neutral" href={`/meeting/${editing.id}`}>Open meeting brief</Link></div> : null}
@@ -487,14 +496,19 @@ function StandardTable({ columns, rows, config, onEdit, empty }: { columns: stri
     return <div className="table-frame domain-list-frame"><table className="work-table domain-list-table"><caption className="sr-only">{config.title} records</caption><thead><tr><th scope="col">{columns[0] ?? "Name"}</th><th scope="col">{columns[1] ?? "Secondary"}</th><th scope="col">{columns[2] ?? "Tertiary"}</th><th scope="col"><span className="sr-only">Actions</span></th></tr></thead><tbody>{rows.map((record) => (<tr key={record.id} onClick={() => onEdit(record)} className="clickable-row"><td><button type="button" className="table-title" onClick={() => onEdit(record)}><strong>{display(record[config.titleField])}</strong>{record.description && config.titleField !== "description" ? <small>{display(record.description)}</small> : null}</button></td><td>{renderCellValue(record[config.secondary], config.secondary)}</td><td>{renderCellValue(record[config.tertiary], config.tertiary)}</td><td><button type="button" className="icon-button" onClick={(e) => { e.stopPropagation(); onEdit(record); }} aria-label={`Open ${display(record[config.titleField])}`}><Icons.MoreHorizontal size={16}/></button></td></tr>))}</tbody></table></div>;
 }
 function TaskTable({ rows, onEdit, onToggle, empty }: { rows: DomainRecord[]; onEdit: (record: DomainRecord) => void; onToggle: (record: DomainRecord) => Promise<void>; empty: ReactNode }) {
+    const [selectedId, setSelectedId] = useState<string | null>(null);
+    const [panelTab, setPanelTab] = useState<"details" | "files">("details");
+    const selected = rows.find((record) => record.id === selectedId) ?? null;
     if (!rows.length) return <div className="data-surface">{empty}</div>;
     const statuses = ["inbox", "planned", "in_progress", "waiting", "still_waiting", "blocked", "completed", "cancelled"];
-    return <div className="table-frame task-list-frame"><table className="work-table task-list-table"><caption className="sr-only">Tasks grouped by status</caption><thead><tr><th scope="col"><span className="sr-only">Complete</span></th><th scope="col">Task</th><th scope="col">Priority</th><th scope="col">Due</th><th scope="col"><span className="sr-only">Actions</span></th></tr></thead>{statuses.map((status) => {
+    return <div className={`task-list-workspace ${selected ? "task-list-workspace--open" : ""}`}><div className="table-frame task-list-frame"><table className="work-table task-list-table"><caption className="sr-only">Tasks grouped by status</caption><thead><tr><th scope="col"><span className="sr-only">Complete</span></th><th scope="col">Task</th><th scope="col">Status</th><th scope="col">Priority</th><th scope="col">Assignee</th><th scope="col">Due date</th><th scope="col"><span className="sr-only">Actions</span></th></tr></thead>{statuses.map((status) => {
         const group = status === "still_waiting"
             ? rows.filter((record) => isTaskPastDue(record))
             : rows.filter((record) => String(record.status) === status && !isTaskPastDue(record));
         if (!group.length) return null;
-        return <tbody key={status}><tr className="task-group-row"><th colSpan={5} scope="rowgroup"><span className={`status status--${status}`}>{status === "still_waiting" ? "Still Waiting" : display(status)}</span><small>{group.length}</small></th></tr>{group.map((record) => { const done = record.status === "completed"; return <tr className={done ? "is-complete" : ""} key={record.id}><td><button className="task-check" aria-label={`${done ? "Reopen" : "Complete"} ${record.title}`} onClick={() => void onToggle(record)}>{done ? <Icons.Check size={14}/> : null}</button></td><td><button className="table-title" onClick={() => onEdit(record)}><strong>{display(record.title)}</strong>{record.description ? <small>{display(record.description)}</small> : null}</button></td><td><span className={`priority priority--${String(record.priority ?? "none")}`}>{display(record.priority)}</span></td><td><time>{formatDate(record.due_date)}</time></td><td><button className="icon-button" onClick={() => onEdit(record)} aria-label={`Open ${record.title}`}><Icons.MoreHorizontal size={16}/></button></td></tr>; })}</tbody>; })}</table></div>;
+        return <tbody key={status}><tr className="task-group-row" data-status={status}><th colSpan={7} scope="rowgroup"><span className="task-list-group-icon">{status === "inbox" ? <Icons.Inbox size={16}/> : status === "still_waiting" ? <Icons.Clock3 size={16}/> : status === "planned" ? <Icons.CalendarDays size={16}/> : status === "in_progress" ? <Icons.Focus size={16}/> : status === "waiting" ? <Icons.Clock3 size={16}/> : <Icons.Check size={16}/>}</span><strong>{status === "still_waiting" ? "Still Waiting" : display(status)}</strong><small>{group.length}</small></th></tr>{group.map((record) => { const done = record.status === "completed"; return <tr className={`${done ? "is-complete" : ""} ${selected?.id === record.id ? "is-selected" : ""}`} key={record.id} onClick={() => { setSelectedId(record.id); setPanelTab("details"); }}><td><button className="task-check" aria-label={`${done ? "Reopen" : "Complete"} ${record.title}`} onClick={(event) => { event.stopPropagation(); void onToggle(record); }}>{done ? <Icons.Check size={14}/> : null}</button></td><td><button className="table-title" onClick={(event) => { event.stopPropagation(); setSelectedId(record.id); setPanelTab("details"); }}><strong>{display(record.title)}</strong>{record.description ? <small>{display(record.description)}</small> : null}</button></td><td><span className={`task-list-status task-list-status--${status}`}>{status === "still_waiting" ? "Open" : done ? "Done" : status === "inbox" ? "Open" : display(status)}</span></td><td><span className={`priority priority--${String(record.priority ?? "none")}`}>{display(record.priority)}</span></td><td><span className="task-list-owner"><i>{String(record.assigned_to_name ?? record.owner_name ?? "Y").slice(0,1).toUpperCase()}</i>{display(record.assigned_to_name ?? record.owner_name ?? "You")}</span></td><td><time><Icons.CalendarDays size={14}/>{record.due_date ? formatDate(record.due_date) : "No date"}</time></td><td><button className="icon-button" onClick={(event) => { event.stopPropagation(); onEdit(record); }} aria-label={`Edit ${record.title}`}><Icons.MoreHorizontal size={16}/></button></td></tr>; })}</tbody>; })}</table></div>
+        {selected && <aside className="task-list-panel" aria-label="Selected task details"><div className="task-list-panel__top"><span><Icons.ListTodo size={14}/> Task</span><div><button onClick={() => onEdit(selected)} aria-label="Edit selected task"><Icons.MoreHorizontal size={18}/></button><button onClick={() => setSelectedId(null)} aria-label="Close task details"><Icons.X size={18}/></button></div></div><h2>{display(selected.title)}</h2><p className="task-list-panel__summary">{selected.description ? display(selected.description) : "No description yet."}</p><div className="task-list-panel__properties"><button onClick={() => onEdit(selected)}><span className={`task-list-status task-list-status--${String(selected.status)}`}>{display(selected.status)}</span><Icons.ChevronDown size={13}/></button><button onClick={() => onEdit(selected)}><span className={`priority priority--${String(selected.priority ?? "none")}`}>{display(selected.priority)}</span><Icons.ChevronDown size={13}/></button><button onClick={() => onEdit(selected)}><span className="task-list-owner"><i>{String(selected.assigned_to_name ?? selected.owner_name ?? "Y").slice(0,1).toUpperCase()}</i>{display(selected.assigned_to_name ?? selected.owner_name ?? "You")}</span><Icons.ChevronDown size={13}/></button><button onClick={() => onEdit(selected)}><Icons.CalendarDays size={14}/>{selected.due_date ? formatDate(selected.due_date) : "No date"}</button></div><div className="task-list-panel__tabs" role="tablist" aria-label="Task details"><button role="tab" aria-selected={panelTab === "details"} onClick={() => setPanelTab("details")}>Details</button><button role="tab" aria-selected={panelTab === "files"} onClick={() => setPanelTab("files")}>Files</button></div>{panelTab === "details" ? <div className="task-list-panel__body"><section><h3><Icons.FileText size={16}/> Description</h3><p>{selected.description ? display(selected.description) : "Add a description to capture the context for this task."}</p><button onClick={() => onEdit(selected)}>Edit description</button></section>{Number(selected.target_count ?? 0) > 0 && <section><h3><Icons.Target size={16}/> Progress target</h3><p>{Number(selected.current_count ?? 0).toLocaleString()} of {Number(selected.target_count).toLocaleString()} complete</p><div className="task-list-panel__track"><span style={{width:`${Math.min(100,Number(selected.current_count ?? 0)/Number(selected.target_count)*100)}%`}}/></div><button onClick={() => onEdit(selected)}>Log progress</button></section>}</div> : <div className="task-list-panel__files"><AttachmentSection entityType="task" entityId={selected.id}/></div>}</aside>}
+    </div>;
 }
 const COLUMN_COLORS_KEY = "dcc-task-column-colors";
 
@@ -734,7 +748,7 @@ function TaskBoard({
             const columnRows = status === "still_waiting"
                 ? rows.filter((record) => isTaskPastDue(record))
                 : rows.filter((record) => String(record.status) === status && !isTaskPastDue(record));
-            const customColor = columnColors[status] ?? (status === "still_waiting" ? "#E5484D" : undefined);
+            const customColor = columnColors[status];
             const columnStyle = customColor ? {
                 backgroundColor: `color-mix(in srgb, ${customColor} 7.5%, var(--surface-2))`,
                 borderColor: `color-mix(in srgb, ${customColor} 24%, var(--line))`
@@ -782,6 +796,8 @@ function TaskBoard({
             >
                 <header>
                     <div className="task-board__title-anchor">
+                        <span className="task-board__lane-icon">{status === "inbox" ? <Icons.Inbox size={19}/> : status === "planned" ? <Icons.CalendarDays size={19}/> : status === "in_progress" ? <Icons.Focus size={19}/> : status === "waiting" ? <Icons.Clock3 size={19}/> : status === "still_waiting" ? <Icons.Clock3 size={19}/> : status === "completed" ? <Icons.Check size={19}/> : status === "blocked" ? <Icons.ShieldCheck size={19}/> : <Icons.X size={19}/>}</span>
+                        <div className="task-board__lane-copy">
                         <button
                             type="button"
                             className="task-board__title-btn"
@@ -798,6 +814,8 @@ function TaskBoard({
                                 <Icons.Palette size={10} className="task-board__title-palette-icon" />
                             </span>
                         </button>
+                        <p>{status === "inbox" ? "New tasks and ideas" : status === "planned" ? "Approved and scheduled" : status === "in_progress" ? "Actively working on" : status === "waiting" ? "Blocked or awaiting input" : status === "still_waiting" ? "Longer term or on hold" : status === "completed" ? "Finished work" : status === "blocked" ? "Needs intervention" : "No longer active"}</p>
+                        </div>
                         {openPaletteStatus === status && (
                             <ColumnColorPalette
                                 status={status}
@@ -842,7 +860,7 @@ function TaskBoard({
                             const isOverThisCard = dragOverCardId === record.id;
 
                             return <article
-                                className={`task-card ${isBeingDragged ? "is-dragging" : ""}`}
+                                className={`task-card ${record.target_count != null && Number(record.target_count) > 0 ? "task-card--with-progress" : "task-card--compact"} ${isBeingDragged ? "is-dragging" : ""}`}
                                 key={record.id}
                                 draggable
                                 onClick={(e) => {
@@ -873,6 +891,10 @@ function TaskBoard({
                                         <span className="task-card__grip" title="Drag to move task">
                                             <Icons.GripVertical size={13}/>
                                         </span>
+                                        <button
+                                            className="task-card__title"
+                                            onClick={(e) => { e.stopPropagation(); onEdit(record); }}
+                                        ><strong>{display(record.title)}</strong></button>
                                     </div>
                                     <button
                                         className="task-card__menu"
@@ -886,16 +908,8 @@ function TaskBoard({
                                         <Icons.MoreHorizontal size={16}/>
                                     </button>
                                 </div>
-                                <button
-                                    className="task-card__title"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        onEdit(record);
-                                    }}
-                                >
-                                    <strong>{display(record.title)}</strong>
-                                    {record.description ? <span>{display(record.description)}</span> : null}
-                                </button>
+                                <div className="task-card__metadata"><span className={`priority priority--${String(record.priority ?? "none")}`}>{display(record.priority)}</span>{record.due_date ? <time><Icons.CalendarDays size={13}/>{formatDate(record.due_date)}</time> : null}</div>
+                                {record.description ? <p className="task-card__description">{display(record.description)}</p> : null}
                                 {/* Mini progress bar for goal tasks */}
                                 {record.target_count != null && Number(record.target_count) > 0 && (
                                     <div className="task-card__progress-wrap">
@@ -917,10 +931,8 @@ function TaskBoard({
                                     </div>
                                 )}
                                 <footer>
-                                    <span className={`priority priority--${String(record.priority ?? "none")}`}>
-                                        {display(record.priority)}
-                                    </span>
-                                    {record.due_date ? <time>{formatDate(record.due_date)}</time> : null}
+                                    <span className="task-card__owner"><span>{String(record.assigned_to_name ?? record.owner_name ?? "Y").slice(0,1).toUpperCase()}</span>{display(record.assigned_to_name ?? record.owner_name ?? "You")}</span>
+                                    {record.target_count != null && Number(record.target_count) > 0 ? <span className="task-card__goal-count"><Icons.ListTodo size={14}/>{Number(record.current_count ?? 0).toLocaleString()}/{Number(record.target_count).toLocaleString()}</span> : null}
                                     {record.recurrence_frequency ? (
                                         <span className="task-card__repeat-badge" title={`Repeats: ${String(record.recurrence_frequency)}`}>
                                             <Icons.RotateCcw size={10}/>
@@ -1144,8 +1156,20 @@ function TaskDetailForm({ fields, values, setValues, editing, saving, error, arc
         e.preventDefault();
         const amount = parseFloat(logAmount);
         if (!editing || isNaN(amount) || amount <= 0) { setLogError("Enter a positive number."); return; }
+        if (!targetCount || targetCount <= 0) { setLogError("Enter a target total before logging progress."); return; }
         setLogSaving(true); setLogError("");
         try {
+            const targetChanged = Number(editing.target_count ?? 0) !== targetCount || Number(editing.daily_target ?? 0) !== Number(dailyTarget ?? 0);
+            if (targetChanged) {
+                const saveTarget = await fetch(`/api/entities/tasks/${editing.id}`, {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ target_count: targetCount, daily_target: dailyTarget }),
+                });
+                const saved = await saveTarget.json();
+                if (!saveTarget.ok) throw new Error(saved.error ?? "Progress target could not be saved.");
+                onProgressLogged?.(saved.record as DomainRecord);
+            }
             const res = await fetch(`/api/tasks/${editing.id}/progress`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -1349,24 +1373,6 @@ function TaskDetailForm({ fields, values, setValues, editing, saving, error, arc
     </form>;
 }
 
-function InboxList({ rows, onEdit, onResolve, empty }: { rows: DomainRecord[]; onEdit: (record: DomainRecord) => void; onResolve: (record: DomainRecord) => Promise<void>; empty: ReactNode }) {
-    if (!rows.length) return <div className="data-surface">{empty}</div>;
-    const unprocessed = rows.filter((record) => record.status !== "processed" && record.status !== "archived");
-    return <div className="inbox-workbench"><div className="inbox-summary"><strong>{unprocessed.length}</strong><span>to triage</span><p>Clarify the type, then clear the item when it has a home.</p></div><div className="inbox-list">{rows.map((record) => <article className={record.status === "processed" ? "inbox-item is-processed" : "inbox-item"} key={record.id}><div className="inbox-item__mark"><Icons.Inbox size={15}/></div><div><p>{display(record.raw_text)}</p><span>{display(record.detected_type)} · {new Date(String(record.created_at)).toLocaleDateString()}</span></div><div className="inbox-item__actions"><Button emphasis="ghost" onClick={() => onEdit(record)}>Organize</Button>{record.status !== "processed" ? <Button emphasis="outline" onClick={() => void onResolve(record)}><Icons.Check size={14}/> Clear</Button> : <span className="status status--completed">Cleared</span>}</div></article>)}</div></div>;
-}
-
-function CalendarWorkspace({ rows, view, monthOffset, changeMonth, onEdit, empty }: { rows: DomainRecord[]; view: "month" | "agenda"; monthOffset: number; changeMonth: (next: number) => void; onEdit: (record: DomainRecord) => void; empty: ReactNode }) {
-    const today = new Date();
-    const monthStart = new Date(today.getFullYear(), today.getMonth() + monthOffset, 1);
-    const gridStart = new Date(monthStart); gridStart.setDate(1 - monthStart.getDay());
-    const days = Array.from({ length: 42 }, (_, index) => { const date = new Date(gridStart); date.setDate(gridStart.getDate() + index); return date; });
-    const eventMap = new Map<string, DomainRecord[]>();
-    rows.forEach((record) => { const key = String(record.starts_at ?? "").slice(0, 10); if (!key) return; eventMap.set(key, [...(eventMap.get(key) ?? []), record]); });
-    if (view === "agenda") return <div className="calendar-agenda">{rows.length ? rows.slice().sort((a,b) => String(a.starts_at).localeCompare(String(b.starts_at))).map((record) => <button className="calendar-agenda__row" onClick={() => onEdit(record)} key={record.id}><time><strong>{new Date(String(record.starts_at)).toLocaleDateString([], { month: "short", day: "numeric" })}</strong><span>{new Date(String(record.starts_at)).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span></time><span className="calendar-event-mark"/><span><strong>{display(record.title)}</strong><small>{display(record.description ?? record.timezone)}</small></span><Icons.ChevronRight size={16}/></button>) : empty}</div>;
-    return <>{!rows.length ? <div className="calendar-zero-prompt calendar-zero-prompt--near">{empty}</div> : null}<section className="calendar-board" aria-label={`${monthStart.toLocaleDateString([], { month: "long", year: "numeric" })} calendar`}><div className="calendar-board__heading"><div><strong>{monthStart.toLocaleDateString([], { month: "long" })}</strong><span>{monthStart.getFullYear()}</span></div><div className="calendar-board__controls"><button type="button" aria-label="Previous month" onClick={() => changeMonth(monthOffset - 1)}><Icons.ChevronLeft size={15}/></button><button type="button" onClick={() => changeMonth(0)} disabled={monthOffset === 0}>Today</button><button type="button" aria-label="Next month" onClick={() => changeMonth(monthOffset + 1)}><Icons.ChevronRight size={15}/></button><span>{rows.filter((record) => String(record.starts_at ?? "").slice(0,7) === localDateKey(monthStart).slice(0,7)).length} scheduled</span></div></div><div className="calendar-weekdays" aria-hidden="true">{["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map((day) => <span key={day}>{day}</span>)}</div><div className="calendar-month">{days.map((date) => { const key = localDateKey(date); const events = eventMap.get(key) ?? []; const outside = date.getMonth() !== monthStart.getMonth(); const isToday = key === localDateKey(today); return <div className={`calendar-day ${outside ? "is-outside" : ""} ${isToday ? "is-today" : ""}`} key={key}><time dateTime={key}>{date.getDate()}</time><div>{events.slice(0,3).map((record) => <button onClick={() => onEdit(record)} title={String(record.title)} key={record.id}><span>{new Date(String(record.starts_at)).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})}</span>{display(record.title)}</button>)}{events.length > 3 ? <small>+{events.length - 3} more</small> : null}</div></div>; })}</div></section>{rows.length ? <div className="calendar-mobile-agenda">{rows.slice().sort((a,b) => String(a.starts_at).localeCompare(String(b.starts_at))).map((record) => <button className="calendar-agenda__row" onClick={() => onEdit(record)} key={record.id}><time><strong>{new Date(String(record.starts_at)).toLocaleDateString([], { month: "short", day: "numeric" })}</strong><span>{new Date(String(record.starts_at)).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span></time><span className="calendar-event-mark"/><span><strong>{display(record.title)}</strong><small>{display(record.description ?? record.timezone)}</small></span><Icons.ChevronRight size={16}/></button>)}</div> : null}</>;
-}
-
-function localDateKey(date: Date) { return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")}`; }
 function formatDate(value: unknown) { if (!value) return "No date"; const date = new Date(`${String(value).slice(0,10)}T12:00:00`); return date.toLocaleDateString([], { month: "short", day: "numeric" }); }
 function FormField({ field, value, setValue, className, placeholder }: {
     field: Field;
@@ -1496,10 +1502,6 @@ function toInputValue(value: unknown, type: Field["type"]) { if (value == null)
     const date = new Date(String(value));
     return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
 } return String(value); }
-function ProjectGrid({ rows, onEdit }: {
-    rows: DomainRecord[];
-    onEdit: (record: DomainRecord) => void;
-}) { return <div className="project-grid">{rows.map((record) => <article className="project-card" key={record.id}><span className="project-card__accent" style={{ background: String(record.color ?? "#3157D5") }}/><div className="project-card__top"><span className="status">{display(record.status)}</span><button className="icon-button" onClick={() => onEdit(record)} aria-label={`Edit ${record.name}`}><Icons.MoreHorizontal size={17}/></button></div><Link href={`/projects/${record.id}`}><h2>{display(record.name)}</h2><p>{display(record.description)}</p><div className="project-progress"><span><i style={{ width: `${Number(record.progress ?? 0)}%` }}/></span><strong>{display(record.progress)}%</strong></div><small>Open project workspace →</small></Link></article>)}</div>; }
 function EmptyState({ query, title, action, clear, create }: {
     query: string;
     title: string;
