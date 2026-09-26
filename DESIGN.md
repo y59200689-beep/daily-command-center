@@ -60,11 +60,15 @@ Runtime variables in `src/app/product-system.css` are canonical (token mapping m
 
 Neutral gray canvas and white surfaces carry the interface. Indigo is reserved for primary actions, selected navigation, focus, and the current item. Green communicates completion, amber communicates waiting or reversible caution, and red is reserved for destructive or failed states. Dark mode remaps semantic roles rather than inverting literal colors. Project colors may appear only as narrow identity marks.
 
+The dark workspace palette uses a #11131B canvas, #1B1E29 surfaces, #242838 raised controls, #383D50 borders, #F2F1FA primary text, and #B2BAD0 supporting text. Violet accents brighten to #B4A0FF. The shared semantic variables remain in `product-system.css`; `dark-workspaces.css` adapts feature styles that still contain literal light reference colors. Image-backed panels use a dark overlay so text and the image remain legible together.
+
 ## Typography
 
 Geist is the sole display and body family so hierarchy comes from scale, weight, and spacing rather than editorial decoration. Page titles top out at 34px on desktop and 25px on mobile. Geist Mono is limited to dates, counts, shortcuts, and small section labels. Controls and table rows remain readable at compact SaaS density.
 
 ## Layout
+
+Related workspaces use one compact tab strip above the existing page content. Tabs are plain text controls on a muted surface, with the selected view on the standard white surface. This keeps established page components and their actions while reducing duplicate destinations in the navigation rail. The icon rail remains at six areas; the contextual menu lists the primary destinations, and deeper destinations remain accessible through section tabs, links, and search.
 
 Desktop uses a 232px persistent sidebar, a 52px command bar, and a fluid content workspace capped at 1480px. The first sidebar tier contains the six everyday destinations; deeper capabilities are grouped into four scan-friendly workspaces. At 767px and below, the sidebar becomes a drawer and a five-item bottom bar preserves Today, Tasks, Capture, Calendar, and More.
 

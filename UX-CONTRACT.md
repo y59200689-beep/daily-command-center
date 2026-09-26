@@ -22,6 +22,8 @@
 
 ## Navigation and state
 
+Today owns both the daily brief and daily planning mode. Planning owns week, month, quarter, and 90-day horizons. Waiting, Documents, Changes, Pipeline, Decisions, Risks, Business, and Finance each expose their related workflows as URL-addressable tabs on one entry page. Existing deep links redirect to the corresponding tab; the underlying records and mutation APIs remain separate where their business meaning differs. Weekly review exposes executive evidence and personal reflection as tabs, with links to distinct domain reviews. The sidebar lists primary destinations once rather than repeating them across groups.
+
 The authenticated workspace opens at `/today`. Today, Inbox, Tasks, Calendar, Projects, and Clients stay in the first navigation tier. All other implemented capabilities remain reachable through four workspace groups, Settings, or command search. The mobile bar preserves Today, Tasks, Capture, Calendar, and More; More opens the complete navigation drawer.
 
 Filters, committed search, sort, and pagination belong in URL parameters when server-backed. Temporary view presentation (for example Month versus Agenda before it is saved as a view) may remain local. A task/client detail opens in the canonical modal/sheet or its existing detail route. Escape closes the top layer and restores focus.

@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 
 const shell = readFileSync(new URL("../src/components/app-shell.tsx", import.meta.url), "utf8");
 const domains = readFileSync(new URL("../src/features/domains/domain-page.tsx", import.meta.url), "utf8");
+const styledSelect = readFileSync(new URL("../src/components/ui/styled-select.tsx", import.meta.url), "utf8");
 const css = readFileSync(new URL("../src/app/product-system.css", import.meta.url), "utf8");
 const operations = readFileSync(new URL("../src/features/operations/operations-home.tsx", import.meta.url), "utf8");
 const entityRoute = readFileSync(new URL("../src/app/api/entities/[domain]/route.ts", import.meta.url), "utf8");
@@ -26,14 +27,15 @@ test("tasks own horizontal scrolling without widening the page", () => {
 test("tasks provide grouped list, board, server filters, sorting, and cancelled access", () => {
   assert.match(domains, /Tasks grouped by status/);
   assert.match(domains, /aria-pressed=\{taskView === "list"\}/);
-  assert.match(domains, /aria-label="Sort tasks"/);
+  assert.match(domains, /<StyledSelect label="Sort tasks" value=\{taskSort\}/);
+  assert.match(styledSelect, /aria-label=\{label\}/);
   assert.match(domains, /const columns = \["inbox", "planned", "in_progress", "waiting", "still_waiting", "blocked", "completed", "cancelled"\]/);
   assert.match(entityRoute, /status: request\.nextUrl\.searchParams\.get\("status"\)/);
   assert.match(entityRoute, /sort: request\.nextUrl\.searchParams\.get\("sort"\)/);
 });
 
 test("task detail and operations use purpose-built compact workspaces", () => {
-  assert.match(domains, /className="task-detail-workspace"/);
+  assert.match(domains, /className="task-detail-workspace task-detail-workspace--ref"/);
   assert.match(domains, /Task properties/);
   assert.match(css, /\.modal--task/);
   assert.doesNotMatch(operations, /Documented operating procedures & versions/);

@@ -1,0 +1,161 @@
+/* Theme adapters for the visual workspaces that use fixed light reference colors. */
+html[data-theme="dark"] {
+  --work-canvas: #11131b;
+  --work-surface: #1b1e29;
+  --work-raised: #242838;
+  --work-soft: #2b2942;
+  --work-line: #383d50;
+  --work-ink: #f2f1fa;
+  --work-muted: #b2bad0;
+  --work-accent: #b4a0ff;
+}
+html[data-theme="dark"] .workspace:has(:is(.today-page,.domain-page--inbox,.calendar-ui,.task-list-workspace,.task-board,.projects-ui,.clients-ui,.goals-ui,.files-page)) {
+  background: radial-gradient(ellipse at 75% 0%, #211c38 0, transparent 32%), var(--work-canvas);
+}
+html[data-theme="dark"] :is(.today-page,.domain-page:has(.calendar-ui),.domain-page:has(.task-list-workspace),.domain-page:has(.task-board),.domain-page:has(.projects-ui),.domain-page:has(.clients-ui),.domain-page:has(.goals-ui),.files-page,.inbox-ui) {
+  --attention: var(--work-accent);
+  --attention-soft: var(--work-soft);
+  --ink: var(--work-ink);
+  --muted: var(--work-muted);
+  --line: var(--work-line);
+  --line-strong: #4a5065;
+  color: var(--work-ink);
+}
+html[data-theme="dark"] :is(.today-page,.calendar-ui,.task-list-workspace,.task-board,.projects-ui,.clients-ui,.goals-ui,.files-page,.inbox-ui) :is(h1,h2,h3) { color: var(--work-ink); }
+html[data-theme="dark"] :is(.today-page,.calendar-ui,.task-list-workspace,.task-board,.projects-ui,.clients-ui,.goals-ui,.files-page,.inbox-ui) :is(p,small,time,dt) { color: var(--work-muted); }
+
+/* Today: retain the mountain art as a low-contrast, violet night scene. */
+html[data-theme="dark"] .today-page .founder-state--compact {
+  background: linear-gradient(100deg, rgba(23,22,40,.92), rgba(30,25,54,.74)), url('/images/today-mountains.png') center 56%/cover no-repeat;
+  border-color: #51456e;
+  box-shadow: 0 18px 42px #07070f66, inset 0 1px #ffffff1c;
+}
+html[data-theme="dark"] .today-page .founder-section-header .founder-status,
+html[data-theme="dark"] .today-page .founder-ledger a {
+  background: rgba(36,34,55,.72);
+  border-color: #ffffff30;
+  color: var(--work-muted);
+  box-shadow: inset 0 1px #ffffff18, 0 10px 26px #08071245;
+}
+html[data-theme="dark"] .today-page .founder-ledger strong { color: var(--work-ink); }
+html[data-theme="dark"] .today-page :is(.founder-empty,.eyebrow,.now-block small,.adaptive-brief__copy>span,.attention-row p,.context-empty,.agenda-panel .dataset-note small) { color: var(--work-muted); }
+html[data-theme="dark"] .today-page :is(.founder-more,.founder-module-links,.ai-note a,.context-panel .section-heading>a) { color: var(--work-accent); }
+html[data-theme="dark"] .today-page :is(.brief-hero,.priority-section,.attention-section,.adaptive-brief,.agenda-panel,.context-panel,.closing-strip>div,.today-business-signals,.brief-module,.context-tab,.today-conflict-signal) {
+  background: var(--work-surface);
+  border-color: var(--work-line);
+  color: var(--work-ink);
+  box-shadow: 0 10px 28px #07081030;
+}
+html[data-theme="dark"] .today-page .brief-hero__main { background: transparent; color: var(--work-ink); }
+html[data-theme="dark"] .today-page .brief-hero__rail,
+html[data-theme="dark"] .today-page .brief-facts,
+html[data-theme="dark"] .today-page .adaptive-brief article,
+html[data-theme="dark"] .today-page .brief-item,
+html[data-theme="dark"] .today-page .agenda-panel .dataset-note {
+  background: var(--work-raised);
+  border-color: var(--work-line);
+  color: var(--work-ink);
+}
+html[data-theme="dark"] .today-page .brief-hero__main h1,
+html[data-theme="dark"] .today-page .brief-hero__main h1 em,
+html[data-theme="dark"] .today-page .now-block strong,
+html[data-theme="dark"] .today-page .brief-facts dd strong { color: var(--work-ink); }
+html[data-theme="dark"] .today-page .brief-copy { color: var(--work-muted); }
+html[data-theme="dark"] .today-page .now-block:after { background: #42465b; box-shadow: inset 105px 0 var(--work-accent); }
+html[data-theme="dark"] .today-page :is(.priority-row,.attention-row,.waiting-row) { border-color: var(--work-line); }
+html[data-theme="dark"] .today-page .priority-section .empty-state { background: var(--work-raised); border-color: #65518e; }
+html[data-theme="dark"] .today-page :is(.priority-section .empty-state .button,.attention-review,.attention-row em) { background: var(--work-raised); border-color: #655a85; color: var(--work-accent); }
+html[data-theme="dark"] .today-page :is(.today-tabs button[aria-selected=true],.today-tabs button span,.founder-ledger__icon,.adaptive-brief__icon,.project-mini__icon) { background: var(--work-soft); color: var(--work-accent); }
+html[data-theme="dark"] .today-page .closing-strip>.ai-note { background: linear-gradient(120deg,#29213f,#211f31); border-color:#65518e; color:var(--work-ink); box-shadow:0 12px 28px #0907134d; }
+html[data-theme="dark"] .today-page .ai-note p span { color:var(--work-muted); }
+html[data-theme="dark"] .today-page .ai-note a { background:#43355f; color:#d4c7ff; }
+html[data-theme="dark"] .today-page :is(.attention-state--overdue,.attention-row>.attention-state--overdue,.attention-row>.attention-severity) { background:#49243b; color:#ff9abe; }
+html[data-theme="dark"] .today-page :is(.attention-state--waiting,.attention-row>.attention-state--waiting) { background:#333b50; color:#b7c8ed; }
+html[data-theme="dark"] .today-page .attention-row p { color:var(--work-muted); }
+
+/* Repeated list, board, calendar, and dashboard surfaces. */
+html[data-theme="dark"] :is(.inbox-ui,.calendar-ui__main,.calendar-ui__aside,.task-list-workspace .task-list-frame,.task-list-panel,.domain-page:has(.task-board) .task-board__column,.domain-page:has(.task-board) .task-card,.projects-ui__stats article,.projects-ui__card,.projects-ui__empty,.clients-ui__stats>button,.clients-ui__table,.clients-ui__detail,.goals-ui__stats>button,.goals-ui__list,.goals-ui__detail,.files-ui__stats article,.files-ui__list,.files-ui__detail) {
+  background: var(--work-surface);
+  border-color: var(--work-line);
+  color: var(--work-ink);
+  box-shadow: 0 8px 24px #08091229;
+}
+html[data-theme="dark"] :is(.inbox-ui,.calendar-ui,.task-list-workspace,.task-board,.projects-ui,.clients-ui,.goals-ui,.files-page) :is(input,select,textarea,.search-control,.inbox-ui__search,.projects-ui__search,.goals-ui__search,.files-ui__search) {
+  background: var(--work-raised);
+  border-color: var(--work-line);
+  color: var(--work-ink);
+}
+html[data-theme="dark"] :is(.inbox-ui,.calendar-ui,.task-list-workspace,.task-board,.projects-ui,.clients-ui,.goals-ui,.files-page) :is(input,textarea)::placeholder { color: #8992aa; }
+html[data-theme="dark"] :is(.inbox-ui__row,.calendar-ui__day,.calendar-ui__agenda>button,.calendar-ui__daily,.task-list-workspace .task-list-table th,.task-list-workspace .task-group-row th,.clients-ui__thead,.clients-ui__row,.goals-ui__row,.files-ui__row) {
+  background: var(--work-raised);
+  border-color: var(--work-line);
+  color: var(--work-ink);
+}
+html[data-theme="dark"] :is(.inbox-ui__row:hover,.inbox-ui__row.is-selected,.calendar-ui__day:hover,.calendar-ui__day.is-selected,.clients-ui__row.selected,.goals-ui__row.selected,.files-ui__row.selected,.task-list-workspace .task-list-table tbody tr.is-selected) { background: #302b49; }
+html[data-theme="dark"] :is(.calendar-ui__stats article,.calendar-ui__toolbar button,.calendar-ui__aside-head button,.calendar-ui__views button.is-active,.projects-ui__tabs button,.projects-ui__tools>button,.projects-ui__tools>label,.projects-ui__layout button,.clients-ui__toolbar,.clients-ui__tabs button,.clients-ui__tools>button,.goals-ui__tabs button,.goals-ui__tools>button,.files-ui__sort,.files-ui__view,.files-ui__detail-actions button,.inbox-ui__sort,.inbox-ui__iconbutton,.inbox-ui__detailactions button,.task-list-panel__body section) {
+  background: var(--work-raised);
+  border-color: var(--work-line);
+  color: var(--work-ink);
+}
+html[data-theme="dark"] :is(.projects-ui__facts,.clients-ui__notes,.goals-ui__detail-head,.goals-ui__detail-progress,.goals-ui__detail-facts,.goals-ui__detail-description,.goals-ui__activity,.files-ui__preview,.files-ui__upload-drop) { background:var(--work-raised); border-color:var(--work-line); color:var(--work-ink); }
+html[data-theme="dark"] :is(.projects-ui__card,.clients-ui__detail,.goals-ui__detail,.files-ui__detail) :is(strong,b,th) { color:var(--work-ink); }
+html[data-theme="dark"] :is(.projects-ui,.clients-ui,.goals-ui,.files-page,.inbox-ui,.calendar-ui) :is(a,button):focus-visible { outline-color:var(--work-accent); }
+
+/* Task controls and lane headers need higher specificity than their reference styles. */
+html[data-theme="dark"] .domain-page:has(.task-board) .task-toolbar :is(.search-control,.compact-select,.task-view-switch),
+html[data-theme="dark"] .domain-page:has(.task-list-workspace) .task-toolbar :is(.search-control,.compact-select,.task-view-switch) { background:var(--work-raised); border-color:var(--work-line); color:var(--work-ink); box-shadow:none; }
+html[data-theme="dark"] .domain-page:has(.task-board) .task-view-switch button.active,
+html[data-theme="dark"] .domain-page:has(.task-list-workspace) .task-view-switch button.active { background:var(--work-soft); border-color:#685996; color:#d0c4ff; }
+html[data-theme="dark"] .domain-page:has(.task-board) .task-board__title-btn .status,
+html[data-theme="dark"] .domain-page:has(.task-board) :is([data-status="planned"],[data-status="still_waiting"]) .task-board__title-btn .status { color:var(--work-ink)!important; }
+html[data-theme="dark"] .domain-page:has(.task-board) .task-board__lane-copy p,
+html[data-theme="dark"] .domain-page:has(.task-board) .task-card :is(time,.task-card__description,.task-card__owner,.task-card__goal-count) { color:var(--work-muted); }
+html[data-theme="dark"] .domain-page:has(.task-board) .task-board__column>header small,
+html[data-theme="dark"] .domain-page:has(.task-board) .task-board__column-add-btn { background:var(--work-raised); border-color:var(--work-line); color:var(--work-ink); }
+html[data-theme="dark"] .domain-page:has(.task-board) .task-board__column[data-status] { background:var(--work-surface); border-color:var(--work-line); }
+html[data-theme="dark"] .domain-page:has(.task-board) [data-status] .task-card { background:var(--work-raised); border-color:var(--work-line); box-shadow:0 10px 22px #08091238; }
+html[data-theme="dark"] .domain-page:has(.task-board) .task-card__metadata .priority--medium { background:#4a3525; color:#ffd198; }
+html[data-theme="dark"] .domain-page:has(.task-board) .task-card__metadata .priority--high,
+html[data-theme="dark"] .domain-page:has(.task-board) .task-card__metadata .priority--urgent { background:#4a2633; color:#ff9bae; }
+html[data-theme="dark"] .domain-page:has(.task-board) .task-card__metadata .priority--low { background:#244234; color:#9de0ba; }
+html[data-theme="dark"] .domain-page:has(.task-board) .task-board__lane-icon { background:#313b5d; color:#b7c7ff; }
+html[data-theme="dark"] .domain-page:has(.task-board) [data-status="planned"] .task-board__lane-icon,
+html[data-theme="dark"] .domain-page:has(.task-board) [data-status="still_waiting"] .task-board__lane-icon { background:#493149; color:#f7add6; }
+html[data-theme="dark"] .domain-page:has(.task-board) [data-status="in_progress"] .task-board__lane-icon { background:#3b315f; color:#c9bbff; }
+html[data-theme="dark"] .domain-page:has(.task-list-workspace) :is(.task-list-panel,.task-list-table th,.task-group-row th) { background:var(--work-raised); border-color:var(--work-line); color:var(--work-ink); }
+html[data-theme="dark"] .domain-page:has(.task-list-workspace) .task-list-table tbody tr:not(.task-group-row):hover { background:#302b49; }
+
+html[data-theme="dark"] .inbox-ui__scopes button.is-active,
+html[data-theme="dark"] .inbox-ui__categories button.is-active,
+html[data-theme="dark"] .inbox-ui__sidegroup button.is-active { background:var(--work-soft); color:#d3c8ff; border-color:#665b91; }
+html[data-theme="dark"] .inbox-ui__tag { background:#303553; color:#c8d4ff; }
+html[data-theme="dark"] .inbox-ui__rowicon { background:#343156; color:#cfbeff; }
+
+html[data-theme="dark"] :is(.calendar-ui__event--blue,.calendar-ui__daily-event--blue) { background:#253956; color:#b8d4ff; }
+html[data-theme="dark"] :is(.calendar-ui__event--purple,.calendar-ui__daily-event--purple) { background:#39305a; color:#d4c5ff; }
+html[data-theme="dark"] :is(.calendar-ui__event--green,.calendar-ui__daily-event--green) { background:#244537; color:#a8e8c5; }
+html[data-theme="dark"] :is(.calendar-ui__event--rose,.calendar-ui__daily-event--rose) { background:#4c2b3c; color:#ffc0d2; }
+html[data-theme="dark"] :is(.calendar-ui__event--amber,.calendar-ui__daily-event--amber) { background:#4a3828; color:#f6ce9a; }
+html[data-theme="dark"] .calendar-ui__add,
+html[data-theme="dark"] .calendar-ui__daily-add { background:var(--work-soft); border-color:#665993; color:#d3c5ff; }
+html[data-theme="dark"] .calendar-ui__add:hover,
+html[data-theme="dark"] .calendar-ui__daily-add:hover { background:#383052; }
+
+/* Task editor is portalled outside the page, so theme its dialog separately. */
+html[data-theme="dark"] .modal--task { background:var(--work-canvas); border-color:var(--work-line); color:var(--work-ink); }
+html[data-theme="dark"] .modal--task .modal__header,
+html[data-theme="dark"] .task-detail-workspace--ref .task-detail-actions { background:var(--work-surface); border-color:var(--work-line); }
+html[data-theme="dark"] .modal--task .modal__header h2 { color:var(--work-ink); }
+html[data-theme="dark"] .modal--task .modal__header>button { background:var(--work-raised); border-color:var(--work-line); color:var(--work-ink); }
+html[data-theme="dark"] .task-detail-workspace--ref { background:var(--work-canvas); color:var(--work-ink); }
+html[data-theme="dark"] .task-detail-workspace--ref :is(.task-detail-main,.task-detail-metadata,.task-related) { background:var(--work-surface); border-color:var(--work-line); }
+html[data-theme="dark"] .task-detail-workspace--ref :is(.task-detail-label,.task-detail-section-heading strong,.task-detail-hero h2) { color:var(--work-ink); }
+html[data-theme="dark"] .task-detail-workspace--ref :is(.task-detail-hero p,.task-detail-section-heading span,.task-detail-property-grid>div>label) { color:var(--work-muted); }
+html[data-theme="dark"] .task-detail-workspace--ref :is(.task-detail-hero__chips>span,.task-panel-toggle,.task-detail-property-grid select,.task-detail-property-grid input,.date-picker-trigger,.task-title-field input,.task-description-field textarea,.task-goal-panel) { background:var(--work-raised); border-color:var(--work-line); color:var(--work-ink); }
+html[data-theme="dark"] .task-detail-workspace--ref :is(input,textarea)::placeholder { color:#8f98af; }
+html[data-theme="dark"] .task-detail-workspace--ref :is(.task-detail-section-heading--toggle,.task-recurrence-panel) { border-color:var(--work-line); }
+html[data-theme="dark"] .task-detail-workspace--ref .task-detail-hero__chips>span:first-child { background:#263959; color:#b9d1ff; }
+html[data-theme="dark"] .task-detail-workspace--ref .task-detail-hero__icon,
+html[data-theme="dark"] .task-detail-workspace--ref .task-detail-section-heading svg { background:var(--work-soft); color:var(--work-accent); }
+html[data-theme="dark"] .task-detail-workspace--ref .date-picker-trigger__label { color:var(--work-ink); }
+html[data-theme="dark"] .task-detail-workspace--ref .date-picker-trigger__label.is-placeholder { color:#8f98af; }

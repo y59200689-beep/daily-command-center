@@ -1,10 +1,2 @@
-import { LearningDecisionsView } from "@/features/learning/learning-decisions-view";
-
-export const metadata = {
-  title: "Decision Learning | Daily Command Center",
-  description: "Decision outcome tracking and process quality evaluation",
-};
-
-export default function LearningDecisionsPage() {
-  return <LearningDecisionsView />;
-}
+import { redirect } from "next/navigation";
+export default function Page() { redirect("/decisions?view=outcomes"); }

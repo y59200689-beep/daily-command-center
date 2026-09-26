@@ -1,4 +1,5 @@
 "use client";
+import "./today-design.css";
 import Link from "next/link";
 import { FounderStatePanel } from "@/features/founder-os/state-view";
 import type { FounderState } from "@/lib/founder-os/intelligence";
@@ -200,13 +201,13 @@ export function TodayDashboard() {
               className="button button--solid button--brand"
               href={startRoute}
             >
-              Start priority <span>→</span>
+              <Icons.Zap size={15} /> Start priority <span>→</span>
             </Link>
             <Link
               className="button button--outline button--neutral"
               href="/plan"
             >
-              Plan my day
+              <Icons.CalendarDays size={16} /> Plan my day
             </Link>
             <Link
               className="button button--ghost button--neutral"
@@ -271,6 +272,7 @@ export function TodayDashboard() {
             onClick={() => setTab(label)}
             key={label}
           >
+            {label === "Priorities" ? <Icons.ListTodo size={16} /> : label === "Inbox" ? <Icons.Inbox size={16} /> : label === "Calendar" ? <Icons.CalendarDays size={16} /> : <Icons.Target size={16} />}
             {label}
             {label === "Inbox" ? <span>{data.inboxCount}</span> : null}
           </button>
@@ -323,14 +325,14 @@ export function TodayDashboard() {
             </div>
           ) : (
             <div className="empty-state">
-              <span>01</span>
+              <span><Icons.ListTodo size={23} /></span>
               <h2>No wins selected yet</h2>
               <p>Choose up to three tasks to give today a clear shape.</p>
               <Link
                 className="button button--outline button--neutral"
                 href="/tasks"
               >
-                Choose from tasks
+                <Icons.Plus size={15} /> Choose from tasks
               </Link>
             </div>
           )}
@@ -504,10 +506,11 @@ export function TodayDashboard() {
               ))}
             </div>
           ) : (
-            <p className="dataset-note">No calendar events today.</p>
+            <div className="dataset-note"><Icons.CalendarDays size={25} /><span>No calendar events today.<small>Enjoy the focus time.</small></span></div>
           )}
         </div>
-        <aside className="context-panel">
+        <aside className="context-stack">
+          <div className="context-panel context-panel--waiting">
           <div className="section-heading section-heading--small">
             <div>
               <p className="eyebrow">Waiting</p>
@@ -516,7 +519,7 @@ export function TodayDashboard() {
             <Link href="/waiting">View all</Link>
           </div>
           {data.waiting.slice(0, 2).map((item) => (
-            <div className="waiting-row" key={item.id}>
+            <Link className="waiting-row" href="/waiting" key={item.id}>
               <span className="waiting-signal" />
               <div>
                 <h3>{String(item.contact ?? "Open loop")}</h3>
@@ -527,14 +530,17 @@ export function TodayDashboard() {
                   ? new Date(String(item.expected_by)).toLocaleDateString()
                   : "—"}
               </time>
-            </div>
+            </Link>
           ))}
-          <div className="context-rule" />
+          {!data.waiting.length && <p className="context-empty">No open loops waiting on others.</p>}
+          </div>
+          <div className="context-panel context-panel--projects">
           <div className="section-heading section-heading--small">
             <div>
               <p className="eyebrow">Projects</p>
               <h2>Momentum</h2>
             </div>
+            <Link href="/projects">View all</Link>
           </div>
           {data.projects.slice(0, 2).map((project) => (
             <Link
@@ -542,9 +548,7 @@ export function TodayDashboard() {
               className="project-mini"
               key={project.id}
             >
-              <span
-                style={{ background: String(project.color ?? "#3157D5") }}
-              />
+              <span className="project-mini__icon"><Icons.Target size={16} /></span>
               <div>
                 <strong>{String(project.name)}</strong>
                 <small>{String(project.description ?? "Open project")}</small>
@@ -552,6 +556,8 @@ export function TodayDashboard() {
               <em>{String(project.status ?? "Status unknown")}</em>
             </Link>
           ))}
+          {!data.projects.length && <p className="context-empty">No active projects to show.</p>}
+          </div>
         </aside>
       </section>
       <section className="closing-strip">
@@ -586,7 +592,9 @@ function AdaptiveBrief({ intelligence, nextEvent, projects }: { intelligence: In
       : intelligence.mode === "meeting_heavy"
         ? [{ label: "Next meeting", value: nextEvent ? String(nextEvent.title) : "Calendar clear" }, { label: "Available focus", value: minutesLabel(intelligence.capacity.availableFocusMinutes) }, { label: "Preparation", value: nextEvent ? "Brief ready" : "Not needed" }]
         : [{ label: "Focus available", value: minutesLabel(intelligence.capacity.availableFocusMinutes) }, { label: "Project momentum", value: projects[0] ? String(projects[0].name) : "No active project" }, { label: "Personal", value: intelligence.fitness.insights[0] ?? "No target pressure" }];
-  return <section className="adaptive-brief"><p className="eyebrow">Today’s context · {intelligence.mode.replaceAll("_", " ")}</p><div>{rows.map((row) => <article key={row.label}><span>{row.label}</span><strong>{row.value}</strong></article>)}</div></section>;
+  const focusIndex = rows.findIndex(row => row.label.toLowerCase().includes("focus"));
+  const focusFraction = Math.min(1, Math.max(0, intelligence.capacity.availableFocusMinutes / 600));
+  return <section className="adaptive-brief"><p className="eyebrow">Today’s context · {intelligence.mode.replaceAll("_", " ")}</p><div>{rows.map((row, index) => <article key={row.label}><span className="adaptive-brief__icon">{index === focusIndex ? <Icons.Clock3 size={21} /> : index === 1 ? <Icons.Target size={21} /> : <Icons.Users size={21} />}</span><span className="adaptive-brief__copy"><span>{row.label}</span><strong>{row.value}</strong>{index === focusIndex ? <span className="focus-timeline" role="img" aria-label={`${Math.round(focusFraction * 100)} percent of a ten hour focus capacity available`}>{Array.from({length:10},(_,bar) => <i className={bar < Math.round(focusFraction * 10) ? "focus-timeline__bar focus-timeline__bar--filled" : "focus-timeline__bar"} key={bar}/>)}</span> : index === 1 ? <small>On track</small> : null}</span></article>)}</div></section>;
 }
 function Attention({
   recommendations,
@@ -622,7 +630,7 @@ function Attention({
           <p className="eyebrow">Needs attention</p>
           <h2>What deserves a closer look.</h2>
         </div>
-        <Link href="/risks">Review risks</Link>
+        <Link className="attention-review" href="/risks">Review risks</Link>
       </div>
       {Array.from(recommendations.reduce((groups, item) => {
         const key = item.entityType && item.entityId ? `${item.entityType}:${item.entityId}` : item.key;
@@ -630,10 +638,12 @@ function Attention({
         return groups;
       }, new Map<string, Recommendation[]>()).values()).slice(0, 5).map((group) => {
         const item = group[0];
+        const overdue = group.some(entry => /overdue|past due|late/i.test(`${entry.reason} ${entry.label}`));
+        const waiting = !overdue && group.some(entry => /waiting|follow.up|contact/i.test(`${entry.reason} ${entry.label}`));
         return (
         <article className="attention-row" key={item.key}>
-          <span>{item.priority}</span>
-          <div>
+          <span className="attention-severity" aria-label={`Priority ${item.priority}`}>S{item.priority >= 50 ? "1" : "2"}</span>
+          <div className="attention-row__body">
             <Link href={item.route}>
               <strong>{item.label}</strong>
             </Link>
@@ -664,7 +674,8 @@ function Attention({
               </button>
             </div>
           </div>
-          <Link href={item.route}>
+          {overdue || waiting ? <span className={`attention-state attention-state--${overdue ? "overdue" : "waiting"}`}><i />{overdue ? "Overdue" : "Waiting"}</span> : null}
+          <Link className="attention-act" href={item.route}>
             <em>Act →</em>
           </Link>
         </article>

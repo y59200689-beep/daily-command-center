@@ -1,8 +1,2 @@
-import type { Metadata } from "next";
-import { ExecutiveChangesView } from "@/features/executive/executive-changes-view";
-
-export const metadata: Metadata = { title: "What Changed | Executive" };
-
-export default function ExecutiveChangesPage() {
-  return <ExecutiveChangesView />;
-}
+import { redirect } from "next/navigation";
+export default function Page() { redirect("/changes?view=domains"); }

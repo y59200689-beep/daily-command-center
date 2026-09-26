@@ -1,2 +1,2 @@
-import { PeriodPlanningPage } from "@/features/strategy/strategy-pages";
-export default function Page(){return <PeriodPlanningPage type="month"/>}
+import { redirect } from "next/navigation";
+export default function Page() { redirect("/planning?view=month"); }

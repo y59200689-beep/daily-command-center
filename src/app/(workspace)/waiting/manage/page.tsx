@@ -1,2 +1,2 @@
-import { DomainPage } from "@/features/domains/domain-page";
-export default function Page() { return <DomainPage domain="waiting" />; }
+import { redirect } from "next/navigation";
+export default function Page() { redirect("/waiting?view=records"); }
