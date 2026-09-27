@@ -45,6 +45,7 @@ export function ResourceWorkspace({ resource }: { resource: ResourceKey }) {
       void (async () => { try { const res = await fetch(`/api/entities/inbox/${encodeURIComponent(capture)}`); const body = await res.json(); if (!res.ok) throw new Error(body.error); await begin(); setCaptureId(capture); const text = String(body.record.raw_text ?? ""); setValues(v => ({ ...v, [config.label]: text.slice(0, 240), ...(resource === "issues" ? { description: text } : {}), ...(resource === "experiments" ? { hypothesis: text } : {}) })); } catch (e) { setError(String(e)); } })();
       return;
     }
+    if (!id && resource === "risk-register" && new URLSearchParams(window.location.search).get("new") === "1") { void begin(); return; }
     if (!id) return;
     void (async () => { try { const res = await fetch(`/api/operating/${resource}/${encodeURIComponent(id)}`); const body = await res.json(); if (!res.ok) throw new Error(body.error); await begin(body.record); } catch (e) { setError(e instanceof Error ? e.message : "Record unavailable."); } })();
   }, [resource, begin, config.label]));

@@ -105,6 +105,6 @@ test("Phase 5 Route Inventory: all 34 unblocked concrete routes have valid page 
     const pagePath = join(process.cwd(), "src/app/(workspace)", route, "page.tsx");
     assert.ok(existsSync(pagePath), `Missing page route file: ${pagePath}`);
     const content = readFileSync(pagePath, "utf8");
-    assert.match(content, /export default function/, `${pagePath} missing default export function`);
+    assert.match(content, /export default (?:async )?function/, `${pagePath} missing default export function`);
   }
 });

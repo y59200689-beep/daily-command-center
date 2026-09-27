@@ -1,413 +1,61 @@
-"use client";
+'use client';
 
-import Link from "next/link";
-import { useEffect, useState } from "react";
-import { Icons } from "@/components/icons";
+import Link from 'next/link';
+import {useEffect,useMemo,useRef,useState,useSyncExternalStore,type ReactNode} from 'react';
+import {PieChart,Pie,Cell,ResponsiveContainer,Tooltip} from 'recharts';
+import {Users,HeartHandshake,TriangleAlert,CircleAlert,CalendarDays,Clock3,FileText,ChartNoAxesColumnIncreasing,Search,ChevronRight,X,ShieldCheck,LayoutGrid,Activity,User,Mail,CheckCircle2,ArrowUpDown,RefreshCw,MessageSquareText,ArrowRight,type LucideIcon} from 'lucide-react';
+import {Modal} from '@/components/ui/modal';
+import {StyledSelect} from '@/components/ui/styled-select';
+import {filterSuccessAccounts,healthStates,healthColors,successLabel,nextRenewal,nextCheckIn,latestSignal,type SuccessAccount,type SuccessPortfolio} from '@/lib/success-dashboard';
+import './success-home.css';
 
-interface NextAction {
-  action: string;
-  priority: number;
-  client_id?: string;
-  client_name?: string;
-  reason: string;
-  badge?: "critical" | "warning" | "attention" | "info";
-  direct_route?: string;
+const date=(value?:string|null)=>value?new Date(value).toLocaleDateString('en',{month:'short',day:'numeric',year:'numeric'}):'Not scheduled';
+const initial=(name:string)=>name.trim().split(/\s+/).slice(0,2).map(part=>part[0]).join('').toUpperCase();
+const subscribeMobile=(listener:()=>void)=>{const media=window.matchMedia('(max-width: 900px)');media.addEventListener('change',listener);return()=>media.removeEventListener('change',listener);};
+const profile=(id:string)=>`/success/clients/${id}`;
+function Avatar({name,large=false}:{name:string;large?:boolean}){return <span className={`cs-avatar ${large?'is-large':''}`} aria-hidden="true">{initial(name)}</span>;}
+function Badge({state}:{state:string}){return <span className={`cs-badge state-${state}`}><span/>{successLabel(state)}</span>;}
+function Panel({title,icon:Icon,children,href,onView,className=''}:{title:string;icon:LucideIcon;children:ReactNode;href?:string;onView?:()=>void;className?:string}){return <section className={`cs-panel ${className}`}><header><span className="cs-icon"><Icon size={19}/></span><h2>{title}</h2>{onView?<button className="cs-view" onClick={onView}>View all</button>:href&&<Link className="cs-view" href={href}>View all</Link>}</header>{children}</section>;}
+function Empty({children}:{children:ReactNode}){return <p className="cs-empty">{children}</p>;}
+
+export function SuccessHome(){
+ const mobile=useSyncExternalStore(subscribeMobile,()=>window.matchMedia('(max-width: 900px)').matches,()=>false);
+ const [data,setData]=useState<SuccessPortfolio|null>(null),[error,setError]=useState(''),[loading,setLoading]=useState(true),[retry,setRetry]=useState(0),[unavailable,setUnavailable]=useState(false);
+ const [showIssues,setShowIssues]=useState(false);
+ const [query,setQuery]=useState(''),[health,setHealth]=useState('all'),[owner,setOwner]=useState('all'),[sort,setSort]=useState('name'),[selected,setSelected]=useState<string|null>(null),[tab,setTab]=useState('overview');
+ const panel=useRef<HTMLElement>(null),trigger=useRef<HTMLElement|null>(null);
+ useEffect(()=>{const controller=new AbortController();fetch('/api/success/portfolio',{signal:controller.signal}).then(async response=>{if(!response.ok)throw new Error('Unable to load customer success.');return response.json();}).then(json=>{setUnavailable(json.schemaStatus==='unavailable');setData(json.data);setLoading(false);}).catch(e=>{if(e.name!=='AbortError'){setError('Customer Success could not be loaded. Please try again.');setLoading(false);}});return()=>controller.abort();},[retry]);
+ const accounts=useMemo(()=>data?.portfolioAccounts??[],[data]);
+ const current=accounts.find(a=>a.client.id===selected);
+ const owners=useMemo(()=>Array.from(new Map(accounts.flatMap(a=>a.owners).map(o=>[o.id,o])).values()),[accounts]);
+ const rows=useMemo(()=>filterSuccessAccounts(accounts,query,health,owner).sort((a,b)=>sort==='health'?['critical','at_risk','needs_attention','healthy','insufficient_data'].indexOf(a.health.state)-['critical','at_risk','needs_attention','healthy','insufficient_data'].indexOf(b.health.state)||a.client.name.localeCompare(b.client.name):a.client.name.localeCompare(b.client.name)),[accounts,query,health,owner,sort]);
+ const select=(account:SuccessAccount)=>{trigger.current=document.activeElement as HTMLElement;setSelected(account.client.id);setTab('overview');};
+ const close=()=>setSelected(null);
+ useEffect(()=>{if(!selected)return;panel.current?.querySelector<HTMLButtonElement>('[aria-label="Close client overview"]')?.focus({preventScroll:true});const onKey=(e:KeyboardEvent)=>{if(e.key==='Escape'){setSelected(null);}if(e.key==='Tab'&&window.matchMedia('(max-width: 900px)').matches){const items=[...panel.current?.querySelectorAll<HTMLElement>('button,a[href],input,textarea,select')??[]].filter(el=>!el.hasAttribute('disabled'));if(e.shiftKey&&document.activeElement===items[0]){e.preventDefault();items.at(-1)?.focus();}else if(!e.shiftKey&&document.activeElement===items.at(-1)){e.preventDefault();items[0]?.focus();}}};document.addEventListener('keydown',onKey);return()=>{document.removeEventListener('keydown',onKey);trigger.current?.focus({preventScroll:true});};},[selected]);
+ const renewal=current?nextRenewal(current):null,checkIn=current?nextCheckIn(current):null;
+ const renewals=accounts.flatMap(a=>a.renewals.filter(r=>!['renewed','not_renewing','cancelled'].includes(r.status)).map(r=>({...r,account:a}))).sort((a,b)=>a.renewal_date.localeCompare(b.renewal_date));
+ const risks=accounts.filter(a=>['at_risk','critical','needs_attention'].includes(a.health.state));
+ const issues=accounts.flatMap(a=>a.issues.filter(i=>!['resolved','closed'].includes(i.status)).map(i=>({...i,account:a})));
+ const signals=accounts.flatMap(a=>a.signals.map(s=>({...s,account:a}))).sort((a,b)=>b.recorded_at.localeCompare(a.recorded_at));
+ const breakdown=healthStates.map(state=>({state,name:successLabel(state),value:data?.summary.healthBreakdown[state]??0}));
+ const metrics=[{label:'Total Clients',value:accounts.length,icon:Users,state:'all'},{label:'Healthy',value:breakdown[0].value,icon:HeartHandshake,state:'healthy'},{label:'Needs Attention',value:breakdown[1].value,icon:TriangleAlert,state:'needs_attention'},{label:'At Risk',value:breakdown[2].value,icon:CircleAlert,state:'at_risk'},{label:'Critical',value:breakdown[3].value,icon:TriangleAlert,state:'critical'},{label:'Upcoming Renewals',value:data?.summary.upcomingRenewalsCount??0,icon:CalendarDays,href:'/success/renewals'},{label:'Waiting On Us',value:data?.waitingOnUs.length??0,icon:Clock3,href:'/success/journey'},{label:'Open Issues',value:issues.length,icon:FileText}];
+ const metricContents=(m:typeof metrics[number])=><><span className={`cs-icon tone-${m.state??'blue'}`}><m.icon size={23}/></span><span><small>{m.label}</small><strong>{m.value}</strong><em>{m.label==='Upcoming Renewals'?'Next 60 days':'Current portfolio'}</em></span></>;
+ return <div className="cs-dashboard"><header className="cs-heading"><div><nav aria-label="Breadcrumb"><Link href="/business">Business</Link><ChevronRight size={13}/><span>Customer Success</span></nav><h1>Customer Success</h1><p>Client health, retention risks, renewal pipeline, and check-in momentum.</p></div><div className="cs-heading-actions"><Link href="/success/portfolio">Portfolio</Link><Link href="/success/renewals">Renewals</Link><Link href="/success/risks">Risks</Link><Link href="/success/review" className="cs-primary">Retention review</Link></div></header>
+ {loading?<div className="cs-loading" role="status">Loading your client portfolio…</div>:error?<div className="cs-loading" role="alert"><CircleAlert/><p>{error}</p><button onClick={()=>{setError('');setLoading(true);setRetry(n=>n+1);}}>Try again</button></div>:unavailable?<div className="cs-loading"><HeartHandshake/><h2>Customer Success is not configured yet</h2><p>The Customer Success data tables need to be configured before health assessments are available.</p><Link href="/clients">Open client directory<ArrowRight size={15}/></Link></div>:<>
+ <section className="cs-metrics" aria-label="Portfolio summary">{metrics.map(m=>m.href?<Link key={m.label} href={m.href} className="cs-metric">{metricContents(m)}</Link>:<button key={m.label} className={`cs-metric ${health===m.state?'is-filtered':''}`} aria-pressed={health===m.state} onClick={()=>{if(m.label==='Open Issues'){setShowIssues(true);return;}setHealth(m.state??'all');setSelected(null);}}>{metricContents(m)}</button>)}</section>
+ <div className={`cs-main ${current?'has-selection':''}`}><div className="cs-left" inert={mobile&&Boolean(current)}><section className="cs-panel cs-portfolio"><header><span className="cs-icon"><ChartNoAxesColumnIncreasing size={22}/></span><div><h2>Portfolio Health</h2><p>A view of your clients, their health status, and upcoming milestones.</p></div><div className="cs-filters"><label className="cs-search"><Search size={16}/><input aria-label="Search clients" placeholder="Search clients…" value={query} onChange={e=>setQuery(e.target.value)}/></label><StyledSelect label="Filter by health" value={health} onChange={setHealth} options={[{value:'all',label:'All health'},...healthStates.map(value=>({value,label:successLabel(value)}))]}/><StyledSelect label="Filter by owner" value={owner} onChange={setOwner} options={[{value:'all',label:'All owners'},{value:'unassigned',label:'Unassigned'},...owners.map(o=>({value:o.id,label:o.name}))]}/><button className="cs-sort" aria-label={sort==='name'?'Sort by health':'Sort by client name'} title={sort==='name'?'Sort by health':'Sort by client name'} onClick={()=>setSort(sort==='name'?'health':'name')}><ArrowUpDown size={16}/></button></div></header>
+ <div className="cs-table-wrap"><table><thead><tr><th>Client</th><th>Owner</th><th>Health</th><th>Next check-in</th><th>Renewal date</th><th>Satisfaction</th><th>Last interaction</th></tr></thead><tbody>{rows.map(a=><tr key={a.client.id} className={selected===a.client.id?'is-selected':''} onClick={()=>select(a)}><td><button className="cs-client" onClick={e=>{e.stopPropagation();select(a);}} aria-label={`View ${a.client.name} overview`} aria-expanded={selected===a.client.id}><Avatar name={a.client.name}/><strong>{a.client.name}</strong></button></td><td>{a.owners.map(o=>o.name).join(', ')||'Unassigned'}</td><td><Badge state={a.health.state}/></td><td>{date(nextCheckIn(a)?.scheduled_at??a.client.next_follow_up_at)}</td><td>{date(nextRenewal(a)?.renewal_date)}</td><td>{latestSignal(a)?<span className="cs-signal-label">{successLabel(latestSignal(a)!.signal_type)}</span>:<span className="cs-muted">No signal</span>}</td><td>{a.engagement.daysSince==null?'Not recorded':a.engagement.daysSince===0?'Today':`${a.engagement.daysSince} days ago`}</td></tr>)}</tbody></table></div>
+ {!rows.length&&<div className="cs-portfolio-empty"><Users size={29}/><h3>{accounts.length?'No clients match your filters':'Your client portfolio starts here'}</h3><p>{accounts.length?'Try another name, owner, or health status.':'Add a client to start tracking relationships, check-ins, and renewal health.'}</p>{accounts.length?<button onClick={()=>{setQuery('');setOwner('all');setHealth('all');}}>Clear filters</button>:<Link href="/clients">Open client directory<ArrowRight size={14}/></Link>}</div>}<footer className="cs-table-footer">{rows.length} of {accounts.length} clients <span>Select a client to explore their overview</span></footer></section>
+ <div className="cs-support-grid"><Panel title="Client health distribution" icon={HeartHandshake}><div className="cs-distribution"><div className="cs-donut" role="img" aria-label={breakdown.map(b=>`${b.name}: ${b.value}`).join(', ')}><ResponsiveContainer width="100%" height="100%"><PieChart><Pie data={accounts.length?breakdown:[{name:'No clients',value:1,state:'insufficient_data'}]} dataKey="value" innerRadius="67%" outerRadius="95%" stroke="none" isAnimationActive={false}>{(accounts.length?breakdown:[{state:'insufficient_data'}]).map(b=><Cell key={b.state} fill={healthColors[b.state]}/>)}</Pie>{accounts.length>0&&<Tooltip/>}</PieChart></ResponsiveContainer><div><strong>{accounts.length}</strong><span>Clients</span></div></div><div className="cs-distribution-legend">{breakdown.filter(b=>b.value||b.state!=='insufficient_data').map(b=><button key={b.state} onClick={()=>setHealth(b.state)}><i style={{background:healthColors[b.state]}}/>{b.name}<strong>{b.value}</strong><span>{accounts.length?Math.round(b.value/accounts.length*100):0}%</span></button>)}</div></div></Panel>
+ <Panel title="At-Risk Clients" icon={ShieldCheck} href="/success/risks">{risks.length?risks.slice(0,4).map(a=><button className="cs-mini-row" key={a.client.id} onClick={()=>select(a)}><Avatar name={a.client.name}/><span>{a.client.name}</span><Badge state={a.health.state}/></button>):<Empty>No client risks recorded.</Empty>}</Panel>
+ <Panel title="Upcoming Renewals" icon={CalendarDays} href="/success/renewals">{renewals.length?renewals.slice(0,4).map(r=><button className="cs-mini-row" key={r.id} onClick={()=>select(r.account)}><Avatar name={r.account.client.name}/><span>{r.account.client.name}</span><small>{date(r.renewal_date)}</small></button>):<Empty>No renewals scheduled yet.</Empty>}</Panel></div></div>
+ {current&&<><button className="cs-backdrop" aria-label="Close client details" onClick={close}/><aside ref={panel} className="cs-panel cs-client-panel" role={mobile?'dialog':'region'} aria-modal={mobile?true:undefined} aria-label={`${current.client.name} client overview`}><header><span className="cs-icon"><LayoutGrid size={20}/></span><h2>Client overview</h2><Link href={profile(current.client.id)} className="cs-view">View full profile</Link><button className="cs-close" aria-label="Close client overview" onClick={close}><X size={17}/></button></header><div className="cs-client-identity"><Avatar large name={current.client.name}/><div><h2>{current.client.name}</h2><p>{current.client.company||successLabel(current.client.tier??'standard')}{current.client.created_at?` · Client since ${new Date(current.client.created_at).toLocaleDateString('en',{month:'short',year:'numeric'})}`:''}</p></div><Badge state={current.health.state}/></div><div className="cs-client-stats"><div><CalendarDays/><span>Renewal date<strong>{date(renewal?.renewal_date)}</strong></span></div><div><RefreshCw/><span>Renewal stage<strong>{renewal?successLabel(renewal.status):'Not tracked'}</strong></span></div><div><HeartHandshake/><span>Health assessment<strong>{successLabel(current.health.state)}</strong></span></div></div><div className="cs-panel-tabs" role="tablist" aria-label="Client details">{['overview','activity','notes','actions'].map(t=><button key={t} role="tab" aria-selected={tab===t} aria-controls="cs-client-tab-content" id={`cs-tab-${t}`} onClick={()=>setTab(t)}>{({overview:'Overview',activity:'Recent activity',notes:'Notes',actions:'Upcoming actions'})[t]}</button>)}</div><div id="cs-client-tab-content" role="tabpanel" aria-labelledby={`cs-tab-${tab}`}>
+ {tab==='overview'?<><div className="cs-details-columns"><section><h3>Key details</h3><dl>{[{icon:User,label:'Owner',value:current.owners.map(o=>o.name).join(', ')||'Unassigned'},{icon:Activity,label:'Last interaction',value:current.engagement.daysSince==null?'Not recorded':`${current.engagement.daysSince} days ago`},{icon:CalendarDays,label:'Next check-in',value:date(checkIn?.scheduled_at??current.client.next_follow_up_at)},{icon:FileText,label:'Client tier',value:successLabel(current.client.tier??'standard')},{icon:Mail,label:'Contact',value:current.client.email||'Not recorded'}].map(({icon:Icon,label,value})=><div key={label}><dt><Icon size={14}/>{label}</dt><dd>{value}</dd></div>)}</dl></section><section><h3>Recent notes<button onClick={()=>setTab('notes')}>View all</button></h3>{current.client.notes?<p className="cs-note-preview">{current.client.notes}</p>:<Empty>No client notes yet.</Empty>}<h3>Upcoming actions<button onClick={()=>setTab('actions')}>View all</button></h3><Actions account={current} limit={3}/></section></div><div className="cs-health-summary"><HeartHandshake size={18}/><div><strong>Health context</strong><p>{current.health.summary}</p></div></div></>:tab==='activity'?<div className="cs-activity">{current.signals.length?[...current.signals].sort((a,b)=>b.recorded_at.localeCompare(a.recorded_at)).map(s=><article key={s.id}><Activity size={17}/><div><strong>{successLabel(s.signal_type)}</strong><p>{s.summary}</p><small>{date(s.recorded_at)}</small></div></article>):<Empty>No satisfaction signals recorded yet.</Empty>}</div>:tab==='notes'?<div className="cs-notes"><MessageSquareText size={25}/><h3>Client notes</h3><p>{current.client.notes||'No notes have been recorded for this client.'}</p><Link href={profile(current.client.id)}>Open full client profile<ArrowRight size={14}/></Link></div>:<Actions account={current}/>}
+ </div></aside></>}
+ </div><div className="cs-bottom-grid"><Panel title="Waiting On Us" icon={Clock3} href="/success/journey">{data?.waitingOnUs.length?data.waitingOnUs.slice(0,3).map(w=><Link className="cs-mini-row" href={w.route} key={w.id}><Avatar name={w.client_name}/><span>{w.client_name}</span><small>{w.what}</small><Badge state={w.is_overdue?'at_risk':'needs_attention'}/></Link>):<Empty>No outstanding commitments owed to clients.</Empty>}</Panel><Panel title="Open Issues" icon={FileText} onView={()=>setShowIssues(true)}>{issues.length?issues.slice(0,3).map(i=><button className="cs-mini-row" key={i.id} onClick={()=>select(i.account)}><Avatar name={i.account.client.name}/><span>{i.account.client.name}</span><small>{i.title}</small><span className={`cs-severity severity-${i.severity}`}>{successLabel(i.severity)}</span></button>):<Empty>No open client issues.</Empty>}</Panel><Panel title="Recent Signals" icon={Activity} href="/success/portfolio">{signals.length?signals.slice(0,3).map(s=><button className="cs-mini-row" key={s.id} onClick={()=>{select(s.account);setTab('activity');}}><Avatar name={s.account.client.name}/><span>{s.account.client.name}</span><small>{s.summary}</small></button>):<Empty>Client feedback and signals will appear here.</Empty>}</Panel></div>
+ <footer className="cs-views"><span className="cs-icon"><LayoutGrid size={23}/></span><div><strong>Views</strong><small>Switch between different perspectives</small></div>{[{label:'Portfolio Health',href:'/success/portfolio',icon:ChartNoAxesColumnIncreasing},{label:'Renewals',href:'/success/renewals',icon:CalendarDays},{label:'Risks',href:'/success/risks',icon:ShieldCheck},{label:'Check-ins',href:'/success/check-ins',icon:Users},{label:'Client Journey',href:'/success/journey',icon:HeartHandshake},{label:'Retention Review',href:'/success/review',icon:Activity}].map(({label,href,icon:Icon})=><Link key={label} href={href}><Icon size={17}/>{label}</Link>)}</footer>
+ </>}
+ <Modal open={showIssues} onClose={()=>setShowIssues(false)} title="Open client issues">{issues.length?issues.map(i=><Link className="cs-mini-row" key={i.id} href={profile(i.account.client.id)}><span>{i.account.client.name} · {i.title}</span><Badge state={i.severity}/><ChevronRight size={15}/></Link>):<Empty>No open client issues recorded.</Empty>}</Modal>
+ </div>;
 }
-
-interface OverviewData {
-  metrics: {
-    totalClients: number;
-    healthyCount: number;
-    needsAttentionCount: number;
-    atRiskCount: number;
-    criticalCount: number;
-    upcomingRenewalsCount: number;
-    waitingOnUsCount: number;
-    waitingOnClientCount: number;
-    activePlansCount: number;
-    openIssuesCount: number;
-  };
-  nextAction: NextAction | null;
-  atRiskClients: Array<{
-    client: { id: string; name: string; company?: string | null };
-    health: { state: string; summary: string };
-    activeRisksCount: number;
-    openIssuesCount: number;
-  }>;
-  upcomingRenewals: Array<{
-    id: string;
-    client_name?: string;
-    client_id: string;
-    renewal_date: string;
-    renewal_type: string;
-    status: string;
-    forecast_category: string;
-    value?: number | null;
-    currency: string;
-    readiness: { state: string };
-  }>;
-  waitingOnUs: Array<{
-    id: string;
-    client_name: string;
-    what: string;
-    due?: string | null;
-    is_overdue: boolean;
-    route: string;
-  }>;
-  recentSignals: Array<{
-    id: string;
-    client_id: string;
-    signal_type: string;
-    summary: string;
-    recorded_at: string;
-  }>;
-}
-
-function badgeClass(badge?: string) {
-  if (badge === "critical") return "var(--color-red-600)";
-  if (badge === "warning") return "var(--color-amber-500)";
-  if (badge === "attention") return "var(--color-blue-500)";
-  return "var(--color-emerald-500)";
-}
-
-function healthColor(state: string) {
-  if (state === "healthy") return "#10b981";
-  if (state === "needs_attention") return "#f59e0b";
-  if (state === "at_risk") return "#f97316";
-  if (state === "critical") return "#ef4444";
-  return "#6b7280";
-}
-
-function forecastColor(fc: string) {
-  if (fc === "committed") return "#10b981";
-  if (fc === "likely") return "#3b82f6";
-  if (fc === "uncertain") return "#f59e0b";
-  if (fc === "at_risk") return "#ef4444";
-  return "#6b7280";
-}
-
-function signalIcon(type: string) {
-  if (type === "positive_feedback" || type === "praise" || type === "referral" || type === "renewal_intent")
-    return <Icons.Check size={16} aria-hidden="true" />;
-  if (type === "negative_feedback" || type === "complaint") return <Icons.AlertTriangle size={16} aria-hidden="true" />;
-  return <Icons.MessageSquareText size={16} aria-hidden="true" />;
-}
-
-export function SuccessHome() {
-  const [data, setData] = useState<OverviewData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    fetch("/api/success/overview")
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to load overview");
-        return res.json();
-      })
-      .then((json) => {
-        if (!cancelled) {
-          setData(json);
-          setLoading(false);
-        }
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setError("Customer Success overview could not be loaded.");
-          setLoading(false);
-        }
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  const handleRetry = () => {
-    setLoading(true);
-    setError(null);
-    fetch("/api/success/overview")
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to load overview");
-        return res.json();
-      })
-      .then((json) => {
-        setData(json);
-        setLoading(false);
-      })
-      .catch(() => {
-        setError("Customer Success overview could not be loaded.");
-        setLoading(false);
-      });
-  };
-
-  if (loading) {
-    return (
-      <div className="domain-page success-page">
-        <header className="task-context-header">
-          <div>
-            <nav className="task-context-header__breadcrumb" aria-label="Breadcrumb">
-              <span>Customer Success</span>
-              <span>/</span>
-              <span className="current">Success Hub</span>
-            </nav>
-            <div className="task-context-header__title-row">
-              <h1>Customer Success</h1>
-              <span className="task-context-header__total-badge">Loading…</span>
-            </div>
-            <p className="task-context-header__description">Client retention, portfolio health, deliverable outcomes, and expansion signals.</p>
-          </div>
-        </header>
-        <p style={{ color: "var(--text-secondary)", padding: "2rem 0" }}>Loading overview…</p>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="domain-page success-page">
-        <header className="task-context-header">
-          <div>
-            <nav className="task-context-header__breadcrumb" aria-label="Breadcrumb">
-              <span>Customer Success</span>
-              <span>/</span>
-              <span className="current">Success Hub</span>
-            </nav>
-            <div className="task-context-header__title-row">
-              <h1>Customer Success</h1>
-            </div>
-          </div>
-        </header>
-        <p style={{ color: "var(--color-red-500)", margin: "1rem 0" }}>{error}</p>
-        <button className="button button--outline" onClick={handleRetry}>Retry</button>
-      </div>
-    );
-  }
-
-  const m = data?.metrics;
-
-  return (
-    <div className="domain-page success-page">
-      <header className="task-context-header success-context-header">
-        <div>
-          <div className="task-context-header__path">
-            <Icons.HeartHandshake size={15} />
-            <span>Business</span>
-            <Icons.ChevronRight size={13} />
-            <strong>Customer Success</strong>
-          </div>
-          <h1>Customer Success</h1>
-          <p>
-            Client health, retention risks, renewal pipeline, and check-in momentum.
-          </p>
-        </div>
-        <div className="task-context-header__actions">
-          <Link href="/success/portfolio" className="button button--outline button--neutral">Portfolio</Link>
-          <Link href="/success/renewals" className="button button--outline button--neutral">Renewals</Link>
-          <Link href="/success/risks" className="button button--outline button--neutral">Risks</Link>
-          <Link href="/success/review" className="button button--solid button--brand">Retention review</Link>
-        </div>
-      </header>
-
-      {/* Next Action Banner */}
-      {data?.nextAction && (
-        <div className="card" style={{
-          borderLeft: `4px solid ${badgeClass(data.nextAction.badge)}`,
-          marginBottom: "1.25rem",
-          padding: "1rem 1.25rem",
-        }}>
-          <div style={{ fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--text-secondary)", marginBottom: "0.25rem" }}>
-            Next recommended action
-          </div>
-          <div style={{ fontWeight: 600, fontSize: "0.9375rem", color: "var(--text-primary)", marginBottom: "0.25rem" }}>
-            {data.nextAction.action}
-          </div>
-          <div style={{ fontSize: "0.8125rem", color: "var(--text-secondary)" }}>
-            {data.nextAction.reason}
-            {data.nextAction.client_name && (
-              <> — <Link href={`/success/clients/${data.nextAction.client_id}`} style={{ color: "var(--color-primary)" }}>{data.nextAction.client_name}</Link></>
-            )}
-          </div>
-          {data.nextAction.direct_route && (
-            <Link href={data.nextAction.direct_route} className="btn btn-primary" style={{ marginTop: "0.75rem", fontSize: "0.8rem" }}>
-              Take action <Icons.ArrowRight size={14} />
-            </Link>
-          )}
-        </div>
-      )}
-
-      {/* KPI Tiles */}
-      {m && (
-        <div className="kpi-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))", gap: "0.75rem", marginBottom: "1.5rem" }}>
-          <div className="card kpi-tile">
-            <div className="kpi-label">Total Clients</div>
-            <div className="kpi-value">{m.totalClients}</div>
-          </div>
-          <div className="card kpi-tile" style={{ borderTop: `3px solid #10b981` }}>
-            <div className="kpi-label">Healthy</div>
-            <div className="kpi-value" style={{ color: "#10b981" }}>{m.healthyCount}</div>
-          </div>
-          <div className="card kpi-tile" style={{ borderTop: `3px solid #f59e0b` }}>
-            <div className="kpi-label">Needs Attention</div>
-            <div className="kpi-value" style={{ color: "#f59e0b" }}>{m.needsAttentionCount}</div>
-          </div>
-          <div className="card kpi-tile" style={{ borderTop: `3px solid #f97316` }}>
-            <div className="kpi-label">At Risk</div>
-            <div className="kpi-value" style={{ color: "#f97316" }}>{m.atRiskCount}</div>
-          </div>
-          <div className="card kpi-tile" style={{ borderTop: `3px solid #ef4444` }}>
-            <div className="kpi-label">Critical</div>
-            <div className="kpi-value" style={{ color: "#ef4444" }}>{m.criticalCount}</div>
-          </div>
-          <div className="card kpi-tile">
-            <div className="kpi-label">Upcoming Renewals</div>
-            <div className="kpi-value">{m.upcomingRenewalsCount}</div>
-          </div>
-          <div className="card kpi-tile">
-            <div className="kpi-label">Waiting On Us</div>
-            <div className="kpi-value" style={{ color: m.waitingOnUsCount > 0 ? "#f97316" : undefined }}>{m.waitingOnUsCount}</div>
-          </div>
-          <div className="card kpi-tile">
-            <div className="kpi-label">Open Issues</div>
-            <div className="kpi-value" style={{ color: m.openIssuesCount > 0 ? "#ef4444" : undefined }}>{m.openIssuesCount}</div>
-          </div>
-        </div>
-      )}
-
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "1.25rem" }}>
-
-        {/* At-Risk Clients */}
-        <div className="card">
-          <div className="card-header" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <h2 className="card-title" style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
-              <Icons.ShieldCheck size={16} /> At-Risk Clients
-            </h2>
-            <Link href="/success/portfolio" style={{ fontSize: "0.75rem", color: "var(--color-primary)" }}>View all</Link>
-          </div>
-          {!data?.atRiskClients?.length ? (
-            <p style={{ fontSize: "0.8rem", color: "var(--text-secondary)", padding: "0.75rem 0" }}>No clients at risk.</p>
-          ) : (
-            <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-              {data.atRiskClients.map((ac) => (
-                <li key={ac.client.id} style={{ padding: "0.6rem 0", borderBottom: "1px solid var(--border-subtle)" }}>
-                  <Link href={`/success/clients/${ac.client.id}`} style={{ fontWeight: 500, color: "var(--text-primary)", textDecoration: "none" }}>
-                    {ac.client.name}
-                    {ac.client.company && <span style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginLeft: "0.4rem" }}>— {ac.client.company}</span>}
-                  </Link>
-                  <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.2rem", flexWrap: "wrap" }}>
-                    <span style={{ fontSize: "0.7rem", padding: "1px 6px", borderRadius: 4, background: healthColor(ac.health.state) + "20", color: healthColor(ac.health.state), fontWeight: 600 }}>
-                      {ac.health.state.replace("_", " ")}
-                    </span>
-                    {ac.activeRisksCount > 0 && <span style={{ fontSize: "0.7rem", color: "var(--text-secondary)" }}>{ac.activeRisksCount} risk(s)</span>}
-                    {ac.openIssuesCount > 0 && <span style={{ fontSize: "0.7rem", color: "#ef4444" }}>{ac.openIssuesCount} issue(s)</span>}
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-
-        {/* Upcoming Renewals */}
-        <div className="card">
-          <div className="card-header" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <h2 className="card-title" style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
-              <Icons.CalendarDays size={16} /> Upcoming Renewals
-            </h2>
-            <Link href="/success/renewals" style={{ fontSize: "0.75rem", color: "var(--color-primary)" }}>View all</Link>
-          </div>
-          {!data?.upcomingRenewals?.length ? (
-            <p style={{ fontSize: "0.8rem", color: "var(--text-secondary)", padding: "0.75rem 0" }}>No upcoming renewals tracked.</p>
-          ) : (
-            <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-              {data.upcomingRenewals.map((r) => (
-                <li key={r.id} style={{ padding: "0.6rem 0", borderBottom: "1px solid var(--border-subtle)" }}>
-                  <Link href={`/success/clients/${r.client_id}`} style={{ fontWeight: 500, color: "var(--text-primary)", textDecoration: "none" }}>
-                    {r.client_name ?? "Client"}
-                  </Link>
-                  <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.2rem", flexWrap: "wrap", alignItems: "center" }}>
-                    <span style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>{r.renewal_date}</span>
-                    <span style={{ fontSize: "0.7rem", padding: "1px 6px", borderRadius: 4, background: forecastColor(r.forecast_category) + "20", color: forecastColor(r.forecast_category), fontWeight: 600 }}>
-                      {r.forecast_category}
-                    </span>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-
-        {/* Waiting On Us */}
-        <div className="card">
-          <div className="card-header" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <h2 className="card-title" style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
-              <Icons.Clock3 size={16} /> Waiting On Us
-            </h2>
-            <Link href="/success/check-ins" style={{ fontSize: "0.75rem", color: "var(--color-primary)" }}>Check-ins</Link>
-          </div>
-          {!data?.waitingOnUs?.length ? (
-            <p style={{ fontSize: "0.8rem", color: "var(--text-secondary)", padding: "0.75rem 0" }}>No outstanding commitments owed to clients.</p>
-          ) : (
-            <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-              {data.waitingOnUs.map((w) => (
-                <li key={w.id} style={{ padding: "0.6rem 0", borderBottom: "1px solid var(--border-subtle)" }}>
-                  <Link href={w.route} style={{ fontWeight: 500, color: w.is_overdue ? "#ef4444" : "var(--text-primary)", textDecoration: "none", fontSize: "0.875rem" }}>
-                    {w.what}
-                  </Link>
-                  <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginTop: "0.15rem" }}>
-                    {w.client_name}{w.due ? ` · due ${w.due}` : ""}
-                    {w.is_overdue && <span style={{ color: "#ef4444", marginLeft: "0.4rem" }}>Overdue</span>}
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-
-        {/* Recent Signals */}
-        <div className="card">
-          <div className="card-header" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <h2 className="card-title" style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
-              <Icons.Sparkles size={16} /> Recent Signals
-            </h2>
-          </div>
-          {!data?.recentSignals?.length ? (
-            <p style={{ fontSize: "0.8rem", color: "var(--text-secondary)", padding: "0.75rem 0" }}>No satisfaction signals recorded yet.</p>
-          ) : (
-            <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-              {data.recentSignals.map((s) => (
-                <li key={s.id} style={{ padding: "0.6rem 0", borderBottom: "1px solid var(--border-subtle)" }}>
-                  <div style={{ display: "flex", alignItems: "flex-start", gap: "0.5rem" }}>
-                    <span style={{ fontSize: "1rem" }}>{signalIcon(s.signal_type)}</span>
-                    <div>
-                      <div style={{ fontSize: "0.8125rem", color: "var(--text-primary)", fontWeight: 500 }}>{s.summary}</div>
-                      <div style={{ fontSize: "0.7rem", color: "var(--text-secondary)", marginTop: "0.1rem" }}>
-                        {s.signal_type.replace(/_/g, " ")} · {new Date(s.recorded_at).toLocaleDateString()}
-                      </div>
-                    </div>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-
-      </div>
-
-      {/* Quick nav links */}
-      <div className="card" style={{ marginTop: "1.5rem" }}>
-        <h2 className="card-title" style={{ marginBottom: "0.75rem" }}>Views</h2>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
-          {[
-            ["Portfolio Health", "/success/portfolio"],
-            ["Renewals", "/success/renewals"],
-            ["Risks", "/success/risks"],
-            ["Check-Ins", "/success/check-ins"],
-            ["Client Journey", "/success/journey"],
-            ["Retention Review", "/success/review"],
-          ].map(([label, href]) => (
-            <Link key={href} href={href} className="btn btn-secondary" style={{ fontSize: "0.8rem" }}>{label}</Link>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
+function Actions({account,limit=20}:{account:SuccessAccount;limit?:number}){const commitments=account.commitments.filter(c=>c.status==='open');const checks=account.checkIns.filter(c=>c.status==='scheduled');const items=[...commitments.map(c=>({id:c.id,title:c.statement,date:c.due_at})),...checks.map(c=>({id:c.id,title:c.purpose,date:c.scheduled_at}))].sort((a,b)=>String(a.date??'9999').localeCompare(String(b.date??'9999'))).slice(0,limit);return items.length?<div className="cs-actions-list">{items.map(i=><Link href={profile(account.client.id)} key={i.id}><CheckCircle2 size={16}/><span>{i.title}</span><small>{date(i.date)}</small></Link>)}</div>:<Empty>No upcoming actions recorded.</Empty>;}

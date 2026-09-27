@@ -1,388 +1,83 @@
 "use client";
-
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { Icons } from "@/components/icons";
-
-interface NextTeamAction {
-  action: string;
-  priority: number;
-  why: string;
-  direct_route: string;
-  badge?: "critical" | "warning" | "attention" | "info";
-  person?: { id: string; name: string } | null;
-}
-
-interface OverviewData {
-  metrics: {
-    totalPeople: number;
-    activeDelegations: number;
-    waitingOnTeamCount: number;
-    waitingOnMeCount: number;
-    ownershipGapsCount: number;
-    backupGapsCount: number;
-    openEscalationsCount: number;
-    criticalRisksCount: number;
-  };
-  nextTeamAction: NextTeamAction;
-  waitingOnTeam: Array<{
-    id: string;
-    what: string;
-    who?: string;
-    since: string;
-    due?: string | null;
-    status: string;
-    why_waiting: string;
-    route: string;
-  }>;
-  waitingOnMe: Array<{
-    id: string;
-    what: string;
-    who?: string;
-    since: string;
-    why_waiting: string;
-    route: string;
-  }>;
-  recentDelegations: Array<{
-    id: string;
-    title: string;
-    status: string;
-    priority: string;
-    due_at?: string | null;
-  }>;
-  ownershipGaps: Array<{
-    id: string;
-    title: string;
-    criticality: string;
-    description: string;
-    route: string;
-  }>;
-  backupGaps: Array<{
-    responsibility_id: string;
-    responsibility_name: string;
-    criticality: string;
-    description: string;
-  }>;
-  risks: Array<{
-    id: string;
-    risk: string;
-    severity: string;
-    evidence: string;
-    suggested_action: string;
-    route: string;
-  }>;
-  peopleCount: number;
-}
-
+import Image from "next/image";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { Users, Send, Target, TriangleAlert, Plus, ChevronRight, CalendarDays, ArrowUpDown, X, ExternalLink, ListChecks, CheckCircle2, ArrowRight } from "lucide-react";
+import { SearchInput } from "@/components/ui/search-input";
+import { Button } from "@/components/ui/button";
+import { Modal } from "@/components/ui/modal";
+import { useToast } from "@/components/toast-provider";
+import { useDeferredEffect } from "@/lib/use-deferred-effect";
+import { announceWorkspaceMutation } from "@/lib/workspace-mutations";
+import type { TeamPerson, TeamDelegation, TeamResponsibility, PersonCapacityResult } from "@/lib/team";
+import { visibleTeamPeople, openDelegations, nextTeamFollowup } from "@/lib/team-dashboard";
+import "@/features/business/business-dashboard.css";
+import "./team-home.css";
+const human = (value: string) => value.replaceAll("_", " ").replace(/^./, s => s.toUpperCase());
+const dateLabel = (date: string | null | undefined) => date ? new Date(date).toLocaleDateString("en", {month:"short",day:"numeric"}) : "Not scheduled";
+async function read<T>(url: string, signal?: AbortSignal): Promise<T> { const response = await fetch(url,{signal}); const body = await response.json(); if (!response.ok) throw new Error(body.error || "Team data could not be loaded. Please retry."); return body; }
+type Snapshot = {people:TeamPerson[];delegations:TeamDelegation[];responsibilities:TeamResponsibility[];capacity:PersonCapacityResult[];handoffs:number;unavailable:boolean};
+const empty: Snapshot = {people:[],delegations:[],responsibilities:[],capacity:[],handoffs:0,unavailable:false};
 export function TeamHome() {
-  const [data, setData] = useState<OverviewData | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetch("/api/team/overview")
-      .then((res) => (res.ok ? res.json() : null))
-      .then((json) => {
-        if (json) setData(json);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  }, []);
-
-  if (loading) {
-    return <div className="page-shell"><p className="muted">Loading Team Command Center…</p></div>;
-  }
-
-  const isEmpty = !data || data.peopleCount === 0;
-
-  return (
-    <div className="domain-page team-page">
-      <header className="task-context-header team-context-header">
-        <div>
-          <div className="task-context-header__path">
-            <Icons.Users size={15} />
-            <span>Operate</span>
-            <Icons.ChevronRight size={13} />
-            <strong>Team</strong>
-          </div>
-          <h1>Team</h1>
-          <p>
-            Coordinate, delegate, and manage responsibility across people without losing control.
-          </p>
-        </div>
-        <div className="task-context-header__actions">
-          <Link href="/team/people" className="button button--outline button--neutral">
-            <Icons.Users size={14} /> Directory
-          </Link>
-          <Link href="/team/delegations" className="button button--outline button--neutral">
-            <Icons.ListTodo size={14} /> Delegations
-          </Link>
-          <Link href="/team/responsibilities" className="button button--outline button--neutral">
-            <Icons.Target size={14} /> Responsibilities
-          </Link>
-          <Link href="/team/delegations?create=1" className="button button--solid button--brand">
-            <Icons.Plus size={14} /> New delegation
-          </Link>
-        </div>
-      </header>
-
-      {isEmpty ? (
-        <div className="data-surface empty-hero">
-          <div className="empty-hero__content">
-            <Icons.Users size={36} />
-            <h2>No people are being tracked yet.</h2>
-            <p>
-              Track collaborators, contractors, or team members so ownership, delegations, and handoffs stay clear.
-            </p>
-            <div style={{ marginTop: "16px" }}>
-              <Link href="/team/people?create=1" className="button button--primary">
-                <Icons.Plus size={16} /> Add Person
-              </Link>
-            </div>
-          </div>
-        </div>
-      ) : (
-        <>
-          {/* NEXT TEAM ACTION BANNER */}
-          {data.nextTeamAction && (
-            <div className={`data-surface team-next-action-card team-next-action-card--${data.nextTeamAction.badge || "info"}`}>
-              <div className="team-next-header">
-                <span className="eyebrow">Next Team Action</span>
-                <span className={`badge badge--${data.nextTeamAction.badge || "info"}`}>
-                  Priority {data.nextTeamAction.priority}
-                </span>
-              </div>
-              <h2 className="team-next-title">{data.nextTeamAction.action}</h2>
-              <p className="team-next-why">{data.nextTeamAction.why}</p>
-              {data.nextTeamAction.direct_route && (
-                <div style={{ marginTop: "12px" }}>
-                  <Link href={data.nextTeamAction.direct_route} className="button button--small button--primary">
-                    Take Action <Icons.ArrowRight size={14} />
-                  </Link>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* METRIC LEDGER */}
-          <div className="metric-ledger metric-ledger--four" style={{ margin: "24px 0" }}>
-            <div className="metric-card">
-              <span className="metric-card__value">{data.metrics.totalPeople}</span>
-              <span className="metric-card__label">People Tracked</span>
-            </div>
-            <div className="metric-card">
-              <span className="metric-card__value">{data.metrics.activeDelegations}</span>
-              <span className="metric-card__label">Active Delegations</span>
-            </div>
-            <div className="metric-card">
-              <span className="metric-card__value">{data.metrics.waitingOnTeamCount}</span>
-              <span className="metric-card__label">Waiting on Team</span>
-            </div>
-            <div className="metric-card">
-              <span className="metric-card__value">{data.metrics.waitingOnMeCount}</span>
-              <span className="metric-card__label">Waiting on Me</span>
-            </div>
-            <div className="metric-card">
-              <span className="metric-card__value">{data.metrics.ownershipGapsCount}</span>
-              <span className="metric-card__label">Ownership Gaps</span>
-            </div>
-            <div className="metric-card">
-              <span className="metric-card__value">{data.metrics.backupGapsCount}</span>
-              <span className="metric-card__label">Single-Owner Dependencies</span>
-            </div>
-            <div className="metric-card">
-              <span className="metric-card__value">{data.metrics.openEscalationsCount}</span>
-              <span className="metric-card__label">Open Escalations</span>
-            </div>
-            <div className="metric-card">
-              <span className="metric-card__value">{data.metrics.criticalRisksCount}</span>
-              <span className="metric-card__label">Critical Risks</span>
-            </div>
-          </div>
-
-          {/* TWO-COLUMN EDITORIAL SECTIONS */}
-          <div className="team-dashboard-grid">
-            {/* WAITING ON ME */}
-            <div className="data-surface">
-              <div className="section-heading section-heading--small">
-                <div>
-                  <p className="eyebrow">Immediate Blockers</p>
-                  <h2>Waiting on Me</h2>
-                </div>
-                <Link href="/team/delegations?waiting=me">View all ({data.metrics.waitingOnMeCount})</Link>
-              </div>
-              {data.waitingOnMe.length === 0 ? (
-                <p className="muted" style={{ padding: "12px 0" }}>No team members are currently blocked waiting on you.</p>
-              ) : (
-                <div className="item-stack">
-                  {data.waitingOnMe.map((item) => (
-                    <Link href={item.route} key={item.id} className="team-list-row">
-                      <div>
-                        <strong>{item.what}</strong>
-                        <p className="muted" style={{ fontSize: "12px", margin: "2px 0" }}>{item.why_waiting}</p>
-                        <small className="muted">{item.who ? `From: ${item.who}` : "Pending decision"} · Since {item.since}</small>
-                      </div>
-                      <Icons.ChevronRight size={16} className="muted" />
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* WAITING ON TEAM */}
-            <div className="data-surface">
-              <div className="section-heading section-heading--small">
-                <div>
-                  <p className="eyebrow">Delegated Progress</p>
-                  <h2>Waiting on Team</h2>
-                </div>
-                <Link href="/team/delegations?waiting=team">View all ({data.metrics.waitingOnTeamCount})</Link>
-              </div>
-              {data.waitingOnTeam.length === 0 ? (
-                <p className="muted" style={{ padding: "12px 0" }}>No pending delegated items waiting on team.</p>
-              ) : (
-                <div className="item-stack">
-                  {data.waitingOnTeam.map((item) => (
-                    <Link href={item.route} key={item.id} className="team-list-row">
-                      <div>
-                        <strong>{item.what}</strong>
-                        <p className="muted" style={{ fontSize: "12px", margin: "2px 0" }}>{item.why_waiting}</p>
-                        <small className="muted">Owner: {item.who} · {item.due ? `Due: ${item.due}` : "Ongoing"}</small>
-                      </div>
-                      <span className={`badge badge--${item.status === "blocked" ? "danger" : "info"}`}>
-                        {item.status}
-                      </span>
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* OWNERSHIP GAPS & BACKUP COVERAGE */}
-            <div className="data-surface">
-              <div className="section-heading section-heading--small">
-                <div>
-                  <p className="eyebrow">Accountability</p>
-                  <h2>Ownership & Backup Gaps</h2>
-                </div>
-                <Link href="/team/responsibilities">Responsibilities</Link>
-              </div>
-              {data.ownershipGaps.length === 0 && data.backupGaps.length === 0 ? (
-                <p className="muted" style={{ padding: "12px 0" }}>All active responsibilities have primary and backup owners.</p>
-              ) : (
-                <div className="item-stack">
-                  {data.ownershipGaps.map((gap) => (
-                    <Link href={gap.route} key={gap.id} className="team-list-row">
-                      <div>
-                        <strong style={{ color: "var(--danger)" }}>{gap.title}</strong>
-                        <p className="muted" style={{ fontSize: "12px", margin: "2px 0" }}>{gap.description}</p>
-                      </div>
-                      <span className="badge badge--danger">Unowned</span>
-                    </Link>
-                  ))}
-                  {data.backupGaps.map((bg) => (
-                    <div key={bg.responsibility_id} className="team-list-row">
-                      <div>
-                        <strong>Single Owner: {bg.responsibility_name}</strong>
-                        <p className="muted" style={{ fontSize: "12px", margin: "2px 0" }}>{bg.description}</p>
-                      </div>
-                      <span className="badge badge--warning">No backup</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* TEAM RISKS */}
-            <div className="data-surface">
-              <div className="section-heading section-heading--small">
-                <div>
-                  <p className="eyebrow">Coordination Signals</p>
-                  <h2>Team Risks</h2>
-                </div>
-                <Link href="/team/risks">View all risks</Link>
-              </div>
-              {data.risks.length === 0 ? (
-                <p className="muted" style={{ padding: "12px 0" }}>No high-severity team coordination risks detected.</p>
-              ) : (
-                <div className="item-stack">
-                  {data.risks.map((risk) => (
-                    <Link href={risk.route} key={risk.id} className="team-list-row">
-                      <div>
-                        <strong>{risk.risk}</strong>
-                        <p className="muted" style={{ fontSize: "12px", margin: "2px 0" }}>{risk.evidence}</p>
-                        <small style={{ color: "var(--attention)" }}>Action: {risk.suggested_action}</small>
-                      </div>
-                      <span className={`badge badge--${risk.severity === "critical" ? "danger" : "warning"}`}>
-                        {risk.severity}
-                      </span>
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* NAVIGATION STRIP */}
-          <div className="team-nav-strip" style={{ marginTop: "32px" }}>
-            <Link href="/team/people" className="team-nav-card">
-              <Icons.Users size={22} />
-              <div>
-                <strong>People Directory</strong>
-                <p>Team members, contractors, and collaborators</p>
-              </div>
-            </Link>
-            <Link href="/team/delegations" className="team-nav-card">
-              <Icons.ListTodo size={22} />
-              <div>
-                <strong>Delegations Inbox & Outbox</strong>
-                <p>Tracked outcomes, reviews, and blocked items</p>
-              </div>
-            </Link>
-            <Link href="/team/responsibilities" className="team-nav-card">
-              <Icons.Target size={22} />
-              <div>
-                <strong>Responsibility Areas</strong>
-                <p>Primary and backup ownership assignments</p>
-              </div>
-            </Link>
-            <Link href="/team/capacity" className="team-nav-card">
-              <Icons.ChartNoAxesCombined size={22} />
-              <div>
-                <strong>Workload & Capacity</strong>
-                <p>Objective commitment balance across team</p>
-              </div>
-            </Link>
-            <Link href="/team/ownership" className="team-nav-card">
-              <Icons.BriefcaseBusiness size={22} />
-              <div>
-                <strong>Ownership Map</strong>
-                <p>Cross-domain accountability matrix</p>
-              </div>
-            </Link>
-            <Link href="/team/review" className="team-nav-card">
-              <Icons.Check size={22} />
-              <div>
-                <strong>Team Review</strong>
-                <p>Weekly and monthly coordination retrospectives</p>
-              </div>
-            </Link>
-            <Link href="/team/1on1" className="team-nav-card">
-              <Icons.MessageSquareText size={22} />
-              <div>
-                <strong>1:1 Preparation</strong>
-                <p>Contextual meeting prep and action items</p>
-              </div>
-            </Link>
-            <Link href="/team/risks" className="team-nav-card">
-              <Icons.Bell size={22} />
-              <div>
-                <strong>Risks & Escalations</strong>
-                <p>Coordination bottlenecks and single-owner items</p>
-              </div>
-            </Link>
-          </div>
-        </>
-      )}
+  const [data,setData] = useState(empty); const [loading,setLoading] = useState(true); const [error,setError] = useState("");
+  const [query,setQuery] = useState(""); const [role,setRole] = useState(""); const [status,setStatus] = useState(""); const [team,setTeam] = useState(""); const [descending,setDescending] = useState(false);
+  const [selected,setSelected] = useState<TeamPerson|null>(null); const [editor,setEditor] = useState<"person"|"delegation"|null>(null);
+  const controller = useRef<AbortController|null>(null); const selectedButton = useRef<HTMLButtonElement|null>(null);
+  const load = useCallback(async () => {controller.current?.abort(); const abort = new AbortController();controller.current=abort;setLoading(true);setError("");try {
+    const [p,d,r,c,h] = await Promise.all([read<{data:TeamPerson[];schemaStatus?:string}>("/api/team/people",abort.signal),read<{data:TeamDelegation[]}>("/api/team/delegations",abort.signal),read<{data:TeamResponsibility[]}>("/api/team/responsibilities",abort.signal),read<{capacityCards:PersonCapacityResult[]}>("/api/team/capacity",abort.signal),read<{data:{is_overdue:boolean}[]}>("/api/team/handoffs",abort.signal)]);
+    if(!abort.signal.aborted)setData({people:p.data,delegations:d.data,responsibilities:r.data,capacity:c.capacityCards,handoffs:h.data.filter(x=>x.is_overdue).length,unavailable:p.schemaStatus==="unavailable"});
+  }catch(err){if(!abort.signal.aborted)setError(err instanceof Error?err.message:"Could not load team.");}finally{if(!abort.signal.aborted)setLoading(false);}},[]);
+  useDeferredEffect(useCallback(()=>{void load();return()=>controller.current?.abort();},[load]));
+  const close = useCallback(()=>{setSelected(null);selectedButton.current?.focus();},[]);
+  const people=visibleTeamPeople(data.people,query,role,status,team).sort((a,b)=>(descending?-1:1)*a.name.localeCompare(b.name));
+  const filters = Boolean(query||role||status||team); const reset=()=>{setQuery("");setRole("");setStatus("");setTeam("");};
+  return <div className="business-dashboard team-overview">
+    <header className="business-dashboard__header"><div><nav aria-label="Breadcrumb"><Users size={15}/> <Link href="/operations">Operate</Link><ChevronRight size={13}/><span>Team</span></nav><h1>Team</h1><p>Coordinate, delegate, and manage responsibility across people without losing control.</p></div><nav className="team-overview__nav" aria-label="Team sections"><a href="#team-directory" aria-current="page"><Users size={18}/>Directory</a><Link href="/team/delegations"><ListChecks size={18}/>Delegations</Link><Link href="/team/responsibilities"><Target size={18}/>Responsibilities</Link><Button onClick={()=>setEditor("delegation")} disabled={!data.people.length||loading}><Plus size={18}/>New delegation</Button></nav></header>
+    {error&&<div className="team-overview__error" role="alert">{error}<Button emphasis="outline" onClick={()=>void load()}>Retry</Button></div>}
+    <div className="business-dashboard__metrics" aria-busy={loading}>
+      <Metric icon={<Users/>} title="Total people" value={data.people.length} note="People in your directory" tone="purple" href="#team-directory" loading={loading||Boolean(error)||data.unavailable}/>
+      <Metric icon={<Send/>} title="Active delegations" value={openDelegations(data.delegations).length} note="Assigned work in progress" tone="green" href="/team/delegations" loading={loading||Boolean(error)||data.unavailable}/>
+      <Metric icon={<Target/>} title="Open responsibilities" value={data.responsibilities.filter(r=>!["paused","archived"].includes(r.status)).length} note="Active ownership areas" tone="orange" href="/team/responsibilities" loading={loading||Boolean(error)||data.unavailable}/>
+      <Metric icon={<TriangleAlert/>} title="At-risk handoffs" value={data.handoffs} note="Overdue, awaiting acceptance" tone="blue" href="/team/risks" loading={loading||Boolean(error)||data.unavailable}/>
     </div>
-  );
+    <div className={`team-overview__grid ${selected?"has-member":""}`}>
+      <section className="business-dashboard__panel team-overview__directory" id="team-directory" aria-labelledby="directory-title"><div className="team-overview__section-header"><span className="business-dashboard__icon"><Users size={24}/></span><div><h2 id="directory-title">Team directory</h2><p>{loading?"Loading your team…":`${data.people.length} team members`} · Track ownership, delegations, and workload</p></div><Button emphasis="outline" onClick={()=>setEditor("person")} disabled={data.unavailable}><Plus size={16}/>Add person</Button></div>
+        <div className="team-overview__filters"><SearchInput label="Search team members" placeholder="Search people, roles, or teams…" value={query} onChange={e=>setQuery(e.target.value)} onClear={()=>setQuery("")}/><select aria-label="Filter by role" value={role} onChange={e=>setRole(e.target.value)}><option value="">All roles</option>{[...new Set(data.people.map(p=>p.role_title).filter(Boolean))].sort().map(r=><option key={r!} value={r!}>{r}</option>)}</select><select aria-label="Filter by status" value={status} onChange={e=>setStatus(e.target.value)}><option value="">All status</option>{["active","inactive","external"].map(s=><option key={s} value={s}>{human(s)}</option>)}</select><select aria-label="Filter by team" value={team} onChange={e=>setTeam(e.target.value)}><option value="">All teams</option>{[...new Set(data.people.map(p=>p.company_team).filter(Boolean))].sort().map(t=><option key={t!} value={t!}>{t}</option>)}</select>{filters&&<button className="team-overview__clear" onClick={reset}>Reset</button>}</div>
+        <div className="team-overview__table-wrap"><table><thead><tr><th scope="col"><button onClick={()=>setDescending(!descending)} aria-label={`Sort people ${descending?"ascending":"descending"}`}>Person <ArrowUpDown size={12}/></button></th><th scope="col">Role</th><th scope="col">Status</th><th scope="col">Workload</th><th scope="col">Open tasks</th><th scope="col">Delegations</th><th scope="col">Next follow-up</th><th scope="col"><span className="sr-only">Profile</span></th></tr></thead><tbody>{people.map(person=>{const capacity=data.capacity.find(c=>c.person_id===person.id);return <tr key={person.id} className={selected?.id===person.id?"is-selected":""} onClick={e=>{if(!(e.target as HTMLElement).closest("a,button")){selectedButton.current=e.currentTarget.querySelector("button");setSelected(person);}}}><td><button className="team-overview__person" onClick={e=>{selectedButton.current=e.currentTarget;setSelected(person);}} aria-expanded={selected?.id===person.id} aria-controls={selected?.id===person.id?"team-member-panel":undefined}><Avatar person={person}/><span><strong>{person.display_name||person.name}</strong><small>{person.email||"No email added"}</small></span></button></td><td>{person.role_title||"No role assigned"}<small>{person.company_team||"No team assigned"}</small></td><td><span className={`team-overview__status status-${person.status}`}><i/>{human(person.status)}</span></td><td><span className={`team-overview__capacity capacity-${capacity?.capacity_state||"unknown"}`} title={capacity?.reasons.join(" ")}>{human(capacity?.capacity_state||"unknown")}</span></td><td>{capacity?.active_tasks??"—"}</td><td>{openDelegations(data.delegations).filter(d=>d.delegated_to_person_id===person.id).length}</td><td><span className="team-overview__date"><CalendarDays size={14}/>{dateLabel(nextTeamFollowup(data.delegations,person.id))}</span></td><td><Link href={`/team/people/${person.id}`} aria-label={`View ${person.name}'s full profile`}><ExternalLink size={15}/></Link></td></tr>;})}</tbody></table></div>
+        {!people.length&&<div className="team-overview__empty"><span className="team-overview__empty-icon"><Users size={32}/></span><h3>{loading?"Bringing your team together…":data.unavailable?"Team setup is needed":filters?"No people match these filters":"Your team starts here"}</h3><p>{data.unavailable?"The Team database schema is unavailable. Complete Team setup to add people.":filters?"Try another name or clear the filters to see everyone.":"Add the people you work with, then keep ownership, workload, and follow-ups in one place."}</p>{!loading&&!data.unavailable&&(filters?<Button emphasis="outline" onClick={reset}>Clear filters</Button>:<Button intent="brand" onClick={()=>setEditor("person")}><Plus size={17}/>Add your first person</Button>)}</div>}
+        {people.length>0&&<footer className="team-overview__table-footer"><span>{people.length} of {data.people.length} people</span><span>Click a person to see their work <ArrowRight size={13}/></span></footer>}
+      </section>
+      {selected&&<MemberPanel key={`${selected.id}-${data.delegations.length}`} person={selected} capacity={data.capacity.find(c=>c.person_id===selected.id)} onClose={close} onDelegate={()=>setEditor("delegation")}/>}
+    </div>
+    <nav className="team-overview__tools" aria-label="More team tools">{[["Capacity","/team/capacity"],["Ownership","/team/ownership"],["Team review","/team/review"],["1:1 notes","/team/1on1"],["Risks","/team/risks"]].map(([label,href])=><Link key={href} href={href}>{label}<ChevronRight size={14}/></Link>)}</nav>
+    {editor&&<TeamEditor mode={editor} people={data.people} personId={selected?.id} onClose={()=>setEditor(null)} onSaved={()=>{setEditor(null);void load();}}/>}
+  </div>;
+}
+function Metric({icon,title,value,note,tone,href,loading}:{icon:ReactNode;title:string;value:number;note:string;tone:string;href:string;loading:boolean}){return <Link className={`business-dashboard__metric tone-${tone}`} href={href}><span className="business-dashboard__metric-icon">{icon}</span><span className="business-dashboard__metric-copy"><span>{title}</span><strong>{loading?"—":value}</strong><small>{note}</small></span><span className="team-overview__metric-mark" aria-hidden="true">{icon}</span></Link>;}
+function Avatar({person}:{person:TeamPerson}){return <span className="team-overview__avatar">{person.avatar_url?<Image src={person.avatar_url} alt="" width={65} height={65} unoptimized/>:(person.display_name||person.name).split(" ").map(s=>s[0]).slice(0,2).join("")}</span>;}
+type Detail={person:TeamPerson;delegations:TeamDelegation[];responsibilities:TeamResponsibility[];commitments:{id:string;title:string;status:string;due_at?:string}[]};
+function MemberPanel({person,capacity,onClose,onDelegate}:{person:TeamPerson;capacity?:PersonCapacityResult;onClose:()=>void;onDelegate:()=>void}) {
+ const [data,setData]=useState<Detail|null>(null);const [error,setError]=useState("");const [tab,setTab]=useState("Overview");const [retry,setRetry]=useState(0);const heading=useRef<HTMLHeadingElement>(null);
+ useEffect(()=>{heading.current?.focus();const handle=(e:KeyboardEvent)=>{if(e.key==="Escape"&&!document.querySelector('[role="dialog"]'))onClose();};document.addEventListener("keydown",handle);return()=>document.removeEventListener("keydown",handle);},[onClose]);
+ useDeferredEffect(useCallback(()=>{const abort=new AbortController();if(retry)setError("");void read<Detail>(`/api/team/people/${person.id}`,abort.signal).then(result=>{if(!abort.signal.aborted){setData(result);setError("");}}).catch(err=>{if(!abort.signal.aborted)setError(err instanceof Error?err.message:"Could not load member.");});return()=>abort.abort();},[person.id,retry]));
+ const delegations=data?openDelegations(data.delegations):[];
+ return <aside className="business-dashboard__panel team-overview__member" id="team-member-panel" aria-labelledby="member-name"><div className="team-overview__member-header"><Avatar person={person}/><div><h2 id="member-name" ref={heading} tabIndex={-1}>{person.display_name||person.name}</h2><p>{person.role_title||"Role not assigned"}</p><div className="team-overview__member-badges">{person.company_team&&<span>{person.company_team}</span>}<span className={`team-overview__status status-${person.status}`}><i/>{human(person.status)}</span></div></div><button className="team-overview__close" onClick={onClose} aria-label="Close member details"><X size={18}/></button></div><p className="team-overview__bio">{person.notes||"Keep work, ownership, and follow-ups connected to this person."}</p>
+ <div className="team-overview__tabs" role="tablist" aria-label="Member details">{["Overview","Delegations","Responsibilities","Activity"].map(label=><button key={label} role="tab" id={`member-tab-${label}`} tabIndex={tab===label?0:-1} onKeyDown={e=>{const labels=["Overview","Delegations","Responsibilities","Activity"];if(["ArrowLeft","ArrowRight","Home","End"].includes(e.key)){e.preventDefault();const index=e.key==="Home"?0:e.key==="End"?3:(labels.indexOf(tab)+(e.key==="ArrowRight"?1:3))%4;setTab(labels[index]);document.getElementById(`member-tab-${labels[index]}`)?.focus();}}} aria-selected={tab===label} aria-controls="member-tab-content" onClick={()=>setTab(label)}>{label}</button>)}</div>
+ <div id="member-tab-content" role="tabpanel" aria-labelledby={`member-tab-${tab}`}>
+ {error?<div className="team-overview__error" role="alert">{error}<button onClick={()=>setRetry(retry+1)}>Retry</button></div>:!data?<p className="team-overview__panel-empty" role="status">Loading member details…</p>:<>
+ {tab==="Overview"&&<><div className="team-overview__member-stats"><div><small>Workload</small><strong>{human(capacity?.capacity_state||"unknown")}</strong><span className={`team-overview__capacity capacity-${capacity?.capacity_state||"unknown"}`}>Capacity state</span></div><div><small>Open tasks</small><strong>{capacity?.active_tasks??"—"}</strong></div><div><small>Delegations</small><strong>{delegations.length}</strong></div></div><div className="team-overview__subhead"><h3>Active work</h3><Link href={`/team/people/${person.id}`}>View profile</Link></div>{delegations.length?delegations.slice(0,3).map(d=><WorkRow key={d.id} title={d.title} badge={human(d.priority)} date={d.due_at} href={"/team/delegations"}/>):<p className="team-overview__panel-empty">No active delegations. Assign work to give this person a clear next step.</p>}<div className="team-overview__subhead"><h3>Recent delegations</h3><button onClick={()=>setTab("Delegations")}>View all ({data.delegations.length})</button></div>{data.delegations.slice(0,3).map(d=><WorkRow key={d.id} title={d.title} badge={human(d.status)} date={d.created_at} href={"/team/delegations"}/>)}{!data.delegations.length&&<p className="team-overview__panel-empty">Delegation history will appear here.</p>}</>}
+ {tab==="Delegations"&&(data.delegations.length?data.delegations.map(d=><WorkRow key={d.id} title={d.title} badge={human(d.status)} date={d.due_at} href={"/team/delegations"}/>):<p className="team-overview__panel-empty">No delegations yet.</p>)}
+ {tab==="Responsibilities"&&(data.responsibilities.length?data.responsibilities.map(r=><WorkRow key={r.id} title={r.name} badge={r.primary_owner_id===person.id?"Primary owner":"Backup owner"} href="/team/responsibilities"/>):<p className="team-overview__panel-empty">No responsibilities assigned yet.</p>)}
+ {tab==="Activity"&&<Activity personId={person.id}/>}
+ </>}
+ </div><div className="team-overview__member-actions"><Button intent="brand" onClick={onDelegate}><Send size={16}/>Assign work</Button><Link href={`/team/people/${person.id}`}><ExternalLink size={16}/>View profile</Link></div></aside>;
+}
+function WorkRow({title,badge,date,href}:{title:string;badge:string;date?:string|null;href:string}){return <Link className="team-overview__work-row" href={href}><span className="team-overview__work-icon"><ListChecks size={16}/></span><span>{title}</span><small>{badge}</small>{date&&<time dateTime={date}>{dateLabel(date)}</time>}</Link>;}
+function Activity({personId}:{personId:string}){const [events,setEvents]=useState<{id:string;title:string;timestamp:string;description:string}[]|null>(null);const [error,setError]=useState("");useDeferredEffect(useCallback(()=>{const abort=new AbortController();void read<{events:NonNullable<typeof events>}>(`/api/team/people/${personId}/timeline`,abort.signal).then(x=>setEvents(x.events)).catch(e=>{if(!abort.signal.aborted)setError(e.message);});return()=>abort.abort();},[personId]));return error?<p role="alert">{error}</p>:!events?<p role="status" className="team-overview__panel-empty">Loading activity…</p>:events.length?<ul className="team-overview__activity">{events.map(e=><li key={e.id}><CheckCircle2 size={17}/><div><strong>{e.title}</strong><p>{e.description}</p><time dateTime={e.timestamp}>{dateLabel(e.timestamp)}</time></div></li>)}</ul>:<p className="team-overview__panel-empty">No recorded activity yet.</p>;}
+function TeamEditor({mode,people,personId,onClose,onSaved}:{mode:"person"|"delegation";people:TeamPerson[];personId?:string;onClose:()=>void;onSaved:()=>void}){
+ const {showToast}=useToast();const [busy,setBusy]=useState(false);const [error,setError]=useState("");const submitting=useRef(false);
+ async function submit(e:React.FormEvent<HTMLFormElement>){e.preventDefault();if(submitting.current)return;const form=e.currentTarget;const field=[...form.querySelectorAll<HTMLInputElement|HTMLTextAreaElement|HTMLSelectElement>("input,textarea,select")].find(el=>!el.validity.valid);if(field){setError(`${field.labels?.[0]?.textContent?.trim()||"Field"}: ${field.validationMessage}`);field.setAttribute("aria-invalid","true");field.focus();return;}form.querySelectorAll("[aria-invalid]").forEach(el=>el.removeAttribute("aria-invalid"));const values: Record<string, FormDataEntryValue | null>=Object.fromEntries(new FormData(form));if(mode==="delegation"&&!values.due_at)values.due_at=null;submitting.current=true;setBusy(true);setError("");try{const response=await fetch(`/api/team/${mode==="person"?"people":"delegations"}`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(values)});const body=await response.json();if(!response.ok)throw new Error(body.error||"Could not save. Please retry.");announceWorkspaceMutation("founder-os");showToast(mode==="person"?"Person added to your team.":"Delegation created.");onSaved();}catch(err){setError(err instanceof Error?err.message:"Could not save.");}finally{submitting.current=false;setBusy(false);}}
+ return <Modal open onClose={()=>{if(!busy)onClose();}} title={mode==="person"?"Add a team member":"Create a delegation"} description={mode==="person"?"Keep the people you work with connected to their responsibilities.":"Give work a clear owner, outcome, and due date."}><form noValidate className="team-overview__form" onSubmit={submit}>
+ {mode==="person"?<><label htmlFor="team-name">Name<input id="team-name" name="name" required maxLength={240} autoComplete="name"/></label><label htmlFor="team-role">Role<input id="team-role" name="role_title" maxLength={240} placeholder="e.g. Operations Lead"/></label><label htmlFor="team-group">Team<input id="team-group" name="company_team" maxLength={240}/></label><label htmlFor="team-email">Email<input id="team-email" name="email" type="email" autoComplete="email"/></label><label htmlFor="team-relationship">Relationship<select id="team-relationship" name="relationship_type"><option value="team_member">Team member</option><option value="contractor">Contractor</option><option value="freelancer">Freelancer</option><option value="partner">Partner</option><option value="collaborator">Collaborator</option></select></label></>:<><label htmlFor="delegation-title">Work title<input id="delegation-title" name="title" required maxLength={240}/></label><label htmlFor="delegation-person">Assign to<select id="delegation-person" name="delegated_to_person_id" defaultValue={personId||""} required><option value="" disabled>Choose a person</option>{people.filter(p=>p.status==="active"||p.status==="external").map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select></label><label htmlFor="delegation-outcome">Expected outcome<textarea id="delegation-outcome" name="expected_outcome" required maxLength={3000} rows={3} className="resize-none"/></label><label htmlFor="delegation-priority">Priority<select id="delegation-priority" name="priority" defaultValue="medium">{["low","medium","high","critical"].map(p=><option key={p} value={p}>{human(p)}</option>)}</select></label><label htmlFor="delegation-due">Due date<input id="delegation-due" type="date" name="due_at"/></label></>}
+ {error&&<p role="alert" className="team-overview__error">{error}</p>}<div className="team-overview__form-actions"><Button emphasis="outline" disabled={busy} onClick={onClose}>Cancel</Button><Button intent="brand" type="submit" disabled={busy}>{busy?"Saving…":mode==="person"?"Add person":"Create delegation"}</Button></div></form></Modal>;
 }

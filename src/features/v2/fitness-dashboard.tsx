@@ -1,153 +1,107 @@
 "use client";
-
-import { useCallback, useState } from "react";
-import { Icons } from "@/components/icons";
+import Link from "next/link";
+import { DailyFitnessQuote } from "@/features/fitness/daily-fitness-quote";
+import Image from "next/image";
+import { RunningIcon } from "@/components/icons/running-icon";
+import { SwimmingIcon } from "@/components/icons/swimming-icon";
+import { announceWorkspaceMutation } from "@/lib/workspace-mutations";
+import { useCallback, useMemo, useRef, useState, type FormEvent } from "react";
+import { Apple, ArrowRight, ChartNoAxesColumnIncreasing, ChevronLeft, ChevronRight, Clock, Dumbbell, Flame, Footprints, Heart, MapPin, Moon, MoreHorizontal, Settings2, List, Sun, Plus, RefreshCw, Target, Trophy, Zap, Activity } from "lucide-react";
+import { Area, AreaChart, Bar, BarChart, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis } from "recharts";
+import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
-import { DomainPage } from "@/features/domains/domain-page";
+import { StyledSelect } from "@/components/ui/styled-select";
+import { DatePicker } from "@/components/ui/date-picker";
+import { useToast } from "@/components/toast-provider";
 import { useDeferredEffect } from "@/lib/use-deferred-effect";
 import { FitnessSyncBar } from "@/features/v2/fitness-sync-bar";
+import { fitnessLocalDay, weeklyFitnessCards, activityValue, dayShift, dayStreak, fitnessPreview, fitnessTotals, periodActivities, targetActual, weekStart, type FitnessActivity, type FitnessTarget } from "@/lib/fitness-dashboard";
+import "@/features/fitness/fitness-dashboard.css";
+const kinds=['Running','Gym','Walking','Swimming','Hiking','Cycling','Other'];
+const hues=['#824cff','#2788ff','#ff9238','#22c66c'];
+const format=(value:number)=>value.toLocaleString('en',{maximumFractionDigits:1});
+const date=(day:string)=>new Date(`${day}T12:00:00`).toLocaleDateString('en',{month:'short',day:'numeric'});
+async function api(url:string,init?:RequestInit){const response=await fetch(url,init);const body=await response.json();if(!response.ok)throw new Error(body.error||'Could not complete the request. Try again.');return body}
+async function allRows<T>(domain:string){const rows:T[]=[];for(let page=1;;page++){const body=await api(`/api/entities/${domain}?page=${page}&pageSize=100`);rows.push(...body.records);if(!body.records.length||rows.length>=body.total)return rows}}
+export function FitnessDashboard({preview=false}:{preview?:boolean}){
+ const [today,setToday]=useState(()=>fitnessLocalDay());const [sample]=useState(()=>fitnessPreview(today));
+ const [activities,setActivities]=useState<FitnessActivity[]>(preview?sample.activities:[]),[targets,setTargets]=useState<FitnessTarget[]>(preview?sample.targets:[]),[start,setStart]=useState(()=>weekStart(today)),[span,setSpan]=useState('week'),[filter,setFilter]=useState('All'),[loading,setLoading]=useState(!preview),[error,setError]=useState(''),[busy,setBusy]=useState(false),[formError,setFormError]=useState('');
+ const [editor,setEditor]=useState<'activity'|'target'|'focus'|'steps'|'nutrition'|null>(null),[editing,setEditing]=useState<string|null>(null),[focus,setFocus]=useState('Build consistency'),[focusDraft,setFocusDraft]=useState(''),[detail,setDetail]=useState<FitnessActivity|null>(null),[synced,setSynced]=useState(false),[activityLimit,setActivityLimit]=useState(8),[stepsDraft,setStepsDraft]=useState('8000'),[utility,setUtility]=useState<'sources'|'streaks'|null>(null);
+ const [draft,setDraft]=useState({activity_type:'Running',date:today,duration_minutes:'',distance_km:'',calories:'',effort:'moderate',notes:''}),[targetDraft,setTargetDraft]=useState({activity_type:'Running',target_type:'sessions',target_value:'5',period:'week'});
+ const lock=useRef(false),mounted=useRef(true);const {showToast}=useToast();
+ const load=useCallback(async()=>{if(preview)return;setError('');try{const [a,t]=await Promise.all([allRows<FitnessActivity>('fitness'),allRows<FitnessTarget>('fitness-targets')]);if(mounted.current){setActivities(a);setTargets(t)}}catch(e){if(mounted.current)setError(e instanceof Error?e.message:'Could not load fitness.')}finally{if(mounted.current)setLoading(false)}},[preview]);
+ useDeferredEffect(useCallback(()=>{mounted.current=true;void load();return()=>{mounted.current=false}},[load]));
+ // Roll the live calendar forward even when the dashboard stays open overnight.
+ useDeferredEffect(useCallback(()=>{
+  let timer:ReturnType<typeof setTimeout>;
+  const refreshDay=()=>{
+   clearTimeout(timer);
+   const now=new Date(),day=fitnessLocalDay(now);
+   if(day!==today){
+    setToday(day);
+    if(weekStart(day)!==weekStart(today)){setStart(weekStart(day));setSpan('week');}
+   }
+   const midnight=new Date(now.getFullYear(),now.getMonth(),now.getDate()+1);
+   timer=setTimeout(refreshDay,midnight.getTime()-now.getTime()+100);
+  };
+  refreshDay();
+  window.addEventListener('focus',refreshDay);
+  document.addEventListener('visibilitychange',refreshDay);
+  return()=>{clearTimeout(timer);window.removeEventListener('focus',refreshDay);document.removeEventListener('visibilitychange',refreshDay);};
+ },[today]));
+ const days=span==='week'?7:28,end=dayShift(start,days-1),rows=useMemo(()=>periodActivities(activities,start,days),[activities,start,days]),totals=fitnessTotals(rows),previous=fitnessTotals(periodActivities(activities,dayShift(start,-days),days));
+ const targetStart=span==='week'?start:dayShift(start,21);const latestStart=span==='week'?weekStart(today):dayShift(weekStart(today),-21);const activeTargets=targets.filter(t=>t.active);const workouts=activities.filter(r=>!['pacer','myfitnesspal'].includes(r.source??''));const nutrition=activities.filter(r=>r.source==='myfitnesspal');
+ const shown=rows.filter(r=>filter==='All'||filter==='Nutrition'?filter==='All'||r.source==='myfitnesspal':filter==='Steps'?r.source==='pacer':r.activity_type===filter&&r.source!=='pacer').sort((a,b)=>b.date.localeCompare(a.date));
+ const progressRows=weeklyFitnessCards(targets).map(({target:t,hasTarget},index)=>{const relevant=t.period==='month'?activities.filter(r=>r.date.slice(0,7)===targetStart.slice(0,7)):periodActivities(activities,targetStart);const actual=targetActual(t,relevant);return {target:t,hasTarget,actual,color:hues[index%4],percent:hasTarget?Math.min(100,actual/t.target_value*100):0}});
+ const next=progressRows.find(r=>r.hasTarget&&r.percent<100);const openActivity=(row?:FitnessActivity)=>{setEditing(row?.id??null);setDraft(row?{activity_type:row.activity_type,date:row.date,duration_minutes:String(row.duration_minutes??''),distance_km:String(row.distance_km??''),calories:String(row.calories??''),effort:row.effort??'moderate',notes:row.notes??''}:{activity_type:'Running',date:today,duration_minutes:'',distance_km:'',calories:'',effort:'moderate',notes:''});setFormError('');setEditor('activity')};
+ const openTarget=(target?:FitnessTarget)=>{setEditing(target?.id??null);setTargetDraft(target?{activity_type:target.activity_type,target_type:target.target_type,target_value:String(target.target_value),period:target.period}:{activity_type:'Running',target_type:'sessions',target_value:'5',period:'week'});setFormError('');setEditor('target')};
+ async function resetTargets(){
+  if(lock.current)return;
+  lock.current=true;setBusy(true);
+  try{
+   for(const target of targets.filter(t=>t.active)){
+    if(!preview)await api(`/api/entities/fitness-targets/${target.id}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({active:false})});
+    setTargets(current=>current.map(t=>t.id===target.id?{...t,active:false}:t));
+   }
+   showToast('Fitness targets reset. Your activity history is unchanged.');
+  }catch(e){showToast(e instanceof Error?`Some targets could not be reset: ${e.message}`:'Some targets could not be reset. Try again.');}
+  finally{if(!preview)announceWorkspaceMutation('fitness-targets');lock.current=false;setBusy(false);}
+ }
+ async function save(e:FormEvent){e.preventDefault();if(lock.current)return;setFormError('');if(editor==='focus'){setFocus(focusDraft.trim()||'Build consistency');setEditor(null);return;}if(editor==='target'&&(!Number.isFinite(Number(targetDraft.target_value))||Number(targetDraft.target_value)<=0)){setFormError('Enter a target greater than zero.');document.getElementById('fitness-target-value')?.focus();return;}if(editor==='steps'&&(!Number.isInteger(Number(stepsDraft))||Number(stepsDraft)<0)){setFormError('Enter a non-negative whole step count.');return;}if(['activity','steps','nutrition'].includes(editor??'')){if(!/^\d{4}-\d{2}-\d{2}$/.test(draft.date)){setFormError('Choose an activity date.');return;}for(const key of ['duration_minutes','distance_km','calories'] as const){const value=draft[key];if(value!==''&&(!Number.isFinite(Number(value))||Number(value)<0||(key==='duration_minutes'&&(!Number.isInteger(Number(value))||Number(value)===0))||(key==='calories'&&!Number.isInteger(Number(value))))){setFormError('Use positive whole minutes and non-negative distance and whole calories.');document.getElementById(`fitness-${key}`)?.focus();return;}}}
+ lock.current=true;setBusy(true);try{if(editor==='target'){const input={...targetDraft,target_value:Number(targetDraft.target_value),active:true};const row:FitnessTarget=preview?{...input,id:editing??crypto.randomUUID()}:(await api(`/api/entities/fitness-targets${editing?`/${editing}`:''}`,{method:editing?'PATCH':'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(input)})).record;setTargets(old=>editing?old.map(t=>t.id===editing?row:t):[...old,row]);showToast('Target saved.');}else{const input={...draft,activity_type:editor==='steps'?'Walking':editor==='nutrition'?'Other':draft.activity_type,...(editor==='steps'?{metadata:{steps:Number(stepsDraft)}}:{}),duration_minutes:draft.duration_minutes===''?null:Number(draft.duration_minutes),distance_km:draft.distance_km===''?null:Number(draft.distance_km),calories:draft.calories===''?null:Number(draft.calories),notes:draft.notes.trim()||null,source:editor==='steps'?'pacer':editor==='nutrition'?'myfitnesspal':'manual'};const old=activities.find(a=>a.id===editing);const row:FitnessActivity=preview?{...old,...input,id:editing??crypto.randomUUID()}:(await api(`/api/entities/fitness${editing?`/${editing}`:''}`,{method:editing?'PATCH':'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(input)})).record;setActivities(old=>editing?old.map(a=>a.id===editing?row:a):[row,...old]);showToast('Activity saved.');}if(!preview)announceWorkspaceMutation(editor==='target'?'fitness-targets':'fitness');setEditor(null)}catch(e){setFormError(e instanceof Error?e.message:'Could not save. Your entries are kept.')}finally{lock.current=false;setBusy(false)}}
+ function daily(target:FitnessTarget){return Array.from({length:days},(_,i)=>{const day=dayShift(start,i);return {day:new Date(`${day}T12:00:00Z`).toLocaleDateString('en',{weekday:'short'}),value:targetActual(target,activities.filter(r=>r.date===day))}})}
+ const metrics=[{icon:RunningIcon,label:'Sessions this week',value:totals.sessions,old:previous.sessions,display:format(totals.sessions),measure:'sessions',color:'#824cff'},{icon:MapPin,label:'Total distance',value:totals.distance,old:previous.distance,display:`${format(totals.distance)} km`,measure:'distance_km',color:'#2788ff'},{icon:Clock,label:'Active duration',value:totals.duration,old:previous.duration,display:`${Math.floor(totals.duration/60)}h ${totals.duration%60}m`,measure:'duration_minutes',color:'#22c66c'},{icon:Footprints,label:'Weekly steps',value:totals.steps,old:previous.steps,display:format(totals.steps),measure:'steps',color:'#ff9238'},{icon:Flame,label:'Calories burned',value:totals.calories,old:previous.calories,display:`${format(totals.calories)} kcal`,measure:'calories',color:'#f04b95'},{icon:Dumbbell,label:'Strength volume',value:totals.volume,old:previous.volume,display:`${format(totals.volume)} kg`,measure:'volume',color:'#824cff'}];
+ return <div className="fitness-hub"><header className="fh-heading"><div><nav><Dumbbell size={14}/>Personal rhythm<ChevronRight size={13}/>Fitness</nav><h1>Fitness</h1><p>A calm weekly view of movement, consistency, and targets within reach.</p></div><div className="fh-motivation"><Sun className="fh-motivation-sun" size={25}/><DailyFitnessQuote/></div></header><div className="fh-preview">{preview?<><span>Sample data · All changes stay in this preview. <button onClick={()=>{setActivities(sample.activities);setTargets(sample.targets);setStart(weekStart(today));setSpan('week');setFilter('All');setActivityLimit(8);setSynced(false);showToast('Sample data reset.')}}>Reset sample data</button></span><Link href="/fitness">Your fitness history<ArrowRight size={13}/></Link></>:<span>Your personal fitness workspace</span>}</div>
+ {error?<div className="fh-error" role="alert"><p>{error}</p><Button emphasis="outline" onClick={()=>void load()}>Try again</Button></div>:loading?<div className="fh-loading" role="status">Loading your fitness history…</div>:<><div className="fh-metrics">{metrics.map(m=><section key={m.label} style={{'--fh-accent':m.color} as React.CSSProperties}><div><span className="fh-icon"><m.icon size={22}/></span><small>{span==='week'?m.label:m.label.replace('week','period')}</small></div><strong>{m.display}</strong><p>{m.old>0?<><span className={m.value===m.old?'fh-change-neutral':''}>{m.value===m.old?'—':m.value>m.old?'↑':'↓'} {Math.round(Math.abs((m.value-m.old)/m.old)*100)}%</span> vs last {span==='week'?'week':'period'}</>:<span className="fh-change-neutral">No previous period data</span>}</p><MetricTrend rows={rows} start={start} days={days} measure={m.measure} color={m.color}/></section>)}</div>
+ <div className="fh-layout"><div className="fh-main">
+ {preview?<section className="fh-panel fh-connections"><div className="fh-section-header"><PanelTitle icon={Zap} title="Connected Fitness Ecosystem" subtitle="Unify your data from the apps you already use."/><div className="fh-connect-actions"><button onClick={()=>{setSynced(true);showToast('Sample fitness data refreshed.')}}><RefreshCw size={13}/>{synced?'Refreshed':'Quick sync'}</button><button className="fh-primary" onClick={()=>{setSynced(true);showToast('All four sample sources refreshed.')}}><RefreshCw size={13}/>Sync all fitness</button><button aria-label="Fitness source settings" onClick={()=>setUtility('sources')}><Settings2 size={15}/></button></div></div><div className="fh-providers">{[['Strava','Runs & rides','strava'],['Hevy','Gym workouts','hevy'],['Pacer','Daily steps','pacer'],['MyFitnessPal','Nutrition & macros','myfitnesspal']].map(([name,caption,asset])=><button key={name} onClick={()=>{setFilter(name==='Strava'?'Running':name==='Hevy'?'Gym':name==='MyFitnessPal'?'Nutrition':'Steps');document.getElementById('fitness-recent')?.scrollIntoView({behavior:'smooth',block:'start'});showToast(`${name} sample activities selected.`)}}><Image src={`/images/fitness/${asset}.png`} width={38} height={38} unoptimized alt=""/><div><strong>{name}</strong><small>{caption}</small><em>Sample connected</em><small><Clock size={10}/>{synced?'Refreshed just now':'Demo source'}</small></div><MoreHorizontal className="fh-provider-more" size={14}/></button>)}</div></section>:<div className="fh-live-sync"><FitnessSyncBar onSyncComplete={load}/></div>}
+ <section className="fh-panel"><div className="fh-section-header"><PanelTitle icon={ChartNoAxesColumnIncreasing} title="Weekly progress" subtitle="Your activity, nutrition, and consistency at a glance."/><div className="fh-period"><button aria-label="Previous period" onClick={()=>setStart(dayShift(start,-days))}><ChevronLeft size={15}/></button><span>{date(start)} – {date(end)}</span><button aria-label="Next period" disabled={start>=latestStart} onClick={()=>setStart(dayShift(start,days))}><ChevronRight size={15}/></button><StyledSelect label="Progress period" value={span} onChange={value=>{setSpan(value);setStart(value==='week'?weekStart(today):dayShift(weekStart(today),-21))}} options={[{value:'week',label:'Weekly'},{value:'4weeks',label:'4 weeks'}]}/></div></div><div className="fh-progress-grid">{progressRows.length?progressRows.map(({target,hasTarget,actual,color})=><article key={target.id} style={{'--fh-accent':color} as React.CSSProperties}><div><span className="fh-icon"><FitnessActivityIcon kind={target.activity_type} size={22}/></span><span><strong>{target.activity_type==='Gym'?'Strength (Gym)':target.activity_type}</strong><small>{format(actual)}{hasTarget?` / ${format(target.target_value)}`:''} {target.target_type.replaceAll('_',' ')}{target.period==='month'?' · this month':''}</small></span></div><div className="fh-card-goal">{hasTarget?<progress max={target.target_value} value={actual} aria-label={`${target.activity_type} target progress`}/>:<small className="fh-no-goal">No target set</small>}</div><div className="fh-week-chart"><ResponsiveContainer width="100%" height={60}><BarChart data={daily(target)}><XAxis dataKey="day" tick={{fontSize:9,fill:'#7b80a0'}} axisLine={false} tickLine={false} interval={days>7?6:0}/><Tooltip/><Bar dataKey="value" fill={color} maxBarSize={16} background={{fill:"#efedf7",radius:3}} radius={[3,3,0,0]}/></BarChart></ResponsiveContainer></div></article>):<div className="fh-empty">Set a target to see your progress here.<button onClick={()=>openTarget()}>Add your first target</button></div>}</div></section>
+ <section className="fh-panel"><div className="fh-section-header"><PanelTitle icon={Target} title="Fitness targets" subtitle="Weekly progress resets every Monday. Your goals stay in place."/><div className="fh-target-actions"><button className="fh-reset-targets" disabled={busy||!activeTargets.length} onClick={()=>void resetTargets()}><RefreshCw size={14}/>{busy?'Resetting…':'Reset'}</button><button className="fh-primary" disabled={busy} onClick={()=>openTarget()}><Plus size={15}/>Add target</button></div></div><div className="fh-table-scroll"><table><thead><tr><th>Activity</th><th>Progress</th><th>Measure</th><th>Target</th><th>Status</th><th/></tr></thead><tbody>{([...weeklyFitnessCards(targets),...activeTargets.filter(t=>!weeklyFitnessCards(targets).some(c=>c.target.id===t.id)).map(target=>({target,hasTarget:true}))]).map(({target,hasTarget},index)=>{const period=target.period==='month'?activities.filter(r=>r.date.slice(0,7)===targetStart.slice(0,7)):periodActivities(activities,targetStart),actual=targetActual(target,period),pct=hasTarget?Math.round(actual/target.target_value*100):0,onTrack=targetPace(target,pct,targetStart,today);return <tr key={target.id}><td><span className="fh-activity-label"><FitnessActivityIcon kind={target.activity_type} size={15} style={{color:hues[index%4]}}/>{target.activity_type==='Gym'?'Strength (Gym)':target.activity_type}</span></td><td><div className="fh-target-progress"><progress max={hasTarget?target.target_value:1} value={hasTarget?actual:0} style={{'--fh-accent':hues[index%4]} as React.CSSProperties} aria-label={`${target.activity_type} progress`}/><span>{hasTarget?`${pct}%`:'0%'}</span></div></td><td>{target.target_type.replaceAll('_',' ')}</td><td>{hasTarget?`${format(target.target_value)} / ${target.period}`:'0'}</td><td><span className={`fh-badge ${!hasTarget?'':pct>=100||onTrack?'met':'behind'}`}>{!hasTarget?'No target set':pct>=100?'Target met':onTrack?'On track':'In progress'}</span></td><td><button aria-label={`Edit ${target.activity_type} target`} onClick={()=>{if(hasTarget){openTarget(target);return;}openTarget();setTargetDraft({activity_type:target.activity_type,target_type:target.target_type,target_value:target.activity_type==='Steps'?'50000':target.activity_type==='Nutrition'?'7':target.activity_type==='Gym'?'3':'5',period:'week'})}}><MoreHorizontal size={15}/></button></td></tr>})}</tbody></table></div></section>
+ <section className="fh-panel fh-recent" id="fitness-recent"><div className="fh-section-header"><PanelTitle icon={List} title="Recent activities" subtitle="Your latest workouts and activity history."/><div className="fh-activity-actions"><div className="fh-filters">{['All','Running','Gym','Walking','Nutrition',...(filter==='Steps'?['Steps']:[])].map(name=><button key={name} aria-pressed={filter===name} onClick={()=>setFilter(name)}>{name}</button>)}</div><button className="fh-primary" onClick={()=>openActivity()}><Plus size={15}/>Log activity</button></div></div><div className="fh-table-scroll"><table><thead><tr><th>Activity</th><th>Date</th><th>Duration</th><th>Distance / volume</th><th>Calories</th><th>Effort</th><th>Notes</th><th/></tr></thead><tbody>{shown.slice(0,activityLimit).map(row=><tr key={row.id}><td><button className="fh-activity-label" onClick={()=>setDetail(row)}><FitnessActivityIcon kind={row.source==='myfitnesspal'?'Nutrition':row.source==='pacer'?'Steps':row.activity_type} size={14}/>{row.source==='myfitnesspal'?'Nutrition':row.source==='pacer'?'Steps':row.activity_type}</button></td><td>{date(row.date)}</td><td>{row.duration_minutes?`${row.duration_minutes} min`:'—'}</td><td>{row.metadata?.total_volume_kg?`${format(row.metadata.total_volume_kg)} kg`:row.metadata?.steps?`${format(row.metadata.steps)} steps`:row.distance_km?`${format(row.distance_km)} km`:'—'}</td><td>{row.calories?`${format(row.calories)} kcal`:'—'}</td><td>{row.effort?<span className={`fh-badge effort-${row.effort}`}>{row.effort}</span>:'—'}</td><td className="fh-notes">{row.notes||'—'}</td><td>{row.source==='manual'||preview&& !['pacer','myfitnesspal'].includes(row.source??'')?<button aria-label={`Edit ${row.activity_type} activity on ${row.date}`} onClick={()=>openActivity(row)}><MoreHorizontal size={15}/></button>:null}</td></tr>)}</tbody></table>{!shown.length&&<p className="fh-empty">No activities in this period. Log an activity or choose another week.</p>}{shown.length>8&&<button className="fh-show-more" onClick={()=>setActivityLimit(activityLimit===8?shown.length:8)}>{activityLimit===8?`View all ${shown.length} activities`:'Show fewer activities'}</button>}</div></section>
+ </div><aside className="fh-sidebar"><section className="fh-panel"><div className="fh-section-header"><PanelTitle icon={Target} title="Weekly focus"/><button onClick={()=>{setFocusDraft(focus);setEditor('focus')}}>Edit</button></div><div className="fh-focus"><span className="fh-icon"><Image src="/images/fitness/shoe-purple.svg" width={26} height={26} alt=""/></span><div><strong>{focus}</strong><p>{next?`Work toward ${next.target.target_value} ${next.target.target_type.replaceAll('_',' ')} of ${next.target.activity_type.toLowerCase()} this ${next.target.period}.`:'Keep a rhythm that works for you.'}</p></div></div></section>
+ <section className="fh-panel fh-streak-panel"><div className="fh-section-header"><PanelTitle icon={Flame} title="Current streaks"/><button onClick={()=>setUtility('streaks')}>View all</button></div><div className="fh-streaks">{[[Flame,dayStreak(workouts,today),'Workout days'],[Apple,dayStreak(nutrition,today),'Nutrition days'],[Zap,dayStreak(activities,today),'Active days']].map(([Icon,value,label])=>{const I=Icon as typeof Flame;return <div key={String(label)}><I size={22}/><strong>{String(value)}</strong><small>{String(label)}</small><span>day streak</span></div>})}</div></section>
+ <section className="fh-panel fh-milestone-panel"><PanelTitle icon={Trophy} title="Next milestone"/>{next?<button className="fh-milestone" onClick={()=>openTarget(next.target)}><span className="fh-icon"><Image src="/images/fitness/shoe-purple.svg" width={25} height={25} alt=""/></span><div><strong>{next.target.target_value} {next.target.target_type.replaceAll('_',' ')} · {next.target.activity_type}</strong><small>{format(next.actual)} / {format(next.target.target_value)}</small><progress max={100} value={next.percent} aria-label="Milestone progress"/></div></button>:<p className="fh-empty">{activeTargets.length?'All selected-period targets met.':'Add a target to set your next milestone.'}</p>}</section>
+ <section className="fh-panel fh-recovery-panel"><PanelTitle icon={Heart} title="Recovery & readiness" subtitle={preview?'Sample observations':'Self-reported observations'}/>{preview?<><div className="fh-recovery"><div className="fh-recovery-ring" role="img" aria-label="Sample readiness: 78 percent"><ResponsiveContainer width="100%" height="100%"><PieChart><Pie data={[{value:78},{value:22}]} dataKey="value" innerRadius="76%" outerRadius="96%" startAngle={90} endAngle={-270} stroke="none" cornerRadius={10}><Cell fill="url(#fitness-readiness-gradient)"/><Cell fill="#e8f0ed"/></Pie><defs><linearGradient id="fitness-readiness-gradient" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor="#05bd91"/><stop offset="100%" stopColor="#b8f16b"/></linearGradient></defs></PieChart></ResponsiveContainer><strong>78%</strong></div><div><strong className="fh-readiness-label"><Apple size={18}/>Good readiness</strong><p>Sample reading for this preview.</p></div></div>{[[Moon,'Sleep','7h 24m','Good'],[Zap,'HRV','52 ms','Good'],[Heart,'Resting HR','54 bpm','Optimal']].map(([Icon,label,value,status])=>{const I=Icon as typeof Moon;return <div className="fh-recovery-row" key={String(label)}><I size={16}/><span>{String(label)}</span><strong>{String(value)}</strong><span className={`fh-badge ${status==='Optimal'?'optimal':'met'}`}>{String(status)}</span></div>})}</>:<p className="fh-empty">Review your sleep, resting heart rate, and self-reported recovery. No readiness score is inferred.</p>}<Link className="fh-link" href="/fitness/recovery">Recovery observations<ArrowRight size={13}/></Link><Link className="fh-link" href="/fitness/plans">Training plans<ArrowRight size={13}/></Link></section></aside></div></>}
+ <Modal open={!!editor} onClose={()=>{if(!busy)setEditor(null)}} title={editor==='target'?(editing?'Edit target':'Add fitness target'):editor==='focus'?'Weekly focus':editor==='steps'?'Log daily steps':editor==='nutrition'?'Log nutrition':editing?'Edit activity':'Log activity'}><form className="fh-form" onSubmit={save} noValidate>{editor==='focus'?<label>Focus<input value={focusDraft} onChange={e=>setFocusDraft(e.target.value)} maxLength={100}/><small>Saved for this page visit.</small></label>:editor==='target'?<><label>Activity<StyledSelect label="Target activity" value={targetDraft.activity_type} onChange={activity_type=>setTargetDraft({...targetDraft,activity_type,target_type:activity_type==='Steps'?'steps':activity_type==='Nutrition'?'days':'sessions',target_value:activity_type==='Steps'?'50000':activity_type==='Nutrition'?'7':'5'})} options={[...kinds,'Steps','Nutrition'].map(value=>({value,label:value}))}/></label><label>Measure<StyledSelect label="Target measure" value={targetDraft.target_type} onChange={target_type=>setTargetDraft({...targetDraft,target_type})} options={(targetDraft.activity_type==='Steps'?['steps']:targetDraft.activity_type==='Nutrition'?['days']:['sessions','distance_km','duration_minutes']).map(value=>({value,label:value.replaceAll('_',' ')}))}/></label><label htmlFor="fitness-target-value">Target value<input id="fitness-target-value" type="number" min="0.1" step="any" value={targetDraft.target_value} onChange={e=>setTargetDraft({...targetDraft,target_value:e.target.value})}/></label><label>Period<StyledSelect label="Target period" value={targetDraft.period} onChange={period=>setTargetDraft({...targetDraft,period})} options={[{value:'week',label:'Week'},{value:'month',label:'Calendar month'}]}/></label></>:<>{editor==='activity'&&<label>Activity<StyledSelect label="Activity type" value={draft.activity_type} onChange={activity_type=>setDraft({...draft,activity_type})} options={kinds.map(value=>({value,label:value}))}/></label>}<label htmlFor="fitness-date">Date<DatePicker id="fitness-date" value={draft.date} onChange={date=>setDraft({...draft,date})}/></label>{editor==='steps'&&<label>Steps<input type="number" min="0" step="1" value={stepsDraft} onChange={e=>setStepsDraft(e.target.value)}/></label>}<div className="fh-form-grid">{(editor==='nutrition'?[['calories','Calories consumed']]:editor==='steps'?[['distance_km','Distance (km)'],['calories','Calories burned']]:[['duration_minutes','Duration (minutes)'],['distance_km','Distance (km)'],['calories','Calories burned']]).map(([key,label])=><label key={key} htmlFor={`fitness-${key}`}>{label}<input id={`fitness-${key}`} type="number" min="0" step={key==='distance_km'?'0.1':'1'} value={draft[key as keyof typeof draft]} onChange={e=>setDraft({...draft,[key]:e.target.value})}/></label>)}</div>{editor==='activity'&&<label>Effort<StyledSelect label="Activity effort" value={draft.effort} onChange={effort=>setDraft({...draft,effort})} options={['easy','moderate','hard'].map(value=>({value,label:value}))}/></label>}<label>Notes<textarea rows={3} className="resize-none" value={draft.notes} onChange={e=>setDraft({...draft,notes:e.target.value})}/></label></>}{formError&&<p className="field-error" role="alert">{formError}</p>}<footer><Button emphasis="ghost" disabled={busy} onClick={()=>setEditor(null)}>Cancel</Button><Button type="submit" intent="brand" disabled={busy}>{busy?'Saving…':'Save changes'}</Button></footer></form></Modal>
+ <Modal open={!!utility} onClose={()=>setUtility(null)} title={utility==='sources'?'Fitness sources':'Current streaks'} description={utility==='sources'?'Sample connections for this preview. No external accounts are synced.':'Consecutive recorded days through today or yesterday.'}>{utility==='sources'?<div className="fh-utility"><Button onClick={()=>{setUtility(null);openActivity();setEditor('steps')}}><Footprints size={16}/>Log steps</Button><Button onClick={()=>{setUtility(null);openActivity();setEditor('nutrition')}}><Apple size={16}/>Log nutrition</Button><p>Select any source card to explore its recorded activities.</p></div>:<div className="fh-utility">{[['Workout days',workouts],['Nutrition days',nutrition],['Active days',activities]].map(([label,data])=><p key={String(label)}><strong>{String(label)}</strong><span>{dayStreak(data as FitnessActivity[],today)} {dayStreak(data as FitnessActivity[],today)===1?'day':'days'}</span></p>)}</div>}</Modal>
+ <Modal open={!!detail} onClose={()=>setDetail(null)} title={detail?.source==='myfitnesspal'?'Nutrition log':detail?.activity_type??'Activity'}>{detail&&<div className="fh-detail"><p>{date(detail.date)} · {detail.source??'manual'}</p><p>{detail.notes||'No notes recorded.'}</p><dl><dt>Duration</dt><dd>{detail.duration_minutes??'—'} minutes</dd><dt>Distance</dt><dd>{detail.distance_km??'—'} km</dd><dt>Calories</dt><dd>{detail.calories??'—'} kcal</dd>{detail.metadata?.steps&&<><dt>Steps</dt><dd>{format(detail.metadata.steps)}</dd></>}</dl></div>}</Modal>
+ </div>
+}
+function PanelTitle({icon:Icon,title,subtitle}:{icon:typeof Activity;title:string;subtitle?:string}){return <div className="fh-panel-title"><Icon size={21}/><div><h2>{title}</h2>{subtitle&&<p>{subtitle}</p>}</div></div>}
 
-type Row = Record<string, unknown> & {
-  id: string;
-  progress?: { actual: number; target: number; remaining: number; complete: boolean };
-};
-
-type Totals = {
-  sessions: number;
-  distance_km: number;
-  duration_minutes: number;
-  steps?: number;
-  gym_volume_kg?: number;
-  calories_burned?: number;
-  calories_consumed?: number;
-  net_calories?: number;
-};
-
-type Data = {
-  period: { start: string; end: string };
-  activities: Row[];
-  targets: Row[];
-  totals: Totals;
-};
-
-export function FitnessDashboard() {
-  const [data, setData] = useState<Data | null>(null);
-  const [error, setError] = useState("");
-
-  const load = useCallback(async () => {
-    try {
-      const response = await fetch("/api/fitness", { cache: "no-store" });
-      const body = await response.json();
-      if (!response.ok) throw new Error(body.error);
-      setData(body);
-    } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "Fitness could not be loaded.");
-    }
-  }, []);
-
-  useDeferredEffect(useCallback(() => { void load(); }, [load]));
-
-  return (
-    <div className="domain-page fitness-page">
-      <header className="task-context-header fitness-context-header">
-        <div>
-          <div className="task-context-header__path">
-            <Icons.Dumbbell size={15} />
-            <span>Personal rhythm</span>
-            <Icons.ChevronRight size={13} />
-            <strong>Fitness</strong>
-          </div>
-          <h1>Fitness</h1>
-          <p>A calm weekly view of movement, consistency, and targets within reach.</p>
-        </div>
-      </header>
-
-      <FitnessSyncBar onSyncComplete={load} />
-
-      {error ? (
-        <div className="inline-error" role="alert">
-          <p>{error}</p>
-          <Button emphasis="outline" onClick={() => void load()}>Try again</Button>
-        </div>
-      ) : !data ? (
-        <div className="loading-state" aria-live="polite">
-          <span className="loading-spinner" />
-          <p>Reading this week…</p>
-        </div>
-      ) : (
-        <>
-          <section className="metric-ledger" aria-label="Weekly fitness metrics">
-            <div>
-              <strong>{data.totals.sessions}</strong>
-              <span>Sessions this week</span>
-            </div>
-            <div>
-              <strong>{data.totals.distance_km.toFixed(1)} km</strong>
-              <span>Total distance (Strava)</span>
-            </div>
-            <div>
-              <strong>{Math.round(data.totals.duration_minutes)} min</strong>
-              <span>Active duration</span>
-            </div>
-            <div>
-              <strong>{(data.totals.steps ?? 0).toLocaleString()}</strong>
-              <span>Weekly steps (Pacer)</span>
-            </div>
-            <div>
-              <strong>{(data.totals.gym_volume_kg ?? 0).toLocaleString()} kg</strong>
-              <span>Volume lifted (Hevy)</span>
-            </div>
-            <div>
-              <strong>
-                {data.totals.calories_consumed
-                  ? `${(data.totals.net_calories ?? 0) > 0 ? `+${data.totals.net_calories}` : (data.totals.net_calories ?? 0)} kcal`
-                  : `${data.totals.calories_burned ?? 0} kcal`}
-              </strong>
-              <span>{data.totals.calories_consumed ? "Net energy balance (MFP)" : "Calories burned"}</span>
-            </div>
-          </section>
-
-          <section className="target-list" aria-label="Weekly targets">
-            <p className="eyebrow">Weekly targets</p>
-            {data.targets.length ? (
-              data.targets.map((target) => (
-                <div className="target-row" key={target.id}>
-                  <div>
-                    <strong>{String(target.activity_type)}</strong>
-                    <span>
-                      {target.progress?.actual} / {target.progress?.target}{" "}
-                      {String(target.target_type).replace("_", " ")}
-                    </span>
-                  </div>
-                  <span className="target-track">
-                    <i
-                      style={{
-                        width: `${Math.min(
-                          100,
-                          (Number(target.progress?.actual) / Number(target.progress?.target)) * 100
-                        )}%`,
-                      }}
-                    />
-                  </span>
-                  <em>
-                    {target.progress?.complete ? (
-                      <span className="status status--completed">Target met</span>
-                    ) : (
-                      `${target.progress?.remaining} left`
-                    )}
-                  </em>
-                </div>
-              ))
-            ) : (
-              <p className="dataset-note">No active targets. Add one below.</p>
-            )}
-          </section>
-        </>
-      )}
-
-      <DomainPage domain="fitness-targets" embedded onMutationSuccess={load} />
-      <DomainPage domain="fitness" embedded onMutationSuccess={load} />
-    </div>
-  );
+function FitnessActivityIcon({kind,size,style}:{kind:string;size:number;style?:React.CSSProperties}) {
+ const Icon=kind==="Running"?RunningIcon:kind==="Swimming"?SwimmingIcon:kind==="Gym"?Dumbbell:kind==="Steps"||kind==="Walking"?Footprints:kind==="Nutrition"?Apple:Activity;
+ const color=kind==="Gym"?hues[1]:kind==="Steps"||kind==="Walking"?hues[2]:kind==="Nutrition"?hues[3]:hues[0];
+ return <Icon size={size} style={{color,...style}} aria-hidden="true"/>;
 }
 
+function targetPace(target:FitnessTarget,percent:number,start:string,today:string){
+ const base=target.period==='month'?`${start.slice(0,7)}-01`:start;
+ const length=target.period==='month'?new Date(Number(start.slice(0,4)),Number(start.slice(5,7)),0).getDate():7;
+ const elapsed=Math.max(1,Math.min(length,Math.floor((Date.parse(today)-Date.parse(base))/86400000)+1));
+ return percent>=elapsed/length*100;
+}
+function MetricTrend({rows,start,days,measure,color}:{rows:FitnessActivity[];start:string;days:number;measure:string;color:string}){
+ const data=Array.from({length:days},(_,i)=>{const d=rows.filter(r=>r.date===dayShift(start,i));return{value:measure==='sessions'?fitnessTotals(d).sessions:measure==='calories'?fitnessTotals(d).calories:d.reduce((sum,r)=>sum+activityValue(r,measure),0)}});
+ return <div className="fh-spark" aria-hidden="true"><ResponsiveContainer width="47%" height={30}><BarChart data={data} barCategoryGap="24%"><Bar dataKey="value" fill={color} radius={[2,2,0,0]}/></BarChart></ResponsiveContainer><ResponsiveContainer width="43%" height={30}><AreaChart data={data}><Area type="monotone" dataKey="value" stroke={color} strokeWidth={1.4} fill={color} fillOpacity={.12}/></AreaChart></ResponsiveContainer></div>
+}

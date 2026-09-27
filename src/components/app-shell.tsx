@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { Crown, UserRound, Keyboard, CircleHelp } from "lucide-react";
+import { Modal } from "@/components/ui/modal";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { CommandPalette } from "@/components/command-palette";
@@ -58,6 +60,7 @@ function Shell({ children,user }: { children: ReactNode;user:ShellUser }) {
   const [mobileMenu, setMobileMenu] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
+  const [accountInfo, setAccountInfo] = useState<"shortcuts" | "help" | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [selectedArea, setSelectedArea] = useState<string | null>(null);
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
@@ -247,14 +250,22 @@ function Shell({ children,user }: { children: ReactNode;user:ShellUser }) {
             <button className="icon-button topbar-theme" type="button" onClick={toggleTheme} aria-label={dark ? "Switch to light mode" : "Switch to dark mode"} title={dark ? "Light mode" : "Dark mode"} aria-pressed={dark}>{dark ? <Icons.Sun size={17}/> : <Icons.Moon size={17}/>}</button>
             <div className="account-control" ref={accountRef}>
             {accountOpen ? <div className="account-menu" id="account-menu" aria-label="Account">
-              <div className="account-menu__identity" role="presentation"><span className="avatar">{user.initials}</span><span><strong>{user.name}</strong><small>{user.email}</small></span></div>
+              <div className="account-menu__identity"><span className="avatar">{user.initials}</span><div><strong>{user.name}</strong><small title={user.email}>{user.email}</small><span className="account-menu__role"><Crown size={14}/>Workspace owner</span></div></div>
               <div className="account-menu__actions">
-                <Link href="/settings" onClick={() => { setAccountOpen(false); setMobileMenu(false); }}><Icons.Settings size={16}/><span>Settings</span></Link>
-                <button type="button" onClick={toggleTheme}>{dark ? <Icons.Sun size={16}/> : <Icons.Moon size={16}/>}<span>{dark ? "Light mode" : "Dark mode"}</span></button>
-                <button className="account-menu__signout" type="button" disabled={signingOut} onClick={() => void signOut()}><Icons.LogOut size={16}/><span>{signingOut ? "Signing out…" : "Sign out"}</span></button>
+                <div className="account-menu__group">
+                  <Link className="account-menu__profile" href="/settings" onClick={() => setAccountOpen(false)}><UserRound size={21}/><span>My profile</span><Icons.ChevronRight size={17}/></Link>
+                  <Link href="/settings/workspace" onClick={() => setAccountOpen(false)}><Icons.Settings size={21}/><span>Workspace settings</span><Icons.ChevronRight size={17}/></Link>
+                  <Link href="/settings/notifications" onClick={() => setAccountOpen(false)}><Icons.Bell size={21}/><span>Notifications</span><Icons.ChevronRight size={17}/></Link>
+                </div>
+                <div className="account-menu__group">
+                  <button type="button" role="switch" aria-checked={dark} onClick={toggleTheme}><Icons.Moon size={21}/><span>Dark mode</span><span className="account-menu__switch" aria-hidden="true"><span/></span></button>
+                  <button type="button" onClick={() => { setAccountInfo("shortcuts"); setAccountOpen(false); }}><Keyboard size={21}/><span>Keyboard shortcuts</span><kbd>⌘ K</kbd></button>
+                </div>
+                <div className="account-menu__group"><button type="button" onClick={() => { setAccountInfo("help"); setAccountOpen(false); }}><CircleHelp size={21}/><span>Help &amp; feedback</span><Icons.ChevronRight size={17}/></button></div>
+                <div className="account-menu__group"><button className="account-menu__signout" type="button" disabled={signingOut} onClick={() => void signOut()}><Icons.LogOut size={21}/><span>{signingOut ? "Signing out…" : "Sign out"}</span></button></div>
               </div>
             </div> : null}
-            <button ref={accountButtonRef} className="profile-button" type="button" onClick={() => setAccountOpen((open) => !open)} aria-expanded={accountOpen} aria-controls="account-menu"><span className="avatar">{user.initials}</span><span><strong>{user.name}</strong><small>Workspace owner</small></span><Icons.ChevronDown className={accountOpen ? "profile-button__chevron profile-button__chevron--open" : "profile-button__chevron"} size={15}/></button>
+            <button ref={accountButtonRef} className="profile-button" type="button" aria-label="Open account menu" onClick={() => setAccountOpen((open) => !open)} aria-expanded={accountOpen} aria-controls="account-menu"><span className="avatar">{user.initials}</span><span><strong>{user.name}</strong><small>Workspace owner</small></span><Icons.ChevronDown className={accountOpen ? "profile-button__chevron profile-button__chevron--open" : "profile-button__chevron"} size={15}/></button>
           </div>
           </div>
         </header>
@@ -268,6 +279,9 @@ function Shell({ children,user }: { children: ReactNode;user:ShellUser }) {
         <Link className={pathname === "/calendar" ? "active" : ""} href="/calendar"><Icons.CalendarDays size={19} /><span>Calendar</span></Link>
         <button className={mobileMenu ? "active" : ""} onClick={() => setMobileMenu(true)} aria-expanded={mobileMenu}><Icons.MoreHorizontal size={19} /><span>More</span></button>
       </nav>
+      <Modal open={accountInfo !== null} onClose={() => { setAccountInfo(null); requestAnimationFrame(() => accountButtonRef.current?.focus()); }} title={accountInfo === "shortcuts" ? "Keyboard shortcuts" : "Help & feedback"}>
+        {accountInfo === "shortcuts" ? <dl className="account-help-shortcuts"><div><dt>Search your workspace</dt><dd>⌘ / Ctrl + K</dd></div><div><dt>Toggle navigation</dt><dd>⌘ / Ctrl + B</dd></div><div><dt>Quick capture</dt><dd>C</dd></div><div><dt>Open Focus</dt><dd>F</dd></div><div><dt>Close a dialog or menu</dt><dd>Esc</dd></div></dl> : <div className="account-help-copy"><p>Use search to find tasks, projects, and clients. Quick capture collects new ideas and tasks in your inbox.</p><p>To record feedback for later, add a note through Quick capture. Nothing is sent automatically.</p><button className="button button--outline" onClick={() => { setAccountInfo(null); setCaptureOpen(true); }}>Open Quick capture</button></div>}
+      </Modal>
       <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
       <QuickCapture open={captureOpen} onClose={() => setCaptureOpen(false)} />
     </div>

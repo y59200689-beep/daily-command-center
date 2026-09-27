@@ -1,0 +1,10 @@
+import type {ClientRecord,ClientCheckIn,ClientRenewal,ClientSatisfactionSignal,ClientIssue,ClientCommitment} from './success';
+export type SuccessAccount={client:ClientRecord;owners:{id:string;name:string}[];health:{state:string;summary:string;nextSuggestedStep?:string};engagement:{state:string;daysSince?:number|null};checkIns:ClientCheckIn[];renewals:ClientRenewal[];signals:ClientSatisfactionSignal[];issues:ClientIssue[];commitments:ClientCommitment[];counts:{openIssues:number;openRisks:number;openCommitments:number}};
+export type SuccessPortfolio={portfolioAccounts:SuccessAccount[];waitingOnUs:{id:string;client_id:string;client_name:string;what:string;due?:string|null;is_overdue:boolean;route:string}[];summary:{totalClients:number;healthBreakdown:Record<string,number>;upcomingRenewalsCount:number};};
+export const healthStates=['healthy','needs_attention','at_risk','critical','insufficient_data'];
+export const healthColors:Record<string,string>={healthy:'#00af75',needs_attention:'#f4b000',at_risk:'#ff7c25',critical:'#ff315e',insufficient_data:'#a5aec7'};
+export const successLabel=(value:string)=>value==='insufficient_data'?'Not assessed':value.replaceAll('_',' ').replace(/^./,v=>v.toUpperCase());
+export function nextRenewal(account:SuccessAccount){return account.renewals.filter(r=>!['renewed','not_renewing','cancelled'].includes(r.status)).sort((a,b)=>a.renewal_date.localeCompare(b.renewal_date))[0];}
+export function nextCheckIn(account:SuccessAccount){return account.checkIns.filter(r=>r.status==='scheduled'&&r.scheduled_at).sort((a,b)=>String(a.scheduled_at).localeCompare(String(b.scheduled_at)))[0];}
+export function latestSignal(account:SuccessAccount){return [...account.signals].sort((a,b)=>b.recorded_at.localeCompare(a.recorded_at))[0];}
+export function filterSuccessAccounts(accounts:SuccessAccount[],query:string,health:string,owner:string){return accounts.filter(a=>(health==='all'||a.health.state===health)&&(owner==='all'||(owner==='unassigned'?a.owners.length===0:a.owners.some(o=>o.id===owner)))&&`${a.client.name} ${a.client.company??''} ${a.owners.map(o=>o.name).join(' ')}`.toLowerCase().includes(query.trim().toLowerCase()));}

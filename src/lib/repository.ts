@@ -73,7 +73,7 @@ export async function updateRecord(client: UntypedClient, userId: string, domain
 }
 
 async function validateRelationships(client: UntypedClient, userId: string, input: Record<string, unknown>) {
-  const relationships = [["project_id", "projects"], ["client_id", "clients"], ["goal_id", "goals"], ["task_id", "tasks"], ["invoice_id", "invoices"], ["campaign_id", "campaigns"], ["prompt_id", "prompts"], ["content_item_id", "content_items"], ["subscription_id", "subscriptions"], ["superseded_by_decision_id", "decisions"]] as const;
+  const relationships = [["parent_task_id", "tasks"], ["project_id", "projects"], ["client_id", "clients"], ["goal_id", "goals"], ["task_id", "tasks"], ["invoice_id", "invoices"], ["campaign_id", "campaigns"], ["prompt_id", "prompts"], ["content_item_id", "content_items"], ["subscription_id", "subscriptions"], ["superseded_by_decision_id", "decisions"]] as const;
   for (const [field, table] of relationships) {
     const value = input[field];
     if (!value) continue;
