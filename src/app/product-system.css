@@ -1028,3 +1028,116 @@ button.desktop-sidebar-scrim, button.sidebar-scrim { box-shadow: none; }
 @media (prefers-reduced-motion: reduce) {
   button:not(.desktop-sidebar-scrim):not(.sidebar-scrim), a.button, a.btn, a.executive-btn, a.learning-btn-secondary, a[role="button"] { transition: none; }
 }
+
+/* Shared desktop account controls — soft lavender reference treatment. */
+.desktop-topbar .topbar-actions { gap: 10px; }
+.desktop-topbar .topbar-actions .icon-button {
+  width: 38px;
+  height: 38px;
+  border: 1px solid color-mix(in srgb, var(--line) 82%, white);
+  border-radius: 12px;
+  background: linear-gradient(145deg, var(--surface), color-mix(in srgb, var(--surface) 94%, #e8dfff));
+  color: var(--ink);
+  box-shadow: inset 0 1px 2px #ffffff90, 0 4px 12px #33215c08;
+  transition: background .16s ease, border-color .16s ease, box-shadow .16s ease;
+}
+.desktop-topbar .topbar-actions .topbar-capture {
+  color: #7944e8;
+  border-color: #ddd0ff;
+  background: linear-gradient(145deg, var(--surface), color-mix(in srgb, var(--surface) 86%, #e8dfff));
+  box-shadow: inset 0 0 0 1px #ffffffa8, 0 4px 12px #7944e812;
+}
+.desktop-topbar .topbar-actions .topbar-capture svg { width: 21px; height: 21px; stroke-width: 2.3; }
+.desktop-topbar .topbar-actions .notification-trigger svg { width: 20px; height: 20px; }
+.desktop-topbar .topbar-actions .topbar-theme svg { width: 20px; height: 20px; }
+.desktop-topbar .topbar-actions .topbar-theme[aria-pressed="false"] svg { fill: currentColor; stroke-width: 1.5; }
+.desktop-topbar .topbar-actions .icon-button:hover {
+  border-color: #c9b4fb;
+  background: color-mix(in srgb, var(--surface) 88%, #dfd1ff);
+  box-shadow: 0 4px 14px #7944e81a;
+}
+.desktop-topbar .topbar-actions .icon-button:focus-visible,
+.desktop-topbar .topbar-actions .profile-button:focus-visible { outline: 2px solid #a17afa; outline-offset: 3px; }
+.desktop-topbar .topbar-actions .notification-trigger > span {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  min-width: 7px;
+  width: 7px;
+  height: 7px;
+  padding: 0;
+  border: 1px solid var(--surface);
+  border-radius: 50%;
+  background: #ff3364;
+  font-size: 0;
+  box-shadow: 0 0 8px #ff336435;
+}
+.desktop-topbar .topbar-actions .profile-button {
+  display: grid;
+  grid-template-columns: 38px 16px;
+  min-width: 68px;
+  width: 68px;
+  height: 38px;
+  gap: 7px;
+  padding: 0 6px 0 0;
+  margin: 0 0 0 2px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface) 92%, #eee6ff);
+  box-shadow: 0 3px 12px #51318708;
+}
+.desktop-topbar .topbar-actions .profile-button > .avatar {
+  width: 38px;
+  height: 38px;
+  margin: -1px 0 -1px -1px;
+  border: 2px solid #e6dcff;
+  border-radius: 50%;
+  background: linear-gradient(140deg, #8950ef, #512abf);
+  color: white;
+  font: 600 15px/1 var(--font-geist-sans), sans-serif;
+  box-shadow: 0 2px 7px #7847d41c;
+}
+.desktop-topbar .topbar-actions .profile-button > span:nth-child(2) { display: none; }
+.desktop-topbar .topbar-actions .profile-button__chevron { display: block; color: var(--muted); width: 14px; stroke-width: 2.7; }
+.desktop-topbar .topbar-actions .profile-button:hover,
+.desktop-topbar .topbar-actions .profile-button[aria-expanded="true"] { border-color: #c9b4fb; background: color-mix(in srgb, var(--surface) 88%, #dfd1ff); }
+@media (prefers-reduced-motion: reduce) {
+  .desktop-topbar .topbar-actions .icon-button,
+  .desktop-topbar .topbar-actions .profile-button__chevron { transition: none; }
+}
+
+/* Profile dropdown reference: scoped to the account card only. */
+.desktop-topbar .account-menu {
+  width: 352px; max-width: calc(100vw - 32px); top: calc(100% + 14px);
+  padding: 9px; border: 1px solid var(--line); border-radius: 18px;
+  background: var(--surface); box-shadow: 0 18px 50px #24213b24, 0 2px 7px #24213b08;
+}
+.desktop-topbar .account-menu::before { content: ""; position: absolute; top: -8px; right: 28px; width: 14px; height: 14px; background: var(--surface); border-top: 1px solid var(--line); border-left: 1px solid var(--line); transform: rotate(45deg); }
+.desktop-topbar .account-menu__identity { grid-template-columns: 54px minmax(0,1fr); gap: 14px; padding: 21px 14px; border: 0; border-radius: 13px; background: color-mix(in srgb,var(--surface) 90%,#a585ff); }
+.desktop-topbar .account-menu__identity .avatar { width: 54px; height: 54px; background: linear-gradient(140deg,#8650ed,#6031d0); font: 600 24px var(--font-geist-sans),sans-serif; }
+.desktop-topbar .account-menu__identity strong { display: block; font-size: 16px; font-weight: 700; letter-spacing: -.35px; overflow-wrap: anywhere; line-height: 1.35; }
+.desktop-topbar .account-menu__identity small { display: block; margin-top: 4px; font-size: 12px; line-height: 1.4; color: var(--muted); }
+.desktop-topbar .account-menu__role { display: inline-flex; align-items: center; gap: 6px; margin-top: 7px; padding: 4px 10px; border-radius: 20px; background: color-mix(in srgb,var(--surface) 75%,#b096ff); color: var(--attention); font-size: 11px; font-weight: 600; }
+.desktop-topbar .account-menu__actions { padding: 7px 2px 0; }
+.desktop-topbar .account-menu__group + .account-menu__group { border-top: 1px solid var(--line); margin-top: 6px; padding-top: 6px; }
+.desktop-topbar .account-menu__actions :is(a,button) { min-height: 44px; padding: 10px 13px; gap: 15px; border-radius: 10px; font-size: 14px; color: var(--ink); line-height: 1.4; text-decoration: none; cursor: pointer; }
+.desktop-topbar .account-menu__actions :is(a,button) > svg { flex-shrink: 0; color: var(--muted); stroke-width: 1.8; }
+.desktop-topbar .account-menu__actions :is(a,button) > span:first-of-type { flex: 1; }
+.desktop-topbar .account-menu__actions :is(a,button) > svg:last-child:not(:first-child) { margin-left: auto; }
+.desktop-topbar .account-menu__actions .account-menu__profile { background: color-mix(in srgb,var(--surface) 88%,#b394ff); }
+.desktop-topbar .account-menu__profile > svg:first-child { color: var(--attention); }
+.desktop-topbar .account-menu__actions :is(a,button):hover:not(:disabled) { background: color-mix(in srgb,var(--surface) 83%,#b394ff); }
+.desktop-topbar .account-menu__actions :is(a,button):focus-visible { outline: 2px solid var(--attention); outline-offset: -2px; }
+.desktop-topbar .account-menu__actions .account-menu__signout, .desktop-topbar .account-menu__actions .account-menu__signout > svg { color: #df404a; }
+.desktop-topbar .account-menu__actions .account-menu__signout:hover:not(:disabled) { background: color-mix(in srgb,var(--surface) 92%,#ee6177); }
+.desktop-topbar .account-menu__actions kbd { padding: 5px 8px; border: 0; border-radius: 7px; background: var(--canvas); color: var(--muted); font: 12px var(--font-geist-sans),sans-serif; }
+.desktop-topbar .account-menu__switch { width: 39px; height: 23px; padding: 3px; background: color-mix(in srgb,var(--muted) 27%,var(--surface)); border-radius: 20px; flex-shrink: 0; }
+.desktop-topbar .account-menu__switch > span { display: block; width: 17px; height: 17px; border-radius: 50%; background: #fff; box-shadow: 0 1px 4px #19183225; transition: transform .16s; }
+.desktop-topbar [aria-checked="true"] .account-menu__switch { background: var(--attention); }
+.desktop-topbar [aria-checked="true"] .account-menu__switch > span { transform: translateX(16px); }
+.account-help-shortcuts { margin: 0; }
+.account-help-shortcuts > div { display: flex; justify-content: space-between; gap: 20px; padding: 13px 0; border-bottom: 1px solid var(--line); }
+.account-help-shortcuts dd { margin: 0; color: var(--muted); }
+.account-help-copy p { line-height: 1.65; color: var(--muted); }
+@media(max-height:650px) { .desktop-topbar .account-menu { max-height: calc(100dvh - 80px); overflow-y: auto; } }
+@media(prefers-reduced-motion:reduce) { .desktop-topbar .account-menu__switch > span { transition: none; } }

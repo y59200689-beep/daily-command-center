@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { growthTotals } from "@/lib/growth-dashboard";
 import { apiError } from "@/lib/api";
 import { requireUser } from "@/lib/supabase/server";
 import {
@@ -38,7 +39,7 @@ export async function GET() {
       supabase.from("projects").select("id,client_id,name,status,updated_at").eq("user_id", userId).is("deleted_at", null),
       supabase.from("services").select("id,name,category,default_price,pricing_type,active").eq("user_id", userId).is("archived_at", null),
       supabase.from("proposal_items").select("id,proposal_id,service_id,title,quantity,unit_price,total").eq("user_id", userId),
-      supabase.from("invoices").select("id,client_id,total_amount,amount_remaining,currency,status,due_date,paid_at,updated_at").eq("user_id", userId).is("deleted_at", null),
+      supabase.from("invoices").select("id,invoice_number,client_id,total_amount,amount_remaining,currency,status,due_date,paid_at,updated_at").eq("user_id", userId).is("deleted_at", null),
       supabase.from("payments").select("id,amount,currency,payment_date").eq("user_id", userId).is("deleted_at", null),
       supabase.from("growth_experiments").select("*").eq("user_id", userId).order("created_at", { ascending: false }).limit(10),
     ]);
@@ -86,36 +87,21 @@ export async function GET() {
     const leadReactivations = identifyLeadReactivations(leads, opportunities, today);
     const offerMetrics = computeOfferIntelligence(services, proposalItems, proposals, opportunities);
     const channelMetrics = computeChannelPerformance(leads, opportunities, proposals);
-    const growthRisks = detectGrowthRisks(opportunities, clients, proposals, today);
+    const growthRisks = Array.from(new Set(opportunities.map(row => row.currency || "MAD"))).flatMap(currency =>
+      detectGrowthRisks(opportunities.filter(row => (row.currency || "MAD") === currency), clients, proposals.filter(row => (row.currency || "MAD") === currency), today).map(risk => ({ ...risk, id: `${risk.id}:${currency}`, currency, evidence: risk.evidence.replaceAll("MAD", currency) }))
+    );
 
-    const currentMonth = today.slice(0, 7);
-    let wonThisMonth = 0;
-    let invoicedTotal = 0;
-    let collectedTotal = 0;
-
-    for (const opp of opportunities) {
-      if (opp.stage === "won" && opp.won_at && opp.won_at.slice(0, 7) === currentMonth) {
-        wonThisMonth += Number(opp.estimated_value ?? 0);
-      }
-    }
-    for (const inv of invoices) {
-      invoicedTotal += Number(inv.total_amount ?? 0);
-    }
-    for (const pay of payments) {
-      collectedTotal += Number(pay.amount ?? 0);
-    }
-
+    const dashboard = { opportunities, invoices, payments, proposals, proposalItems, clients, services };
+    const totals = growthTotals(dashboard, "MAD");
     return NextResponse.json({
+      dashboard,
       nextGrowthMove,
       revenueInMotion: {
-        openPipeline: pipelineQuality.totalOpenValue,
-        wonThisMonth,
-        invoicedTotal,
-        collectedTotal,
+        ...totals,
         currency: "MAD",
       },
       pipelineQuality,
-      scoredOpportunities: scoredOpportunities.slice(0, 8),
+      scoredOpportunities,
       scoredLeads,
       expansionCandidates: expansionCandidates.slice(0, 6),
       dormantClients: dormantClients.slice(0, 6),

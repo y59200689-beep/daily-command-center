@@ -35,7 +35,10 @@ test("V5 business API owner-scopes reads and validates linked entities on the se
 
 test("V5 business UI keeps a human-readable pipeline and line-item proposal builder", async () => {
   const source = await readFile(new URL("../src/features/business/business-workspace.tsx", import.meta.url), "utf8");
-  for (const expected of ["Weighted pipeline", "Next sales actions", "Line items", "Add line", "Move", "New opportunity"]) assert.match(source, new RegExp(expected));
+  const dashboard = await readFile(new URL("../src/features/business/business-dashboard.tsx", import.meta.url), "utf8");
+  assert.match(source, /BusinessDashboard/);
+  for (const expected of ["Weighted pipeline", "Next sales actions", "New opportunity"]) assert.match(dashboard, new RegExp(expected));
+  for (const expected of ["Line items", "Add line", "Move"]) assert.match(source, new RegExp(expected));
   const styles = await readFile(new URL("../src/app/globals.css", import.meta.url), "utf8");
   assert.match(styles, /\.business-pipeline/); assert.match(styles, /\.proposal-line/);
 });
@@ -151,7 +154,7 @@ test("V5 reactivation actions remain owner-scoped and create a deliberately spar
 });
 
 test("V5 reactivation cards are present in both business and client contexts with touch-safe actions", async () => {
-  const [component, client, workspace] = await Promise.all([readFile(new URL("../src/features/business/reactivation-candidates.tsx", import.meta.url), "utf8"), readFile(new URL("../src/features/business/client-business.tsx", import.meta.url), "utf8"), readFile(new URL("../src/features/business/business-workspace.tsx", import.meta.url), "utf8")]);
+  const [component, client, workspace] = await Promise.all([readFile(new URL("../src/features/business/reactivation-candidates.tsx", import.meta.url), "utf8"), readFile(new URL("../src/features/business/client-business.tsx", import.meta.url), "utf8"), readFile(new URL("../src/features/business/business-dashboard.tsx", import.meta.url), "utf8")]);
   for (const label of ["Potential reactivation", "Create opportunity", "Snooze", "Dismiss"]) assert.match(component, new RegExp(label));
   assert.match(client, /ReactivationCandidates/); assert.match(workspace, /ReactivationCandidates/);
 });

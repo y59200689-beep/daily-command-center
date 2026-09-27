@@ -11,6 +11,8 @@ type Level = "off" | "important" | "all";
 export function NotificationPreferences() {
   const [values, setValues] = useState<Record<string, Level>>({});
   const [saving, setSaving] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+  const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
   const load = useCallback(async () => {
     const response = await fetch("/api/notifications", { cache: "no-store" });
@@ -22,6 +24,8 @@ export function NotificationPreferences() {
       next[category] = !item || item.enabled === false ? "off" : item.minimum_severity === "low" ? "all" : "important";
     }
     setValues(next);
+    setLoaded(true);
+    setError("");
   }, []);
 
   useDeferredEffect(useCallback(() => {
@@ -29,6 +33,8 @@ export function NotificationPreferences() {
   }, [load]));
 
   const save = async () => {
+    if (!loaded || saving) return;
+    setSaved(false);
     setSaving(true);
     setError("");
     try {
@@ -38,6 +44,7 @@ export function NotificationPreferences() {
         body: JSON.stringify({ preferences: notificationCategories.map((category) => ({ category, level: values[category] ?? "off" })) }),
       });
       if (!response.ok) throw new Error();
+      setSaved(true);
     } catch {
       setError("Preferences could not be saved.");
     } finally {
@@ -45,5 +52,5 @@ export function NotificationPreferences() {
     }
   };
 
-  return <div className="domain-page notification-settings"><header className="task-context-header"><div><nav className="task-context-header__breadcrumb" aria-label="Breadcrumb"><span>Settings</span><span>/</span><span className="current">Notifications</span></nav><div className="task-context-header__title-row"><h1>Notifications</h1></div><p className="task-context-header__description">Choose which signals can interrupt your day. Important only keeps the attention layer quiet.</p></div></header><section className="data-surface">{notificationCategories.map((category) => <div className="notification-preference" key={category}><div><strong>{labels[category]}</strong><small>Important only includes overdue, blocked, or time-sensitive signals.</small></div><fieldset aria-label={`${labels[category]} notification level`}>{(["off", "important", "all"] as Level[]).map((level) => <label key={level}><input type="radio" name={category} checked={values[category] === level} onChange={() => setValues({ ...values, [category]: level })} />{level === "off" ? "Off" : level === "important" ? "Important only" : "All"}</label>)}</fieldset></div>)}{error ? <p className="field-error">{error}</p> : null}<Button disabled={saving} onClick={() => void save()}>{saving ? "Saving…" : "Save preferences"}</Button></section></div>;
+  return <div className="domain-page notification-settings"><header className="task-context-header"><div><nav className="task-context-header__breadcrumb" aria-label="Breadcrumb"><span>Settings</span><span>/</span><span className="current">Notifications</span></nav><div className="task-context-header__title-row"><h1>Notifications</h1></div><p className="task-context-header__description">Choose which signals can interrupt your day. Important only keeps the attention layer quiet.</p></div></header><section className="data-surface">{notificationCategories.map((category) => <div className="notification-preference" key={category}><div><strong>{labels[category]}</strong><small>Important only includes overdue, blocked, or time-sensitive signals.</small></div><fieldset disabled={!loaded || saving} aria-label={`${labels[category]} notification level`}>{(["off", "important", "all"] as Level[]).map((level) => <label key={level}><input type="radio" name={category} checked={values[category] === level} onChange={() => { setSaved(false); setValues({ ...values, [category]: level }); }} />{level === "off" ? "Off" : level === "important" ? "Important only" : "All"}</label>)}</fieldset></div>)}{error ? <p className="field-error" role="alert">{error}</p> : null}{!loaded && !error ? <p role="status">Loading your preferences…</p> : null}{!loaded && error ? <Button onClick={() => void load().catch(() => setError("Preferences could not be loaded."))}>Try again</Button> : null}{saved ? <p className="settings-saved" role="status">Notification preferences saved.</p> : null}<Button disabled={saving || !loaded} onClick={() => void save()}>{saving ? "Saving…" : "Save preferences"}</Button></section></div>;
 }

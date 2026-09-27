@@ -34,6 +34,7 @@ export async function GET() {
       issuesRes,
       invoicesRes,
       projectsRes,
+      ownersRes,
     ] = await Promise.all([
       supabase.from("clients").select("*").eq("user_id", userId).is("deleted_at", null).order("name"),
       supabase.from("client_outcomes").select("*").eq("user_id", userId),
@@ -51,9 +52,10 @@ export async function GET() {
         .from("projects")
         .select("id, client_id, name, status, target_date, progress")
         .eq("user_id", userId),
+      supabase.from("team_entity_ownership").select("entity_id, person:team_people(id,name)").eq("user_id", userId).eq("entity_type", "client"),
     ]);
 
-    const failed = [clientsRes, outcomesRes, commitmentsRes, checkInsRes, signalsRes, risksRes, renewalsRes, issuesRes, invoicesRes, projectsRes].find((result) => result.error);
+    const failed = [clientsRes, outcomesRes, commitmentsRes, checkInsRes, signalsRes, risksRes, renewalsRes, issuesRes, invoicesRes, projectsRes, ownersRes].find((result) => result.error);
     if (failed?.error) throw failed.error;
 
     const clients = (clientsRes.data ?? []) as ClientRecord[];
@@ -153,6 +155,12 @@ export async function GET() {
 
       return {
         client,
+        owners: (ownersRes.data ?? []).filter(row => row.entity_id === client.id).flatMap(row => Array.isArray(row.person) ? row.person : row.person ? [row.person] : []),
+        checkIns: cCheckIns,
+        renewals: cRenewals,
+        signals: cSignals,
+        issues: cIssues,
+        commitments: cCommitments,
         health,
         churn,
         delivery,
@@ -215,6 +223,7 @@ export async function GET() {
       data: {
         portfolioAccounts,
         nextAction,
+        waitingOnUs: waitingState.waitingOnUs,
         summary: {
           totalClients: clients.length,
           healthBreakdown,

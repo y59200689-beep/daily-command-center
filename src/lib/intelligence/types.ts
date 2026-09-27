@@ -49,6 +49,8 @@ export type Recommendation = {
 };
 
 export type Risk = {
+  score?: number;
+  updatedAt?: string | null;
   key: string;
   entityType: IntelligenceEntityType;
   entityId: string;

@@ -96,3 +96,54 @@ Controls use 7px radii and contained surfaces use 9px. Status markers use compac
 - Don't render pagination unless the dataset can actually paginate.
 - Don't make every domain look like the same table or card grid.
 - Don't introduce decorative integrations, metrics, or actions that are not wired to real behavior.
+
+## Business overview reference variant
+
+The Business overview follows the user-supplied September 27, 2026 image: a pale lavender image-backed canvas, four compact summary cards, a five-part interactive pipeline, sales actions on the left, commercial state on the right, and a forecast/reactivation row. This route is an explicit exception to the flat 9px panel treatment: its surfaces use 16px corners and understated shadows. The rest of the business workspaces retain their existing visual contracts.
+
+`src/features/business/business-dashboard.css` owns the scoped `--business-*` tokens: violet #713CFF, violet soft #EEE8FF, potential series #D9CAFF, ink #151536, muted #69759B, line #E6E9FC, and surface #FFFFFF, with semantic green/orange/blue accents. The CSS, Recharts series, and dashboard components consume these same tokens. Geist remains the shared font; the reference variant uses a 38px heading, 16px section titles, and 12–14px body copy. The canvas asset is `public/images/business/overview-background.png`, generated from the supplied reference. Dark mode replaces the canvas artwork with the dark workspace surface and remaps the component tokens. Small screens preserve every section and control in one column.
+
+## Growth overview reference variant
+
+Growth follows the supplied September 27, 2026 reference: four summary cards, a wide opportunities table beside a stage chart, risk/dormant-client/service panels, and five navigation cards. It reuses Business's scoped `--business-*` palette, generated lavender ribbon background, Geist hierarchy, 15px panel corners, and Lucide icon library. `src/features/growth/growth-home.css` owns Growth's grid, compact table, responsive stacking, and violet Pipeline navigation card. Shared Button, Modal, ToastProvider, BusinessEditor and global theme remain canonical owners. No sample clients, owner avatars, unsupported utilization, or invented trends are displayed.
+
+## Team reference variant
+
+Team uses the supplied team.png reference with the shared Business lavender canvas, scoped palette, Geist type, Lucide icons, and rounded white surfaces. Its directory expands across the page until a person is selected; selection creates the reference's two-column directory/member layout. Mobile stacks the member panel above the directory and confines wide tables to their own scroll region. Real avatar URLs are used when available; otherwise initials identify the person. Capacity is the existing recorded state, never an invented utilization percentage. Current counts replace unsupported comparison trends.
+
+## Pipeline reference variant
+
+Pipeline follows pipeline.png: a compact Business breadcrumb/title, two workspace tabs, four metrics, six tinted stage lanes and a right-hand column of health, stage distribution, next actions and upcoming follow-ups. The shared Business canvas, scoped violet/ink/muted palette, Geist type, Lucide icons, and 12–16px white surfaces remain canonical. Recharts renders actual distribution and win-rate rings. Existing SearchInput, StyledSelect, Modal, Button, BusinessEditor and ToastProvider own shared interactions. The wide board scrolls inside its panel on narrower desktops/mobile; insights stack below it. No fictional clients, owners, percentages or historical trends are introduced.
+
+## Finance overview — reference implementation
+The Finance records overview follows `finance.png`: lavender background asset reused from Business; white outlined cards; six metric tiles; a 2:1 cash chart and cash-position row; invoices, expenses, and stacked attention/renewal panels. Existing Geist type and Lucide outline icons preserve the application language. Purple identifies inflow, blue expenses; statuses also have readable text. At tablet sizes metrics wrap into three columns; phones use two columns with stacked panels and horizontally scrollable navigation/tables. Real records replace sample values. Historical charts only render recorded payment/expense activity; current receivable balances are explicitly labeled, with no invented historic comparisons.
+
+## Leads directory and selected-lead panel
+Reference: `docs/design/references/leads.png` (1672 × 941). Leads uses the existing lavender Business background, four white KPI cards, rounded filter controls, a dense directory, and a 450px detail panel on wide desktops. The reference's primary visual hierarchy, pastel status pills, outlined cards, spacing, and purple selected row are preserved. User-owned records use initials when no logo exists; no company logos or trend percentages are invented. Actual app statuses/sources and linked opportunity stages replace unsupported reference categories. Owner is the authenticated private workspace user; no unsupported assignment filter is shown. Mobile opens a full-width accessible drawer with Escape, focus return, and constrained Tab navigation.
+
+### Customer Success overview
+The `/success` overview follows the selected Customer Success reference: eight current-state metrics, a searchable portfolio table, a three-card health/renewal row, a right-side client overview on selection, and supporting waiting/issues/signals panels. Reuse the lavender canvas and Lucide icon vocabulary. Keep health categories disjoint and render unknown assessments explicitly; do not invent historical deltas, ARR, or numeric health scores.
+
+## Risks reference variant
+The Risks Signals view follows risks.png with the shared lavender canvas, five live summary cards, evidence-rich signal rows, severity distribution, snapshot trend and a right-side detail panel. Scoped risks-dashboard.css owns the responsive layout and semantic severity palette. Real rule-based priority scores replace sample values; missing history and ownership have explicit honest states.
+
+## Personal settings reference variant
+Settings follows profile setting.png with the shared lavender canvas, a seven-section navigation rail, real-profile identity banner and two-column settings center. The shell extends consistently to Workspace, Notifications, Integrations, Security, Appearance and Preferences. Settings-scoped tokens own ink, muted text, borders, surfaces and violet highlights; Lucide icons match the reference line weight. Existing generated canvas artwork is reused; identity initials are real UI. Mobile uses a horizontally scrollable section navigation with the active item brought into view, stacked forms and generous bottom clearance. Light and dark themes share the same hierarchy.
+
+## Idea vault reference variant
+Ideas follows ideas.png with the shared lavender canvas, four live summaries, searchable list/grid, tinted category icons and an adjacent idea panel. Scoped ideas-dashboard.css owns the responsive layout. Mobile selection becomes a modal drawer. Existing fields replace unsupported owners, tags, trends and conversion counts.
+
+## Prompt library
+The September 27 Prompts reference defines the lavender canvas, four compact summary cards, outlined filter strip, selected template row and adjacent white detail panel. `src/features/prompts/prompts-dashboard.css` owns the scoped pv tokens, mapped to the same purple/ink/surface visual language as Ideas. The global shell, Modal, Button, StyledSelect and ToastProvider remain canonical. On mobile the selected template becomes a focus-contained drawer. Data columns use the stored category, detected variables, recorded usage and update date; unsupported owners, status, success percentages and arbitrary version labels are omitted.
+
+## Fitness dashboard
+The September 27 Fitness reference sets six color-coded metrics, connected-app cards, a four-card progress section, compact target/activity tables and a right sidebar for focus, streaks, milestones and recovery. `src/features/fitness/fitness-dashboard.css` owns the scoped fh tokens and reuses the global shell, purple surfaces, existing mountain image, canonical Modal/Button/StyledSelect/DatePicker and ToastProvider. Recharts owns the data visualizations. Narrow layouts use two-column metrics/progress, stacked panels, and locally scrollable tables.
+
+### Life dashboard
+Life uses the shared shell and a quiet lavender canvas, six compact counters, coastal illustration, four personal planning cards, a side overview, and a second row for fitness, goals, dates and routines. Keep controls on Button, DatePicker, Modal, and ToastProvider. Original coastal raster assets live in public/images/life. Real values come from the existing Life API; development-only preview=design supplies sample records with local state and no write requests. Quick access customization lasts for the page visit.
+
+### Desktop header actions
+The shared desktop header follows the September 27 controls reference: softly rounded surface buttons, a purple capture icon, a filled crescent in light mode, and a purple circular avatar joined to a dropdown pill. Keep the notification dot tied to unread records and retain its accessible count. Header action styles live in product-system.css; existing capture, notification, theme and account handlers remain canonical.
+
+### Trips workspace
+Trips follows the supplied trips.png reference: four compact metrics, a searchable destination list beside an image-backed trip panel, and itinerary, bookings, packing and expense summaries below. Scoped tr tokens consume shared surface/ink/muted variables; the violet accent, soft lavender canvas and 13px panels align with Life. Original destination imagery is in public/images/trips. Canonical Modal, Button, DatePicker, StyledSelect and ToastProvider own interactions. Recharts owns quantitative visuals. Mobile stacks panels and retains all tabs and controls.

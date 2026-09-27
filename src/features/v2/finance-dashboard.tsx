@@ -1,140 +1,57 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useState } from "react";
-import { Icons } from "@/components/icons";
+import { useEffect, useState, type ReactNode } from "react";
+import { Area, AreaChart, Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { ArrowDownToLine, ArrowUpRight, CalendarDays, ChartNoAxesColumnIncreasing, CheckCheck, ChevronRight, CircleAlert, CircleDollarSign, Clock3, Coins, FileText, Plus, RefreshCw, TrendingUp, Wallet, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useDeferredEffect } from "@/lib/use-deferred-effect";
+import { Modal } from "@/components/ui/modal";
+import { StyledSelect } from "@/components/ui/styled-select";
+import { financeCurrency, financeHistory, financeMonth, financeSnapshot, loadFinanceRecords, renewingSubscriptions, type FinanceRecords, type FinanceRow } from "@/lib/finance-dashboard";
+import "./finance-dashboard.css";
 
-type Row = Record<string, unknown> & { id: string };
-type Data = {
-  currency: string;
-  metrics: Record<string, number>;
-  overdue: Row[];
-  invoices: Row[];
-  subscriptions: Row[];
-};
-
-const format = (value: number, currency = "MAD") =>
-  new Intl.NumberFormat("en", {
-    style: "currency",
-    currency,
-    maximumFractionDigits: 0,
-  }).format(value);
-
+const money = (value: number, currency: string) => new Intl.NumberFormat("en", { style: "currency", currency, maximumFractionDigits: 0 }).format(value);
+const dateLabel = (value: unknown) => value ? new Date(`${String(value).slice(0,10)}T12:00:00`).toLocaleDateString("en", { month: "short", day: "numeric", year: "numeric" }) : "No date";
+const title = (row: FinanceRow) => String(row.invoice_number || row.title || row.description || row.name || "Untitled record");
+const metricSpecs: { key: "expected"|"received"|"outstanding"|"overdue"|"expenses"|"net"; label: string; icon: LucideIcon; tone: string; description: string }[] = [
+ { key:"expected",label:"Expected",icon:FileText,tone:"purple",description:"Remaining balances on issued invoices due in the selected month. Draft and cancelled invoices are excluded." },
+ { key:"received",label:"Received",icon:ArrowDownToLine,tone:"green",description:"Payments recorded in the selected month." },
+ { key:"outstanding",label:"Outstanding",icon:Clock3,tone:"orange",description:"Current unpaid balances across all issued invoices, regardless of due month." },
+ { key:"overdue",label:"Overdue",icon:CircleAlert,tone:"red",description:"Current unpaid balances on issued invoices whose due date has passed." },
+ { key:"expenses",label:"Expenses",icon:Wallet,tone:"blue",description:"Recorded expenses dated in the selected month." },
+ { key:"net",label:"Net cash movement",icon:TrendingUp,tone:"purple",description:"Payments received minus expenses in the selected month. This is cash movement, not a bank balance." },
+];
+function Panel({ icon: Icon, title, subtitle, action, children, className="" }: { icon: LucideIcon; title: string; subtitle: string; action?: ReactNode; children: ReactNode; className?: string }) { return <section className={`finance-overview__panel ${className}`}><header><span className="finance-overview__icon"><Icon size={23}/></span><div><h2>{title}</h2><p>{subtitle}</p></div>{action}</header>{children}</section>; }
+function Empty({ title, description, href, action }: { title: string; description: string; href?: string; action?: string }) { return <div className="finance-overview__empty"><CheckCheck size={23}/><strong>{title}</strong><p>{description}</p>{href && <Link href={href}>{action}<ArrowUpRight size={14}/></Link>}</div>; }
 export function FinanceDashboard() {
-  const [data, setData] = useState<Data | null>(null);
-  const [error, setError] = useState("");
-
-  const load = useCallback(async () => {
-    try {
-      const response = await fetch("/api/finance", { cache: "no-store" });
-      const body = await response.json();
-      if (!response.ok) throw new Error(body.error);
-      setData(body);
-    } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "Finance could not be loaded.");
-    }
-  }, []);
-
-  useDeferredEffect(useCallback(() => { void load(); }, [load]));
-
-  return (
-    <div className="domain-page finance-page">
-      <header className="task-context-header finance-context-header">
-        <div>
-          <div className="task-context-header__path">
-            <Icons.CircleDollarSign size={15} />
-            <span>Business</span>
-            <Icons.ChevronRight size={13} />
-            <strong>Finance</strong>
-          </div>
-          <h1>Finance</h1>
-          <p>Cash visibility for decisions—not accounting theatre.</p>
-        </div>
-        <div className="task-context-header__actions">
-          <Link className="button button--solid button--brand" href="/finance/invoices">
-            <Icons.Plus size={16} /> New invoice
-          </Link>
-        </div>
-      </header>
-
-      <nav className="operations-nav-strip finance-nav-strip" aria-label="Finance sections">
-        {[
-          ["Overview", "/finance"],
-          ["Invoices", "/finance/invoices"],
-          ["Expenses", "/finance/expenses"],
-          ["Subscriptions", "/finance/subscriptions"],
-          ["Clients", "/finance/clients"],
-          ["Projects", "/finance/projects"],
-        ].map(([label, href], index) => (
-          <Link className={index === 0 ? "active" : ""} href={href} key={href}>
-            <span>{label}</span>
-          </Link>
-        ))}
-      </nav>
-
-      {error ? (
-        <div className="inline-error" role="alert">
-          <p>{error}</p>
-          <Button emphasis="outline" onClick={() => void load()}>Try again</Button>
-        </div>
-      ) : !data ? (
-        <div className="loading-state" aria-live="polite">
-          <span className="loading-spinner" />
-          <p>Calculating cash position…</p>
-        </div>
-      ) : (
-        <>
-          <section className="metric-ledger" aria-label="Monthly finance summary">
-            {[
-              ["Expected this month", data.metrics.expected],
-              ["Received this month", data.metrics.received],
-              ["Outstanding", data.metrics.outstanding],
-              ["Overdue", data.metrics.overdue],
-              ["Expenses this month", data.metrics.expenses],
-              ["Net cash movement", data.metrics.net],
-            ].map(([label, value]) => (
-              <div key={String(label)}>
-                <strong>{format(Number(value), data.currency)}</strong>
-                <span>{label}</span>
-              </div>
-            ))}
-          </section>
-
-          <p className="dataset-note">Figures reflect invoices, payments, and expenses recorded in this workspace. <Link href="/finance/invoices">Review invoices</Link> or <Link href="/finance/expenses">add an expense</Link> to complete the picture.</p>
-          <section className="editorial-split">
-            <div className="data-surface">
-              <p className="eyebrow">Needs attention</p>
-              <h2>
-                {data.overdue.length
-                  ? `${data.overdue.length} overdue invoice${data.overdue.length === 1 ? "" : "s"}.`
-                  : "No overdue invoices found in recorded data."}
-              </h2>
-              {data.overdue.slice(0, 5).map((invoice) => (
-                <Link className="signal-row" href={`/finance/invoices?invoice=${invoice.id}`} key={invoice.id}>
-                  <span>
-                    <strong>{String(invoice.invoice_number ?? invoice.title ?? "Invoice")}</strong>
-                    {format(Number(invoice.amount_remaining), String(invoice.currency))} · due {String(invoice.due_date)}
-                  </span>
-                </Link>
-              ))}
-            </div>
-
-            <aside className="data-surface">
-              <p className="eyebrow">Renewing soon</p>
-              {data.subscriptions.slice(0, 5).map((item) => (
-                <Link className="signal-row" href="/finance/subscriptions" key={item.id}>
-                  <span>
-                    <strong>{String(item.name)}</strong>
-                    {format(Number(item.amount), String(item.currency))} · {String(item.next_billing_date ?? "No renewal date")}
-                  </span>
-                </Link>
-              ))}
-            </aside>
-          </section>
-        </>
-      )}
-    </div>
-  );
+ const [records,setRecords]=useState<FinanceRecords|null>(null),[error,setError]=useState(""),[refresh,setRefresh]=useState(0),[loading,setLoading]=useState(true);
+ const [currency,setCurrency]=useState("MAD"),[month,setMonth]=useState(()=>financeMonth()),[months,setMonths]=useState("6");
+ const [detail,setDetail]=useState<{title:string;description:string;rows:FinanceRow[];domain:string}|null>(null);
+ useEffect(()=>{const controller=new AbortController(); let active=true; loadFinanceRecords(controller.signal).then(data=>{if(active){setRecords(data);setError("");setLoading(false);}}).catch(reason=>{if(active){setError(reason instanceof Error?reason.message:"Finance could not be loaded.");setLoading(false);}});return()=>{active=false;controller.abort();};},[refresh]);
+ const today=new Date().toLocaleDateString("en-CA"), currentMonth=financeMonth();
+ const selectedLabel=new Date(`${month}-01T12:00:00`).toLocaleDateString("en",{month:"long",year:"numeric"});
+ const snapshot=records?financeSnapshot(records,currency,month,today):null;
+ const history=records?financeHistory(records,currency,month,Number(months)):[];
+ const currencies=Array.from(new Set(["MAD",...Object.values(records??{}).flat().filter(row=>row.currency).map(financeCurrency)])).sort();
+ const renewals=records?renewingSubscriptions(records,currency,today):[];
+ const clientName=(row:FinanceRow)=>records?.clients.find(client=>client.id===row.client_id)?.name as string||"No client linked";
+ const inspect=(row:FinanceRow,domain:string)=>setDetail({title:title(row),description:domain==="invoices"?clientName(row):String(row.category||row.provider||"Recorded in your workspace"),rows:[row],domain});
+ const recentInvoices=snapshot?.invoices.filter(row=>String(row.issue_date||row.created_at||"").startsWith(month)).sort((a,b)=>String(b.issue_date||b.created_at).localeCompare(String(a.issue_date||a.created_at)))??[];
+ const expenses=[...(snapshot?.expenses??[])].sort((a,b)=>String(b.expense_date).localeCompare(String(a.expense_date)));
+ const openMetric=(key:typeof metricSpecs[number]["key"])=>{if(!snapshot)return;const spec=metricSpecs.find(item=>item.key===key)!;setDetail({title:spec.label,description:spec.description,rows:key==="net"?[...snapshot.payments,...snapshot.expenses]:key==="outstanding"?snapshot.open:key==="received"?snapshot.payments:snapshot[key],domain:["received","net"].includes(key)?"payments":key==="expenses"?"expenses":"invoices"});};
+ const totalMovement=(snapshot?.metrics.received??0)+(snapshot?.metrics.expenses??0);
+ return <div className="finance-overview">
+  <header className="finance-overview__heading"><div><div className="finance-overview__breadcrumb"><CircleDollarSign size={15}/><Link href="/business">Business</Link><ChevronRight size={14}/><strong>Finance</strong></div><h1>Finance</h1><p>Cash visibility for decisions—not accounting theatre.</p></div><Link className="finance-overview__primary" href="/finance/invoices?create=1"><Plus size={18}/>New invoice</Link></header>
+  <nav className="finance-overview__nav" aria-label="Finance sections"><div>{[["Overview","/finance"],["Invoices","/finance/invoices"],["Expenses","/finance/expenses"],["Subscriptions","/finance/subscriptions"],["Clients","/finance/clients"],["Projects","/finance/projects"]].map(([label,href],index)=><Link href={href} key={href} aria-current={index===0?"page":undefined}>{label}</Link>)}</div><div className="finance-overview__filters"><StyledSelect label="Finance currency" value={currency} onChange={setCurrency} options={currencies.map(value=>({value,label:value}))}/><StyledSelect label="Finance month" value={month} onChange={setMonth} options={Array.from({length:12},(_,index)=>{const value=financeMonth(-index);return{value,label:index===0?"This month":new Date(`${value}-01T12:00:00`).toLocaleDateString("en",{month:"short",year:"numeric"})};})}/></div></nav>
+  {error?<div className="finance-overview__error" role="alert"><CircleAlert size={20}/><span>{error}</span><Button onClick={()=>{setLoading(true);setRefresh(value=>value+1);}}>Try again</Button></div>:loading?<div className="finance-overview__loading" role="status"><span className="loading-spinner"/>Loading your financial records…</div>:snapshot&&records?<>
+  <section className="finance-overview__metrics" aria-label={`${selectedLabel} finance summary`}>{metricSpecs.map(({key,label,icon:Icon,tone})=>{const series=history.map(point=>({value:key==="net"?point.received-point.expenses:key==="expenses"?point.expenses:point.received}));const hasHistory=["received","expenses","net"].includes(key)&&series.some(point=>point.value!==0);return <button key={key} className={`finance-overview__metric tone-${tone}`} onClick={()=>openMetric(key)}><span className="finance-overview__icon"><Icon size={23}/></span><span className="finance-overview__metric-copy"><span>{label}{["expected","received","expenses"].includes(key)?month===currentMonth?" this month":" this period":""}</span><strong>{money(snapshot.metrics[key],currency)}</strong><small>{["outstanding","overdue"].includes(key)?"Current balance · all dates":selectedLabel}</small></span>{hasHistory?<div className="finance-overview__spark" aria-hidden="true"><ResponsiveContainer width="100%" height="100%"><AreaChart data={series}><Area dataKey="value" stroke="currentColor" fill="currentColor" fillOpacity={0.10} strokeWidth={1.6} isAnimationActive={false}/></AreaChart></ResponsiveContainer></div>:<span className="finance-overview__metric-note">{["outstanding","overdue","expected"].includes(key)?"View invoice breakdown":"No cash movement recorded"}<ArrowUpRight size={12}/></span>}</button>;})}</section>
+  <div className="finance-overview__cash-grid"><Panel icon={ChartNoAxesColumnIncreasing} title="Cash flow overview" subtitle="Inflow vs outflow over time" className="finance-overview__cash-chart" action={<><div className="finance-overview__legend"><span>Inflow (received)</span><span>Outflow (expenses)</span></div><StyledSelect label="Cash flow history" value={months} onChange={setMonths} options={[{value:"6",label:"Last 6 months"},{value:"3",label:"Last 3 months"},{value:"12",label:"Last 12 months"}]}/></>}><div className="finance-overview__chart" role="img" aria-label={`Monthly received payments and expenses in ${currency}. ${history.map(point=>`${point.month}: received ${point.received}, expenses ${point.expenses}`).join("; ")}`}><ResponsiveContainer width="100%" height="100%"><BarChart data={history} margin={{top:12,right:4,left:0,bottom:0}}><CartesianGrid vertical={false} stroke="var(--finance-line)"/><XAxis dataKey="label" axisLine={false} tickLine={false} tick={{fill:"var(--finance-muted)",fontSize:11}}/><YAxis axisLine={false} tickLine={false} width={68} tick={{fill:"var(--finance-muted)",fontSize:10}} tickFormatter={value=>`${currency} ${value>=1000?`${value/1000}K`:value}`} domain={[0,"auto"]}/><Tooltip formatter={(value,name)=>[money(Number(value),currency),name==="received"?"Received":"Expenses"]} labelFormatter={(_,payload)=>payload?.[0]?.payload?.month??""} contentStyle={{borderRadius:10,border:"1px solid var(--finance-line)"}}/><Bar name="received" dataKey="received" fill="#9165ff" radius={[4,4,0,0]} maxBarSize={29}/><Bar name="expenses" dataKey="expenses" fill="#9dcaff" radius={[4,4,0,0]} maxBarSize={29}/></BarChart></ResponsiveContainer></div>{!history.some(point=>point.received||point.expenses)&&<p className="finance-overview__chart-note">Your cash-flow history will appear as you record payments and expenses.</p>}</Panel>
+  <Panel icon={Coins} title="Cash position" subtitle="Your recorded cash movement" action={<span className="finance-overview__period">{month===currentMonth?"This month":selectedLabel}</span>}><strong className="finance-overview__cash-value">{money(snapshot.metrics.net,currency)}</strong><p className="finance-overview__muted">Net cash movement</p><div className="finance-overview__balance" aria-label={`Received ${money(snapshot.metrics.received,currency)}; expenses ${money(snapshot.metrics.expenses,currency)}`}><span style={{width:`${totalMovement?snapshot.metrics.received/totalMovement*100:0}%`}}/><span style={{width:`${totalMovement?snapshot.metrics.expenses/totalMovement*100:0}%`}}/></div><div className="finance-overview__cash-stats">{[["received","Total inflow"],["expenses","Total outflow"],["net","Net position"]].map(([key,label])=><button key={key} onClick={()=>openMetric(key as "received"|"expenses"|"net")}><strong>{money(snapshot.metrics[key as keyof typeof snapshot.metrics],currency)}</strong><span>{label}</span></button>)}</div></Panel></div>
+  <div className="finance-overview__bottom"><Panel icon={FileText} title="Recent invoices" subtitle="Latest invoices and their status" action={<Link className="finance-overview__view" href="/finance/invoices">View all</Link>}><div className="finance-overview__table-scroll"><table><thead><tr><th>Invoice</th><th>Client</th><th>Due date</th><th>Amount</th><th>Status</th></tr></thead><tbody>{recentInvoices.slice(0,5).map(row=><tr key={row.id}><td><button onClick={()=>inspect(row,"invoices")}><FileText size={15}/>{title(row)}</button></td><td>{clientName(row)}</td><td>{dateLabel(row.due_date)}</td><td>{money(Number(row.total_amount??row.total??row.amount??row.subtotal??0),currency)}</td><td><span className={`finance-overview__badge status-${row.effective_status}`}>{row.effective_status}</span></td></tr>)}</tbody></table></div>{!recentInvoices.length&&<Empty title="No invoices this period" description={`Invoices issued in ${selectedLabel} will appear here.`} href="/finance/invoices?create=1" action="Create an invoice"/>}</Panel>
+  <Panel icon={Wallet} title="Recent expenses" subtitle="Latest expenses and payments" action={<Link className="finance-overview__view" href="/finance/expenses">View all</Link>}><div className="finance-overview__table-scroll"><table><thead><tr><th>Description</th><th>Date</th><th>Amount</th><th>Category</th></tr></thead><tbody>{expenses.slice(0,5).map(row=><tr key={row.id}><td><button onClick={()=>inspect(row,"expenses")}><Wallet size={15}/>{title(row)}</button></td><td>{dateLabel(row.expense_date)}</td><td>{money(Number(row.amount),currency)}</td><td><span className="finance-overview__badge">{String(row.category||"Other")}</span></td></tr>)}</tbody></table></div>{!expenses.length&&<Empty title="No expenses recorded" description="Keep your cash picture complete by recording your spending." href="/finance/expenses" action="Add an expense"/>}</Panel>
+  <div className="finance-overview__signals"><Panel icon={CircleAlert} title="Needs attention" subtitle="Overdue invoices and unpaid balances" action={<Link className="finance-overview__view" href="/finance/invoices">View all</Link>}>{snapshot.overdue.length?snapshot.overdue.slice(0,3).map(row=><button className="finance-overview__signal" key={row.id} onClick={()=>inspect(row,"invoices")}><FileText size={16}/><span><strong>{title(row)}</strong><small>{clientName(row)}</small></span><b>{money(Number(row.amount_remaining),currency)}</b><ChevronRight size={15}/></button>):<Empty title="You're all caught up" description="No overdue invoices in your recorded data."/>}</Panel><Panel icon={CalendarDays} title="Renewing soon" subtitle="Upcoming subscription renewals · next 30 days" action={<Link className="finance-overview__view" href="/finance/subscriptions">View all</Link>}>{renewals.length?renewals.slice(0,3).map(row=><button className="finance-overview__signal" key={row.id} onClick={()=>inspect(row,"subscriptions")}><CalendarDays size={16}/><span><strong>{title(row)}</strong><small>{dateLabel(row.next_billing_date)}</small></span><b>{money(Number(row.amount),currency)}</b><ChevronRight size={15}/></button>):<Empty title="No renewals coming up" description="Active subscriptions renewing in the next 30 days appear here."/>}</Panel></div></div>
+  <footer className="finance-overview__footer"><span>Recorded workspace data · {currency} only · Outstanding and overdue are current balances.</span><button onClick={()=>{setLoading(true);setRefresh(value=>value+1);}}><RefreshCw size={13}/>Refresh records</button></footer>
+  </>:null}
+  <Modal open={Boolean(detail)} onClose={()=>setDetail(null)} title={detail?.title??"Financial details"} description={detail?.description}>{detail&&<div className="finance-overview__details">{detail.rows.length?detail.rows.map(row=><div key={row.id}><FileText size={19}/><span><strong>{title(row)}</strong><small>{row.payment_date?`Payment · ${dateLabel(row.payment_date)}`:row.expense_date?`Expense · ${dateLabel(row.expense_date)}`:row.next_billing_date?`Renews ${dateLabel(row.next_billing_date)}`:`Due ${dateLabel(row.due_date)}`}</small></span><b>{money(Number(row.amount_remaining??row.amount??row.total??0),financeCurrency(row))}</b></div>):<Empty title="No matching records" description="Recorded activity will appear here automatically."/>}<Link className="finance-overview__primary" href={`/finance/${detail.domain==="payments"?"invoices":detail.domain}`}>Manage {detail.domain==="payments"?"payments & invoices":detail.domain}<ArrowUpRight size={16}/></Link></div>}</Modal>
+ </div>;
 }

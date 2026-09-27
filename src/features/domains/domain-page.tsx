@@ -186,6 +186,12 @@ export function DomainPage({ domain, embedded = false, onMutationSuccess, refres
     const [deleteArmed, setDeleteArmed] = useState(false);
     const inputRef = useRef<HTMLInputElement>(null);
     const previousRefreshToken = useRef(refreshToken);
+    useDeferredEffect(useCallback(() => {
+        if (domain === "invoices" && new URLSearchParams(window.location.search).get("create") === "1") {
+            setOpen(true);
+            const url = new URL(window.location.href); url.searchParams.delete("create"); window.history.replaceState(null, "", url.toString());
+        }
+    }, [domain]));
     const { showToast } = useToast();
     const load = useCallback(async () => { if (domain === "assistant" || domain === "settings")
         return; try {

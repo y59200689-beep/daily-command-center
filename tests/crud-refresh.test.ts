@@ -14,13 +14,14 @@ test("workspace mutation subscribers refresh only for their owned domains", () =
   assert.equal(refreshes, 1);
 });
 
-test("embedded content and fitness summaries refetch after CRUD mutations", () => {
+test("content refetches and fitness replaces saved records after CRUD mutations", () => {
   const contentSource = readFileSync(path.join(process.cwd(), "src/features/v2/content-command-center.tsx"), "utf8");
   const fitnessSource = readFileSync(path.join(process.cwd(), "src/features/v2/fitness-dashboard.tsx"), "utf8");
   const domainSource = readFileSync(path.join(process.cwd(), "src/features/domains/domain-page.tsx"), "utf8");
 
   assert.match(contentSource, /<DomainPage domain="content" embedded onMutationSuccess=\{load\}/);
-  assert.match(fitnessSource, /<DomainPage domain="fitness-targets" embedded onMutationSuccess=\{load\}/);
-  assert.match(fitnessSource, /<DomainPage domain="fitness" embedded onMutationSuccess=\{load\}/);
+  assert.match(fitnessSource, /setTargets\(old=>editing\?old\.map/);
+  assert.match(fitnessSource, /setActivities\(old=>editing\?old\.map/);
+  assert.match(fitnessSource, /if\(!preview\)announceWorkspaceMutation/);
   assert.match(domainSource, /await onMutationSuccess\?\.\(\);/);
 });

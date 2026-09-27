@@ -3,7 +3,7 @@ import { asNumber, asString, daysBetween, severityFromScore, startOfWeek } from 
 
 function risk(input: Omit<Risk, "severity"> & { score: number }): Risk {
   const { score, ...rest } = input;
-  return { ...rest, severity: severityFromScore(score) };
+  return { ...rest, score: Math.min(100, Math.max(0, score)), severity: severityFromScore(score) };
 }
 
 function openTask(row: WorkspaceRow) {

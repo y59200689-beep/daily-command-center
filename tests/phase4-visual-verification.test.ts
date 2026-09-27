@@ -103,7 +103,13 @@ test("Phase 4 Founder, Commerce, Learning, and Life modules: semantic containers
   const lifeDir = join(process.cwd(), "src/features/life");
   for (const file of ["travel-workspace.tsx", "documents-workspace.tsx"]) {
     const content = readFileSync(join(lifeDir, file), "utf8");
-    assert.match(content, /<main className="domain-page life-page"/, `${file} missing semantic main container`);
-    assert.match(content, /className="task-context-header"/, `${file} missing task-context-header`);
+    if (file === "travel-workspace.tsx") {
+      assert.match(content, /className="domain-page trips-dashboard"/);
+      assert.match(content, /<header className="tr-heading"/);
+      assert.match(content, /<h1>Trips<\/h1>/);
+    } else {
+      assert.match(content, /<main className="domain-page life-page"/, `${file} missing semantic main container`);
+      assert.match(content, /className="task-context-header"/, `${file} missing task-context-header`);
+    }
   }
 });

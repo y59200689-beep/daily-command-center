@@ -26,7 +26,8 @@ test("the shell redirects, refreshes, and exposes account actions", () => {
   assert.match(shell, /router\.replace\("\/login"\)/);
   assert.match(shell, /router\.refresh\(\)/);
   assert.match(shell, /aria-expanded=\{accountOpen\}/);
-  assert.match(shell, />Settings</);
+  assert.match(shell, /href="\/settings"/);
+  assert.match(shell, />My profile</);
   assert.match(shell, /Signing out…/);
   assert.match(shell, /"Sign out"/);
 });
