@@ -181,7 +181,7 @@ export function TodayDashboard() {
     (data.priorities[0] ? `/focus?task=${data.priorities[0].id}` : "/tasks");
   return (
     <div className="today-page">
-      <MissionCard today={data.date} todayTasks={data.todayTasks?.length ?? 0} />
+      <MissionCard />
       {data.founderState ? <FounderStatePanel state={data.founderState} compact /> : <p className="founder-coverage">Founder State is unavailable. <Link href="/state">Review monitoring</Link>.</p>}
       <section className="brief-hero">
         <div className="brief-hero__main">

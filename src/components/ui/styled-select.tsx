@@ -60,7 +60,7 @@ export function StyledSelect({ value, onChange, options, label, id, placeholder 
   function close() { setOpen(false); setQuery(""); trigger.current?.focus(); }
   function choose(option: SelectOption) { if (option.disabled) return; onChange(option.value); close(); }
   function onKeyDown(event: React.KeyboardEvent) {
-    if (event.key === "Escape") { event.preventDefault(); close(); return; }
+    if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); close(); return; }
     if (event.key === "ArrowDown" || event.key === "ArrowUp" || event.key === "Home" || event.key === "End") {
       event.preventDefault();
       if (!open) { setOpen(true); return; }

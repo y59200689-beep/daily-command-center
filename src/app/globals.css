@@ -119,3 +119,4 @@ textarea.resize-none{resize:none}
 .review-directory { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 0.75rem; padding: 1rem; margin-top: 1rem; border-top: 1px solid var(--line, #e2e3e7); font-size: 0.8125rem; }
 .review-directory span { font-weight: 700; }
 .review-directory a { color: var(--attention, #5b5bd6); }
+.business-editor .styled-select{margin-top:7px}.business-editor .styled-select__trigger{min-height:41px;border-radius:8px;background:var(--canvas);font-size:11px}.business-editor .styled-select__trigger>span{color:var(--ink);font-weight:600}.business-editor .styled-select__trigger:hover{border-color:#aa94eb}.business-editor .styled-select__trigger:focus-visible{outline:0;box-shadow:0 0 0 3px #8256df2b}
