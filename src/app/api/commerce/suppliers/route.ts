@@ -1,3 +1,4 @@
+import { withUsdInput } from "@/lib/currency/route";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { apiError } from "@/lib/api";
@@ -39,7 +40,7 @@ export async function GET() {
   }
 }
 
-export async function POST(request: Request) {
+async function handlePOST(request: Request) {
   try {
     const { supabase, userId, companyId, isConfigured } = await getCommerceContext();
     if (!isConfigured || !companyId) {
@@ -82,3 +83,5 @@ export async function POST(request: Request) {
     return apiError(error, "Supplier could not be saved.");
   }
 }
+
+export const POST = withUsdInput(handlePOST);

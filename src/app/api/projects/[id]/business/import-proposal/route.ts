@@ -1,8 +1,9 @@
+import { withUsdInput } from "@/lib/currency/route";
 import { NextResponse } from "next/server";
 import { apiError } from "@/lib/api";
 import { requireUser } from "@/lib/supabase/server";
 
-export async function POST(_: Request, { params }: { params: Promise<{ id: string }> }) {
+async function handlePOST(_: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     const { supabase, userId } = await requireUser();
@@ -31,3 +32,5 @@ export async function POST(_: Request, { params }: { params: Promise<{ id: strin
     return NextResponse.json({ imported: missing.length, alreadyImported: (items ?? []).length - missing.length });
   } catch (error) { return apiError(error, "Proposal scope could not be imported."); }
 }
+
+export const POST = withUsdInput(handlePOST);

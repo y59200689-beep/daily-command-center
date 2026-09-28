@@ -105,7 +105,7 @@ test("2.2 Expenses: supports links to project, client, or subscription", () => {
   );
 });
 
-test("2.3 Expenses: multi-currency separation (MAD default)", () => {
+test("2.3 Expenses: multi-currency separation (USD default)", () => {
   const madExpense = parseDomainInput("expenses", {
     description: "Local Office Supplies",
     amount: 500,
@@ -113,7 +113,7 @@ test("2.3 Expenses: multi-currency separation (MAD default)", () => {
     expense_date: "2026-09-01",
   });
   assert.equal(madExpense.success, true);
-  if (madExpense.success) assert.equal((madExpense.data as Record<string, unknown>).currency, "MAD");
+  if (madExpense.success) assert.equal((madExpense.data as Record<string, unknown>).currency, "USD");
 });
 
 test("2.4 Expenses: non-negative amount constraint and required description", () => {

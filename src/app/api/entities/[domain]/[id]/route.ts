@@ -1,3 +1,4 @@
+import { withUsdInput } from "@/lib/currency/route";
 import { NextRequest, NextResponse } from "next/server";
 import { apiError } from "@/lib/api";
 import { isPersistedDomain, parseDomainInput } from "@/lib/domains";
@@ -11,7 +12,7 @@ type Context = { params: Promise<{ domain: string; id: string }> };
 export async function GET(_: NextRequest, context: Context) {
   try { const { domain, id } = await context.params; if (!isPersistedDomain(domain)) return NextResponse.json({ error: "Unknown collection." }, { status: 404 }); const { supabase, userId } = await requireUser(); const record = await getRecord(supabase, userId, domain, id); return record ? NextResponse.json({ record }) : NextResponse.json({ error: "Record not found." }, { status: 404 }); } catch (error) { return apiError(error, "Record could not be loaded."); }
 }
-export async function PATCH(request: NextRequest, context: Context) {
+async function handlePATCH(request: NextRequest, context: Context) {
   try {
     const { domain, id } = await context.params;
     if (!isPersistedDomain(domain)) return NextResponse.json({ error: "Unknown collection." }, { status: 404 });
@@ -105,3 +106,5 @@ export async function DELETE(request: NextRequest, context: Context) {
     return apiError(error, "Record could not be archived.");
   }
 }
+
+export const PATCH = withUsdInput(handlePATCH);

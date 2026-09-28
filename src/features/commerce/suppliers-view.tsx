@@ -39,7 +39,7 @@ export function SuppliersView() {
     contact_reference: "",
     lead_time_days: "7",
     minimum_order_value: "",
-    currency: "MAD",
+    currency: "USD",
     payment_terms: "",
     notes: "",
   });
@@ -108,7 +108,7 @@ export function SuppliersView() {
         contact_reference: "",
         lead_time_days: "7",
         minimum_order_value: "",
-        currency: "MAD",
+        currency: "USD",
         payment_terms: "",
         notes: "",
       });

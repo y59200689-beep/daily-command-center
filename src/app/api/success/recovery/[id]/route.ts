@@ -1,3 +1,4 @@
+import { withUsdInput } from "@/lib/currency/route";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { apiError } from "@/lib/api";
@@ -27,7 +28,7 @@ export async function GET(
   }
 }
 
-export async function PATCH(
+async function handlePATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
@@ -95,3 +96,5 @@ export async function DELETE(
     return apiError(error, "Recovery plan could not be deleted.");
   }
 }
+
+export const PATCH = withUsdInput(handlePATCH);

@@ -31,7 +31,7 @@ const stageMeta: Record<OpportunityStage, { label: string; color: string; icon: 
   won: { label: "Won", color: "#6ce2ac", icon: <CircleCheck size={17}/>, hint: "Turn promises into work" },
   lost: { label: "Lost", color: "#ee91a7", icon: <X size={17}/>, hint: "Keep the learning" },
 };
-const money = (value: unknown, currency: string) => value == null ? "Value not set" : `${currency} ${new Intl.NumberFormat("en", { maximumFractionDigits: 2 }).format(Number(value))}`;
+const money = (value: unknown, currency: string) => value == null ? "Value not set" : `${currency==='USD'?'$':currency} ${new Intl.NumberFormat("en", { maximumFractionDigits: 2 }).format(Number(value))}`;
 const dateLabel = (value: unknown, today: string) => {
   if (!value) return "No date set";
   const day = String(value).slice(0,10);
@@ -45,7 +45,7 @@ const initials = (name: string) => name.split(" ").map(part=>part[0]).slice(0,2)
 export function PipelineDashboard({ records, clients, loading, error, view, onRetry, onOpen, onCreate, onStage, onConvert, onAction }: Props) {
   const { showToast } = useToast();
   const [today] = useState(()=>new Date().toISOString().slice(0,10));
-  const [filters,setFilters] = useState<PipelineFilters>({query:"",client:"",owner:"",stage:"",currency:"MAD",sort:"close"});
+  const [filters,setFilters] = useState<PipelineFilters>({query:"",client:"",owner:"",stage:"",currency:"USD",sort:"close"});
   const [layout,setLayout] = useState<"board"|"list">("board");
   const [owners,setOwners] = useState<PipelineOwners>({});
   const [ownershipError,setOwnershipError] = useState("");
@@ -108,7 +108,7 @@ export function PipelineDashboard({ records, clients, loading, error, view, onRe
     <div className="pipeline-dashboard__grid">
       <div className="pipeline-dashboard__main">
         <header className="business-dashboard__header"><div><nav aria-label="Breadcrumb"><Link href="/business">Business</Link><span>/</span><span>Pipeline</span></nav><h1>Pipeline</h1><p>Move qualified work forward with a next action, not a vague feeling.</p></div><Button intent="brand" onClick={()=>onCreate("new",filters.currency)}><Plus size={17}/>New opportunity</Button></header>
-        <div className="pipeline-dashboard__navigation"><nav className="pipeline-dashboard__tabs" aria-label="Pipeline sections"><Link href="/pipeline?view=opportunities" aria-current={view==="opportunities"?"page":undefined}>Opportunities</Link><Link href="/pipeline?view=health" aria-current={view==="health"?"page":undefined}>Deal health</Link></nav><div className="pipeline-dashboard__scope"><span>{loading?"Updating pipeline…":`${rows.length} ${rows.length===1?"opportunity":"opportunities"}`} · {filters.currency} snapshot</span><div>{hasFilters&&<button onClick={()=>{setFilters(current=>({...current,query:"",client:"",owner:"",stage:""}));searchRef.current?.focus();}}>Clear filters</button>}<label htmlFor="pipeline-currency" className="pipeline-dashboard__currency">Currency<select id="pipeline-currency" value={filters.currency} onChange={event=>update("currency",event.target.value)}>{[...new Set(["MAD",filters.currency,...records.map(recordCurrency)])].sort().map(currency=><option key={currency} value={currency}>{currency}</option>)}</select></label><button className="pipeline-dashboard__icon-button" aria-label="Refresh pipeline" disabled={loading||Boolean(pending)} onClick={onRetry}><RefreshCw size={14}/></button></div></div></div>
+        <div className="pipeline-dashboard__navigation"><nav className="pipeline-dashboard__tabs" aria-label="Pipeline sections"><Link href="/pipeline?view=opportunities" aria-current={view==="opportunities"?"page":undefined}>Opportunities</Link><Link href="/pipeline?view=health" aria-current={view==="health"?"page":undefined}>Deal health</Link></nav><div className="pipeline-dashboard__scope"><span>{loading?"Updating pipeline…":`${rows.length} ${rows.length===1?"opportunity":"opportunities"}`} · {filters.currency} snapshot</span><div>{hasFilters&&<button onClick={()=>{setFilters(current=>({...current,query:"",client:"",owner:"",stage:""}));searchRef.current?.focus();}}>Clear filters</button>}<label htmlFor="pipeline-currency" className="pipeline-dashboard__currency">Currency<select id="pipeline-currency" value={filters.currency} onChange={event=>update("currency",event.target.value)}>{[...new Set(["USD",filters.currency,...records.map(recordCurrency)])].sort().map(currency=><option key={currency} value={currency}>{currency}</option>)}</select></label><button className="pipeline-dashboard__icon-button" aria-label="Refresh pipeline" disabled={loading||Boolean(pending)} onClick={onRetry}><RefreshCw size={14}/></button></div></div></div>
         {error&&<div className="pipeline-dashboard__error" role="alert"><span>{error}</span><Button emphasis="outline" onClick={onRetry}>Retry</Button></div>}
         <div className="business-dashboard__metrics" aria-busy={loading}>
           <Metric title="Open opportunities" value={String(snapshot.open.length)} note="Current open deals" icon={<Users/>} tone="purple" loading={loading||Boolean(error)} onClick={()=>disclose("Open opportunities",`Current open deals in ${filters.currency}; won and lost deals are excluded.`,snapshot.open)}/>

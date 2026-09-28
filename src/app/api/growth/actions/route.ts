@@ -1,3 +1,4 @@
+import { withUsdInput } from "@/lib/currency/route";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { apiError } from "@/lib/api";
@@ -43,7 +44,7 @@ export async function GET() {
         targetType: "opportunity",
         targetId: opp.id,
         value: val,
-        currency: opp.currency ?? "MAD",
+        currency: opp.currency ?? "USD",
         urgency: scored.priority.toLowerCase() as "critical" | "high" | "medium" | "low",
         reason: scored.risks[0] ?? scored.reasons[0] ?? "Deal progression required.",
         suggestedAction: scored.nextAction,
@@ -60,7 +61,7 @@ export async function GET() {
         targetType: "proposal",
         targetId: prop.id,
         value: val,
-        currency: prop.currency ?? "MAD",
+        currency: prop.currency ?? "USD",
         urgency: "high",
         reason: "Proposal sent awaiting client decision.",
         suggestedAction: "Check in with client on proposal feedback.",
@@ -78,7 +79,7 @@ export async function GET() {
           targetType: "lead",
           targetId: lead.id,
           value: lead.potential_value,
-          currency: lead.currency ?? "MAD",
+          currency: lead.currency ?? "USD",
           urgency: scored.quality === "Hot" ? "high" : "medium",
           reason: scored.reasons[0] ?? "Qualified inbound lead.",
           suggestedAction: scored.nextAction,
@@ -101,7 +102,7 @@ const createActionSchema = z.object({
   entity_id: z.string().uuid().optional(),
 });
 
-export async function POST(request: Request) {
+async function handlePOST(request: Request) {
   try {
     const input = createActionSchema.parse(await request.json());
     const { supabase, userId } = await requireUser();
@@ -138,3 +139,5 @@ export async function POST(request: Request) {
     return apiError(error, "Action could not be created.");
   }
 }
+
+export const POST = withUsdInput(handlePOST);

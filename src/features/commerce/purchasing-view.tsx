@@ -43,7 +43,7 @@ export function PurchasingView() {
   const [supplierId, setSupplierId] = useState("");
   const [reference, setReference] = useState("");
   const [expectedAt, setExpectedAt] = useState("");
-  const [currency, setCurrency] = useState("MAD");
+  const [currency, setCurrency] = useState("USD");
   const [notes, setNotes] = useState("");
   const [lines, setLines] = useState<Array<{ product_id: string; product_name: string; quantity: number; unit_cost: number }>>([
     { product_id: "", product_name: "", quantity: 1, unit_cost: 0 },

@@ -135,9 +135,9 @@ export async function loadExecutiveContext(
         domain: "finance",
         type: "overdue_receivable",
         severity: remaining > 20000 ? "critical" : "important",
-        title: `Overdue Invoice: ${inv.currency ?? "MAD"} ${remaining.toLocaleString()}`,
+        title: `Overdue Invoice: ${inv.currency ?? "USD"} ${remaining.toLocaleString()}`,
         reason: `Invoice ${inv.invoice_number ?? inv.id} is overdue since ${inv.due_date}`,
-        evidence: `Outstanding balance: ${inv.currency ?? "MAD"} ${remaining.toLocaleString()}`,
+        evidence: `Outstanding balance: ${inv.currency ?? "USD"} ${remaining.toLocaleString()}`,
         entities: [
           { type: "invoice", id: inv.id, name: inv.invoice_number ?? "Invoice" },
           ...(inv.client_id ? [{ type: "client", id: inv.client_id }] : []),
@@ -145,7 +145,7 @@ export async function loadExecutiveContext(
         createdAt: today,
         route: `/finance/invoices?record=${inv.id}`,
         moneyAmount: remaining,
-        currency: inv.currency ?? "MAD",
+        currency: inv.currency ?? "USD",
         deadline: inv.due_date,
       });
     }
@@ -241,14 +241,14 @@ export async function loadExecutiveContext(
         domain: "success",
         type: "client_renewal_due",
         severity: "important",
-        title: `Client Renewal Due: ${cr.currency ?? "MAD"} ${Number(cr.value ?? 0).toLocaleString()}`,
+        title: `Client Renewal Due: ${cr.currency ?? "USD"} ${Number(cr.value ?? 0).toLocaleString()}`,
         reason: `Contract renewal reached scheduled date ${cr.renewal_date}`,
         evidence: `Status: ${cr.status}`,
         entities: [{ type: "client", id: cr.client_id ?? "" }],
         createdAt: today,
         route: `/clients`,
         moneyAmount: Number(cr.value ?? 0),
-        currency: cr.currency ?? "MAD",
+        currency: cr.currency ?? "USD",
         deadline: cr.renewal_date,
       });
     }
@@ -308,7 +308,7 @@ export async function loadExecutiveContext(
     milestones: stratMilestonesRes.data ?? [],
     budgets: financialOverview?.budgets?.map((b) => ({
       name: String(b.name ?? ""),
-      currency: String(b.currency ?? "MAD"),
+      currency: String(b.currency ?? "USD"),
       amount: Number(b.variance?.recordedExpenses ?? 0) + Number(b.variance?.remaining ?? 0),
       spent: Number(b.variance?.recordedExpenses ?? 0),
     })) ?? [],
@@ -317,7 +317,7 @@ export async function loadExecutiveContext(
 
   // Curated domain health
   const domainHealth: Record<ExecutiveDomain, { status: "healthy" | "needs_attention" | "at_risk"; reason: string }> = {
-    finance: totalOverdue > 20000 ? { status: "at_risk", reason: `High overdue receivables (${totalOverdue.toLocaleString()} MAD)` } : { status: "healthy", reason: "Cash & commitments stable" },
+    finance: totalOverdue > 20000 ? { status: "at_risk", reason: `High overdue receivables (${totalOverdue.toLocaleString()} USD)` } : { status: "healthy", reason: "Cash & commitments stable" },
     growth: { status: "healthy", reason: "Pipeline opportunities active" },
     success: (csRisksRes.data?.length ?? 0) > 0 ? { status: "needs_attention", reason: `${csRisksRes.data?.length} active client risk(s)` } : { status: "healthy", reason: "Accounts healthy" },
     commerce: { status: "healthy", reason: "Stock and purchase planning balanced" },

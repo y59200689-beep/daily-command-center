@@ -1,3 +1,4 @@
+import { withUsdInput } from "@/lib/currency/route";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { apiError } from "@/lib/api";
@@ -47,7 +48,7 @@ const runActionSchema = z.object({
   status: z.enum(["active", "archived"]).optional(),
 });
 
-export async function PATCH(
+async function handlePATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
@@ -197,3 +198,5 @@ export async function DELETE(
     return apiError(error, "Playbook archiving failed.");
   }
 }
+
+export const PATCH = withUsdInput(handlePATCH);

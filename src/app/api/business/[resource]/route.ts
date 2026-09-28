@@ -1,3 +1,4 @@
+import { withUsdInput } from "@/lib/currency/route";
 import { NextRequest, NextResponse } from "next/server";
 import { apiError } from "@/lib/api";
 import { businessResourceSchemas, businessResourceTables, isBusinessResource, proposalTotals, type BusinessResource } from "@/lib/business";
@@ -31,7 +32,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ res
     if (resource === "settings") {
       const { data, error } = await supabase.from("business_settings").select("*").eq("user_id", userId).maybeSingle();
       if (error) throw error;
-      return NextResponse.json({ record: data ?? { default_currency: "MAD", internal_hourly_cost: null, default_proposal_validity_days: null, default_tax_rate: null } });
+      return NextResponse.json({ record: data ?? { default_currency: "USD", internal_hourly_cost: null, default_proposal_validity_days: null, default_tax_rate: null } });
     }
     const page = Math.max(1, Number(request.nextUrl.searchParams.get("page") ?? 1));
     const pageSize = Math.min(100, Math.max(10, Number(request.nextUrl.searchParams.get("pageSize") ?? 50)));
@@ -56,7 +57,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ res
   } catch (error) { return apiError(error, "Business records could not be loaded."); }
 }
 
-export async function POST(request: Request, context: { params: Promise<{ resource: string }> }) {
+async function handlePOST(request: Request, context: { params: Promise<{ resource: string }> }) {
   try {
     const { resource } = await context.params;
     if (!isBusinessResource(resource) || resource === "settings") return NextResponse.json({ error: "Business collection not found." }, { status: 404 });
@@ -85,7 +86,7 @@ export async function POST(request: Request, context: { params: Promise<{ resour
   } catch (error) { return apiError(error, "Business record could not be saved."); }
 }
 
-export async function PATCH(request: Request, context: { params: Promise<{ resource: string }> }) {
+async function handlePATCH(request: Request, context: { params: Promise<{ resource: string }> }) {
   try {
     const { resource } = await context.params;
     if (!isBusinessResource(resource)) return NextResponse.json({ error: "Business collection not found." }, { status: 404 });
@@ -161,3 +162,6 @@ export async function DELETE(request: NextRequest, context: { params: Promise<{ 
 }
 
 function zUuid(value: string) { return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value); }
+
+export const POST = withUsdInput(handlePOST);
+export const PATCH = withUsdInput(handlePATCH);

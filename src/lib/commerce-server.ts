@@ -315,7 +315,7 @@ export async function loadFullCommerceState(supabase: SupabaseClient, userId: st
       brand: (prod.brand as string | null) ?? null,
       unit_cost: prod.unit_cost !== null && prod.unit_cost !== undefined ? Number(prod.unit_cost) : null,
       selling_price: prod.selling_price !== null && prod.selling_price !== undefined ? Number(prod.selling_price) : null,
-      currency: (prod.currency as string) || "MAD",
+      currency: (prod.currency as string) || "USD",
       availableStock,
       reservedStock,
       dailyVelocity,
@@ -420,7 +420,7 @@ export async function loadFullCommerceState(supabase: SupabaseClient, userId: st
       productName: d.productName as string,
       discrepancyUnits: Number(d.discrepancy_units) || 0,
       costImpact: d.cost_impact !== null ? Number(d.cost_impact) : null,
-      currency: (d.currency as string) || "MAD",
+      currency: (d.currency as string) || "USD",
       status: d.status as string,
     })),
     missingCostCount,
@@ -431,7 +431,7 @@ export async function loadFullCommerceState(supabase: SupabaseClient, userId: st
   // Multi-currency bucket aggregation: NEVER aggregate distinct currencies
   const currencyBuckets: Record<string, { inventoryValue: number; sales30d: number; orderCount: number }> = {};
   for (const prod of productIntelligence) {
-    const c = prod.currency || "MAD";
+    const c = prod.currency || "USD";
     if (!currencyBuckets[c]) currencyBuckets[c] = { inventoryValue: 0, sales30d: 0, orderCount: 0 };
     if (prod.unit_cost && prod.availableStock > 0) {
       currencyBuckets[c].inventoryValue += Number((prod.unit_cost * prod.availableStock).toFixed(2));
@@ -440,7 +440,7 @@ export async function loadFullCommerceState(supabase: SupabaseClient, userId: st
 
   for (const item of orderItems) {
     const prod = products.find((p: Record<string, unknown>) => p.id === item.product_id);
-    const c = (prod?.currency as string | undefined) || "MAD";
+    const c = (prod?.currency as string | undefined) || "USD";
     if (!currencyBuckets[c]) currencyBuckets[c] = { inventoryValue: 0, sales30d: 0, orderCount: 0 };
     const amt = (Number(item.quantity) || 0) * (Number(item.unit_price) || 0);
     currencyBuckets[c].sales30d += amt;

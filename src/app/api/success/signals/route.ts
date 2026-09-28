@@ -1,3 +1,4 @@
+import { withUsdInput } from "@/lib/currency/route";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { apiError } from "@/lib/api";
@@ -28,7 +29,7 @@ export async function GET(request: Request) {
   }
 }
 
-export async function POST(request: Request) {
+async function handlePOST(request: Request) {
   try {
     const { supabase, userId } = await requireUser();
     const body = await request.json();
@@ -83,3 +84,5 @@ export async function POST(request: Request) {
     return apiError(error, "Satisfaction signal could not be recorded.");
   }
 }
+
+export const POST = withUsdInput(handlePOST);

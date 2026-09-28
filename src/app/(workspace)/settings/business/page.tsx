@@ -7,7 +7,7 @@ import { useDeferredEffect } from "@/lib/use-deferred-effect";
 import { Icons } from "@/components/icons";
 
 type Values = { default_currency: string; internal_hourly_cost: string; default_proposal_validity_days: string; default_tax_rate: string; business_name: string; proposal_number_prefix: string };
-const empty: Values = { default_currency: "MAD", internal_hourly_cost: "", default_proposal_validity_days: "", default_tax_rate: "", business_name: "", proposal_number_prefix: "" };
+const empty: Values = { default_currency: "USD", internal_hourly_cost: "", default_proposal_validity_days: "", default_tax_rate: "", business_name: "", proposal_number_prefix: "" };
 export default function BusinessSettingsPage() {
   const [loaded, setLoaded] = useState(false);
   const [values, setValues] = useState<Values>(empty); const [saving, setSaving] = useState(false); const [error, setError] = useState(""); const [saved, setSaved] = useState(false);

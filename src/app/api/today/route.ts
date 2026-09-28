@@ -30,7 +30,7 @@ function defaultIntelligenceFallback(): IntelligenceOverview {
       insight: "Focus capacity available today",
     },
     focusWindows: [],
-    finance: { overdueAmount: 0, expectedThisWeek: 0, overdueCount: 0, renewalsNext7Days: 0, currency: "MAD", insights: [] },
+    finance: { overdueAmount: 0, expectedThisWeek: 0, overdueCount: 0, renewalsNext7Days: 0, currency: "USD", insights: [] },
     content: { dueSoon: 0, stuckInReview: 0, scheduledNext7Days: 0, insights: [] },
     fitness: { insights: [] },
     patterns: [],
@@ -216,7 +216,7 @@ export async function GET() {
       ...(opportunities.data ?? []).filter((item) => !item.next_action && Number(item.estimated_value ?? 0) > 0).map((item) => ({
         id: `opportunity:${item.id}`,
         title: "Opportunity needs follow-up",
-        message: `${item.title} · ${item.estimated_value} ${item.currency ?? "MAD"} has no next sales action.`,
+        message: `${item.title} · ${item.estimated_value} ${item.currency ?? "USD"} has no next sales action.`,
         route: `/pipeline?opportunity=${item.id}`,
         priority: Number(item.estimated_value ?? 0),
       })),
@@ -360,7 +360,7 @@ export async function GET() {
       ...(opportunities.data ?? []).filter((item) => (!item.next_action || !String(item.next_action).trim()) && Number(item.estimated_value ?? 0) >= 15000).map((item) => ({
         id: `growth-opp:${item.id}`,
         title: "High-value deal has no next action",
-        message: `${item.title} (${item.estimated_value} ${item.currency ?? "MAD"}) needs a scheduled sales action.`,
+        message: `${item.title} (${item.estimated_value} ${item.currency ?? "USD"}) needs a scheduled sales action.`,
         route: `/pipeline?opportunity=${item.id}`,
         priority: Number(item.estimated_value ?? 0),
       })),

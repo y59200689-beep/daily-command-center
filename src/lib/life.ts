@@ -45,7 +45,7 @@ export type CurrencyAmount = { currency: string | null | undefined; amount: numb
 export function totalsByCurrency(items: CurrencyAmount[]) {
   return items.reduce<Record<string, number>>((totals, item) => {
     const amount = Number(item.amount);
-    const currency = (item.currency || "MAD").toUpperCase();
+    const currency = (item.currency || "USD").toUpperCase();
     if (Number.isFinite(amount)) totals[currency] = (totals[currency] ?? 0) + amount;
     return totals;
   }, {});

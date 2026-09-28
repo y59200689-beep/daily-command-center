@@ -38,7 +38,7 @@ export function buildWeeklyReview(snapshot: WorkspaceSnapshot, overview: Intelli
   if (allocation[0]?.share >= 50) insights.push(`${allocation[0].name} consumed ${allocation[0].share}% of recorded focus time.`);
   const neglected = overview.projectHealth.find((project) => project.state !== "Healthy" && (project.focusMinutesThisWeek ?? 0) === 0);
   if (neglected) insights.push(`${neglected.name} received no recorded focus time and ${neglected.reasons[0]?.toLowerCase()}.`);
-  if (overview.finance.overdueAmount) insights.push(`${overview.finance.overdueAmount.toLocaleString("en")} MAD remains overdue.`);
+  if (overview.finance.overdueAmount) insights.push(`${overview.finance.overdueAmount.toLocaleString("en")} USD remains overdue.`);
   const postponed = snapshot.activity.filter((event) => event.action === "task_postponed" && inWeek(event.created_at));
   if (postponed.length) insights.push(`${postponed.length} task postponement${postponed.length === 1 ? " was" : "s were"} recorded.`);
   return {

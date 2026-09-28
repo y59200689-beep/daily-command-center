@@ -5,7 +5,7 @@ const optionalText = (maximum = 5000) => z.preprocess(blank, z.string().trim().m
 const optionalUuid = z.preprocess(blank, z.uuid().nullable().optional());
 const optionalMoney = z.preprocess(blank, z.coerce.number().finite().nonnegative().nullable().optional());
 const optionalDate = z.preprocess(blank, z.iso.date().nullable().optional());
-export const businessCurrency = z.string().trim().length(3).transform((value) => value.toUpperCase()).default("MAD");
+export const businessCurrency = z.string().trim().length(3).transform((value) => value.toUpperCase()).default("USD");
 
 export const leadSchema = z.object({
   name: z.string().trim().min(1).max(240), company: optionalText(240), email: z.preprocess(blank, z.email().nullable().optional()), phone: optionalText(80),
@@ -65,14 +65,14 @@ type OpportunityRow = { currency?: string | null; estimated_value?: number | str
 export function groupedRevenueForecast({ invoices, payments, opportunities, proposals, now = new Date() }: { invoices: MoneyRow[]; payments: MoneyRow[]; opportunities: OpportunityRow[]; proposals: MoneyRow[]; now?: Date }) {
   const result: Record<string, { received: number; outstanding: number; committed: number; weightedPipeline: number; potential: number; excludedOpportunities: number }> = {};
   const bucket = (currency: string) => result[currency] ??= { received: 0, outstanding: 0, committed: 0, weightedPipeline: 0, potential: 0, excludedOpportunities: 0 };
-  for (const payment of payments) bucket(String(payment.currency ?? "MAD")).received += Number(payment.amount ?? 0);
-  for (const invoice of invoices) if (!["paid", "cancelled"].includes(String(invoice.status))) bucket(String(invoice.currency ?? "MAD")).outstanding += Number(invoice.amount_remaining ?? Math.max(0, Number(invoice.total_amount ?? paymentAmount(invoice))));
-  for (const proposal of proposals) if (String(proposal.status) === "accepted") bucket(String(proposal.currency ?? "MAD")).committed += Number(proposal.total ?? proposal.total_amount ?? proposal.amount ?? 0);
+  for (const payment of payments) bucket(String(payment.currency ?? "USD")).received += Number(payment.amount ?? 0);
+  for (const invoice of invoices) if (!["paid", "cancelled"].includes(String(invoice.status))) bucket(String(invoice.currency ?? "USD")).outstanding += Number(invoice.amount_remaining ?? Math.max(0, Number(invoice.total_amount ?? paymentAmount(invoice))));
+  for (const proposal of proposals) if (String(proposal.status) === "accepted") bucket(String(proposal.currency ?? "USD")).committed += Number(proposal.total ?? proposal.total_amount ?? proposal.amount ?? 0);
   for (const opportunity of opportunities) {
     if (["won", "lost"].includes(opportunity.stage)) continue;
     const value = opportunity.estimated_value == null ? null : Number(opportunity.estimated_value);
-    if (value == null) { bucket(String(opportunity.currency ?? "MAD")).excludedOpportunities += 1; continue; }
-    const valueBucket = bucket(String(opportunity.currency ?? "MAD"));
+    if (value == null) { bucket(String(opportunity.currency ?? "USD")).excludedOpportunities += 1; continue; }
+    const valueBucket = bucket(String(opportunity.currency ?? "USD"));
     valueBucket.weightedPipeline += value * effectiveProbability(opportunity) / 100;
   }
   for (const value of Object.values(result)) value.potential = value.received + value.outstanding + value.committed + value.weightedPipeline;

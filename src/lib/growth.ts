@@ -52,10 +52,10 @@ export function scoreLead(lead: LeadScoringInput, today = new Date().toISOString
   const value = Number(lead.potential_value ?? 0);
   if (value >= 25000) {
     score += 20;
-    reasons.push(`High potential value (${value} ${lead.currency ?? "MAD"}).`);
+    reasons.push(`High potential value (${value} ${lead.currency ?? "USD"}).`);
   } else if (value >= 10000) {
     score += 10;
-    reasons.push(`Moderate potential value (${value} ${lead.currency ?? "MAD"}).`);
+    reasons.push(`Moderate potential value (${value} ${lead.currency ?? "USD"}).`);
   }
 
   if (["referral", "existing_client"].includes(lead.source)) {
@@ -166,7 +166,7 @@ export function scoreOpportunity(opp: OpportunityHealthInput, today = new Date()
   }
 
   if (value >= 30000) {
-    reasons.push(`High commercial value (${value} ${opp.currency ?? "MAD"}).`);
+    reasons.push(`High commercial value (${value} ${opp.currency ?? "USD"}).`);
   }
 
   let health: OpportunityHealth = "Healthy";
@@ -252,7 +252,7 @@ export function rankNextGrowthMove(
       title: opp.title,
       subtitle: scored.nextAction,
       value: val,
-      currency: opp.currency ?? "MAD",
+      currency: opp.currency ?? "USD",
       reason: scored.risks[0] ?? scored.reasons[0] ?? "Active opportunity requiring attention.",
       actionLabel: "Open Opportunity",
       route: `/pipeline?opportunity=${opp.id}`,
@@ -270,7 +270,7 @@ export function rankNextGrowthMove(
       title: `Follow up on proposal: ${prop.title}`,
       subtitle: expiringSoon ? `Proposal expires ${prop.valid_until}.` : "Proposal awaiting client response.",
       value: val,
-      currency: prop.currency ?? "MAD",
+      currency: prop.currency ?? "USD",
       reason: expiringSoon ? "Proposal expires within 4 days." : "Proposal sent to client without active scheduled follow-up.",
       actionLabel: "View Proposal",
       route: `/proposals?proposal=${prop.id}`,
@@ -288,7 +288,7 @@ export function rankNextGrowthMove(
         title: `Progress lead: ${lead.name}`,
         subtitle: scored.nextAction,
         value: val,
-        currency: lead.currency ?? "MAD",
+        currency: lead.currency ?? "USD",
         reason: scored.reasons[0] ?? "Qualified inbound lead.",
         actionLabel: "Open Lead",
         route: `/leads?lead=${lead.id}`,
@@ -541,8 +541,8 @@ export function identifyDormantClients(
         clientName: client.name,
         lastActivityDate: lastActive,
         historicalValue: totalValue,
-        currency: clientInvoices[0]?.currency ?? "MAD",
-        reason: `Dormant for ${daysSince} days with past spend of ${totalValue} ${clientInvoices[0]?.currency ?? "MAD"}.`,
+        currency: clientInvoices[0]?.currency ?? "USD",
+        reason: `Dormant for ${daysSince} days with past spend of ${totalValue} ${clientInvoices[0]?.currency ?? "USD"}.`,
         suggestedAction: "Send a personalized relationship check-in sharing recent work or insights.",
       });
     }
@@ -825,7 +825,7 @@ export function buildGrowthForecast(
       id: opp.id,
       title: opp.title,
       value: val,
-      currency: opp.currency ?? "MAD",
+      currency: opp.currency ?? "USD",
       bucket,
       stage: opp.stage,
       expectedCloseDate: opp.expected_close_date,
@@ -863,9 +863,9 @@ export function detectGrowthRisks(
       id: "risk:no-next-action",
       risk: "Opportunities without scheduled next actions",
       severity: noNextActionVal >= 30000 ? "critical" : "important",
-      evidence: `${noNextAction.length} open opportunities worth ${noNextActionVal} MAD have no scheduled next step.`,
+      evidence: `${noNextAction.length} open opportunities worth ${noNextActionVal} USD have no scheduled next step.`,
       affectedValue: noNextActionVal,
-      currency: "MAD",
+      currency: "USD",
       recommendedAction: "Assign clear next sales actions and due dates on open opportunities.",
     });
   }
@@ -879,7 +879,7 @@ export function detectGrowthRisks(
       severity: "attention",
       evidence: `${overdueOpps.length} opportunities have expected close dates in the past.`,
       affectedValue: overdueVal,
-      currency: "MAD",
+      currency: "USD",
       recommendedAction: "Review and update expected close dates or adjust pipeline timing.",
     });
   }
@@ -897,7 +897,7 @@ export function detectGrowthRisks(
       severity: "important",
       evidence: `${Math.round((stalledVal / totalOpenVal) * 100)}% of pipeline value has not moved in >30 days.`,
       affectedValue: stalledVal,
-      currency: "MAD",
+      currency: "USD",
       recommendedAction: "Conduct pipeline hygiene: qualify out unpromising deals or send check-ins.",
     });
   }

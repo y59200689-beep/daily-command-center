@@ -1,9 +1,10 @@
+import { withUsdInput } from "@/lib/currency/route";
 import { NextResponse } from "next/server";
 import { apiError } from "@/lib/api";
 import { getCommerceContext } from "@/lib/commerce-server";
 import { inventoryAuditLineSchema, validateForeignOwnership } from "@/lib/commerce";
 
-export async function POST(
+async function handlePOST(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
@@ -71,3 +72,5 @@ export async function POST(
     return apiError(error, "Audit line could not be recorded.");
   }
 }
+
+export const POST = withUsdInput(handlePOST);

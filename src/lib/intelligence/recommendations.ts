@@ -52,7 +52,7 @@ export function generateRecommendations(snapshot: WorkspaceSnapshot): Recommenda
   for (const invoice of snapshot.invoices.filter((row) => !["paid", "cancelled"].includes(asString(row.status)))) {
     const dates = dateSignal(snapshot.today, invoice.due_date);
     const attention = scoreAttention({ ...dates, financialAmount: asNumber(invoice.amount_remaining), paymentDelayDays: dates.overdueDays, priority: dates.overdueDays ? "urgent" : "medium" });
-    const amount = `${asNumber(invoice.amount_remaining).toLocaleString("en")} ${asString(invoice.currency, "MAD")}`;
+    const amount = `${asNumber(invoice.amount_remaining).toLocaleString("en")} ${asString(invoice.currency, "USD")}`;
     recommendations.push(recommendation({ key: `invoice:${invoice.id}:followup`, actionType: dates.overdueDays ? "send_payment_reminder" : "review_invoice", entityType: "invoice", entityId: invoice.id, label: dates.overdueDays ? `Send payment reminder for ${amount}` : `Review ${amount} receivable`, priority: attention.score, route: routeFor("invoice", invoice.id), recommendedAt: now, expiresAt: invoice.due_date ? `${asString(invoice.due_date)}T23:59:59Z` : null, reasons: attention.reasons }));
   }
 

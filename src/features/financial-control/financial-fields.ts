@@ -1,6 +1,6 @@
 import type { FinancialResource } from '@/lib/financial-schema';
 export type FinancialField={key:string;label:string;type?:'number'|'date'|'datetime-local'|'textarea'|'checkbox'|'reference';options?:string[];reference?:string;required?:boolean;help?:string};
-const name:FinancialField={key:'name',label:'Name',required:true},title:FinancialField={key:'title',label:'Title',required:true},amount:FinancialField={key:'amount',label:'Amount',type:'number',required:true},currency:FinancialField={key:'currency',label:'Currency (three letters)',required:true},notes:FinancialField={key:'notes',label:'Notes',type:'textarea'};
+const name:FinancialField={key:'name',label:'Name',required:true},title:FinancialField={key:'title',label:'Title',required:true},amount:FinancialField={key:'amount',label:'Amount',type:'number',required:true},currency:FinancialField={key:'currency',label:'Entry currency',required:true,options:['USD','MAD']},notes:FinancialField={key:'notes',label:'Notes',type:'textarea'};
 const status=(options:string[]):FinancialField=>({key:'status',label:'Status',options});
 const ref=(key:string,label:string,reference:string,required=false):FinancialField=>({key,label,reference,required,type:'reference'});
 const priority:FinancialField={key:'priority',label:'Priority',options:['low','medium','high','critical']};

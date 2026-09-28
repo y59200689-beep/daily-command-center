@@ -1,7 +1,7 @@
 import { effectiveInvoiceStatus } from "@/lib/v2";
 export type FinanceRow = Record<string, unknown> & { id: string };
 export type FinanceRecords = Record<"invoices" | "payments" | "expenses" | "subscriptions" | "clients", FinanceRow[]>;
-export const financeCurrency = (row: FinanceRow) => String(row.currency || "MAD");
+export const financeCurrency = (row: FinanceRow) => String(row.currency || "USD");
 export const financeAmount = (row: FinanceRow, field = "amount") => Number(row[field] ?? 0);
 export function financeMonth(offset = 0, now = new Date()) { return new Date(Date.UTC(now.getFullYear(), now.getMonth() + offset, 1)).toISOString().slice(0, 7); }
 export function financeSnapshot(records: FinanceRecords, currency: string, month: string, today: string) {

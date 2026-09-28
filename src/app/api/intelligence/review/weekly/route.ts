@@ -24,9 +24,9 @@ async function withBusinessReview(supabase: Awaited<ReturnType<typeof requireUse
   const stages = history.data ?? [];
   const currencies: Record<string, { received: number; outstanding: number; overdue: number; pipeline: number }> = {};
   const bucket = (currency: string) => currencies[currency] ??= { received: 0, outstanding: 0, overdue: 0, pipeline: 0 };
-  for (const item of payments.data ?? []) bucket(String(item.currency ?? "MAD")).received += Number(item.amount ?? 0);
-  for (const item of invoices.data ?? []) { const target = bucket(String(item.currency ?? "MAD")); target.outstanding += Number(item.amount_remaining ?? 0); if (item.due_date && item.due_date < review.periodEnd && !["paid", "cancelled"].includes(String(item.status))) target.overdue += Number(item.amount_remaining ?? 0); }
-  for (const item of openPipeline.data ?? []) bucket(String(item.currency ?? "MAD")).pipeline += Number(item.estimated_value ?? 0);
+  for (const item of payments.data ?? []) bucket(String(item.currency ?? "USD")).received += Number(item.amount ?? 0);
+  for (const item of invoices.data ?? []) { const target = bucket(String(item.currency ?? "USD")); target.outstanding += Number(item.amount_remaining ?? 0); if (item.due_date && item.due_date < review.periodEnd && !["paid", "cancelled"].includes(String(item.status))) target.overdue += Number(item.amount_remaining ?? 0); }
+  for (const item of openPipeline.data ?? []) bucket(String(item.currency ?? "USD")).pipeline += Number(item.estimated_value ?? 0);
   return { ...review, business: { ...weeklyBusinessMetrics({ leadsCreated: leads.count ?? 0, opportunitiesCreated: opportunities.count ?? 0, opportunitiesAdvanced: stages.length, proposalsSent: (proposals.data ?? []).filter((item) => item.status === "sent").length, dealsWon: stages.filter((item) => item.to_stage === "won").length, dealsLost: stages.filter((item) => item.to_stage === "lost").length, trackedSeconds: (focus.data ?? []).reduce((sum, item) => sum + Number(item.duration_seconds ?? 0), 0), scopeCreep: scope.data?.length ?? 0, profitabilityWarnings: 0, reactivationCandidates: 0 }), currencies } };
 }
 async function withFounderReview(supabase: Awaited<ReturnType<typeof requireUser>>["supabase"], userId: string, review: Awaited<ReturnType<typeof withBusinessReview>>) {
@@ -41,7 +41,7 @@ async function withFounderReview(supabase: Awaited<ReturnType<typeof requireUser
     supabase.from("ai_usage_records").select("estimated_cost,status,currency").eq("user_id", userId).in("company_id", companyIds).gte("occurred_at", start).lte("occurred_at", end),
     supabase.from("company_funnel_snapshots").select("company_id,sessions,orders_confirmed,orders_created").eq("user_id", userId).in("company_id", companyIds).gte("period_start", review.periodStart).lte("period_end", review.periodEnd).order("period_end", { ascending: false }),
   ]); const failed = [orders, deployments, incidents, support, usage, funnels].find((result) => result.error); if (failed?.error) throw failed.error;
-  const currencies: Record<string, number> = {}; for (const order of orders.data ?? []) if (!["canceled", "failed_payment", "refunded"].includes(order.status)) currencies[String(order.currency ?? "MAD")] = (currencies[String(order.currency ?? "MAD")] ?? 0) + Number(order.total_amount ?? 0);
+  const currencies: Record<string, number> = {}; for (const order of orders.data ?? []) if (!["canceled", "failed_payment", "refunded"].includes(order.status)) currencies[String(order.currency ?? "USD")] = (currencies[String(order.currency ?? "USD")] ?? 0) + Number(order.total_amount ?? 0);
   const latestFunnels = new Map<string, NonNullable<typeof funnels.data>[number]>();
   for (const item of funnels.data ?? []) if (!latestFunnels.has(item.company_id)) latestFunnels.set(item.company_id, item);
   const funnel = latestFunnels.size > 0; const orderCount = [...latestFunnels.values()].reduce((sum, item) => sum + Number(item.orders_confirmed ?? item.orders_created ?? 0), 0); const sessions = [...latestFunnels.values()].reduce((sum, item) => sum + Number(item.sessions ?? 0), 0);

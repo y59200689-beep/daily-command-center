@@ -108,7 +108,7 @@ export function SlowStockView() {
                     {item.daysDormant !== null ? `${item.daysDormant} days since sale` : "No recorded sales"}
                   </td>
                   <td className="px-4 py-3 font-semibold">
-                    {item.tiedUpCapital !== null ? `${item.tiedUpCapital.toLocaleString()} ${item.currency}` : "Cost missing"}
+                    {item.tiedUpCapital !== null ? `${item.tiedUpCapital.toLocaleString()} ${item.currency==='USD'?'$':item.currency}` : "Cost missing"}
                   </td>
                   <td className="px-4 py-3">
                     <span

@@ -22,7 +22,7 @@ type Props = {
   onOpen: (resource: Resource, record?: BusinessRecord) => void;
   onAction: (row: BusinessRecord, completed: boolean) => Promise<void>;
 };
-const money = (value: unknown, currency: string) => `${currency} ${new Intl.NumberFormat("en", { maximumFractionDigits: 0 }).format(Number(value ?? 0))}`;
+const money = (value: unknown, currency: string) => `${currency==='USD'?'$':currency} ${new Intl.NumberFormat("en", { maximumFractionDigits: 0 }).format(Number(value ?? 0))}`;
 const shortValue = (value: number) => new Intl.NumberFormat("en", { notation: "compact", maximumFractionDigits: 1 }).format(value);
 const periodNames = { this_month: "this month", next_month: "next month", quarter: "this quarter" };
 
@@ -31,7 +31,7 @@ function PanelHeader({ icon, title, subtitle, children }: { icon: ReactNode; tit
 }
 
 export function BusinessDashboard({ records, overview, loading, error, onRetry, onOpen, onAction }: Props) {
-  const [currency, setCurrency] = useState("MAD");
+  const [currency, setCurrency] = useState("USD");
   const [pipelineMetric, setPipelineMetric] = useState<"total" | "weighted" | "count">("total");
   const [selectedStage, setSelectedStage] = useState<string | null>(null);
   const [period, setPeriod] = useState<"this_month" | "quarter" | "all">("this_month");
@@ -49,7 +49,7 @@ export function BusinessDashboard({ records, overview, loading, error, onRetry, 
   const [detail, setDetail] = useState<"leads" | "active" | "weighted" | "committed" | "pending" | "negotiation" | "won" | null>(null);
   const opportunities = records.opportunities ?? [];
   const proposals = records.proposals ?? [];
-  const currencies = useMemo(() => Array.from(new Set(["MAD", ...Object.values(records).flat().filter(row => row.currency).map(recordCurrency), ...Object.keys(overview?.forecast.currencies ?? {})])).sort(), [records, overview]);
+  const currencies = useMemo(() => Array.from(new Set(["USD", ...Object.values(records).flat().filter(row => row.currency).map(recordCurrency), ...Object.keys(overview?.forecast.currencies ?? {})])).sort(), [records, overview]);
   const summary = businessSummary(records, currency);
   const stages = pipelineStages(opportunities, currency, pipelineMetric);
   const state = commercialState(opportunities.filter(row => recordCurrency(row) === currency), proposals.filter(row => recordCurrency(row) === currency), period);
@@ -63,7 +63,7 @@ export function BusinessDashboard({ records, overview, loading, error, onRetry, 
   const hasRecords = Object.values(records).some(rows => rows.length);
   const details = detail === "leads" ? summary.leads : detail === "pending" ? commercialPeriodRows(proposals, period).filter(row => row.status === "sent" && recordCurrency(row) === currency) : detail === "committed" ? proposals.filter(row => row.status === "accepted" && recordCurrency(row) === currency) : (detail === "won" || detail === "negotiation") ? commercialPeriodRows(opportunities, period).filter(row => row.stage === detail && recordCurrency(row) === currency) : summary.active.filter(row => detail !== "weighted" || recordCurrency(row) === currency);
   const detailResource = detail === "leads" ? "leads" : (detail === "committed" || detail === "pending") ? "proposals" : "opportunities";
-  const detailTitles = { negotiation: "Opportunities in negotiation", won: "Opportunities won", pending: "Proposals awaiting a decision", leads: "Open leads", active: "Active opportunities", weighted: `Weighted pipeline · ${currency}`, committed: `Committed proposals · ${currency}` };
+  const detailTitles = { negotiation: "Opportunities in negotiation", won: "Opportunities won", pending: "Proposals awaiting a decision", leads: "Open leads", active: "Active opportunities", weighted: `Weighted pipeline · ${currency==='USD'?'$':currency}`, committed: `Committed proposals · ${currency==='USD'?'$':currency}` };
 
   useDeferredEffect(useCallback(() => {
     // Refetch the selected horizon when source data changes or Retry is requested.
@@ -115,7 +115,7 @@ export function BusinessDashboard({ records, overview, loading, error, onRetry, 
     </section>
     <div className="business-dashboard__main-grid">
       <section className="business-dashboard__panel business-dashboard__pipeline">
-        <PanelHeader icon={<Filter/>} title="Sales pipeline" subtitle={`Opportunities by stage · ${currency}`}>
+        <PanelHeader icon={<Filter/>} title="Sales pipeline" subtitle={`Opportunities by stage · ${currency==='USD'?'$':currency}`}>
           <label className="business-dashboard__select"><span className="sr-only">Pipeline measurement</span><select value={pipelineMetric} onChange={event => setPipelineMetric(event.target.value as typeof pipelineMetric)}><option value="total">Total value ({currency})</option><option value="weighted">Weighted value ({currency})</option><option value="count">Opportunity count</option></select></label>
         </PanelHeader>
         <div className="business-dashboard__stages" aria-label="Pipeline stages">{stages.map((stage, index) => <button className={`business-dashboard__stage stage-${index} ${selectedStage === stage.id ? "is-selected" : ""}`} key={stage.id} disabled={loading} aria-expanded={selectedStage === stage.id} aria-controls="business-stage-details" onClick={() => setSelectedStage(current => current === stage.id ? null : stage.id)}><span>{stage.label}</span><strong>{loading ? "—" : stage.count}</strong><span className="business-dashboard__stage-segment"/><b>{pipelineMetric === "count" ? `${stage.value} opportunities` : money(stage.value, currency)}</b><small>{stage.percent}%</small></button>)}</div>
@@ -142,7 +142,7 @@ export function BusinessDashboard({ records, overview, loading, error, onRetry, 
       <section className="business-dashboard__panel business-dashboard__forecast" aria-busy={forecastBusy}>
         <PanelHeader icon={<BarChart3/>} title={`Revenue forecast — ${periodNames[horizon]}`} subtitle="Scheduled commitments and weighted opportunities."><label className="business-dashboard__select"><span className="sr-only">Revenue forecast period</span><select value={horizon} onChange={event => { setHorizon(event.target.value as ForecastHorizon); setForecastError(""); }}><option value="this_month">This month</option><option value="next_month">Next month</option><option value="quarter">This quarter</option></select></label></PanelHeader>
         <div className="business-dashboard__forecast-legend"><button aria-pressed={showCommitted} onClick={() => setShowCommitted(value => !value)}><i/>Committed</button><button aria-pressed={showPotential} onClick={() => setShowPotential(value => !value)}><i/>Potential</button></div>
-        {forecastError ? <div className="business-dashboard__error" role="alert"><span>{forecastError}</span><Button emphasis="outline" onClick={() => setForecastRetry(value => value + 1)}>Retry forecast</Button></div> : <div className="business-dashboard__forecast-body"><div className="business-dashboard__forecast-chart" aria-label={`Revenue forecast in ${currency}`}>
+        {forecastError ? <div className="business-dashboard__error" role="alert"><span>{forecastError}</span><Button emphasis="outline" onClick={() => setForecastRetry(value => value + 1)}>Retry forecast</Button></div> : <div className="business-dashboard__forecast-body"><div className="business-dashboard__forecast-chart" aria-label={`Revenue forecast in ${currency==='USD'?'$':currency}`}>
           <ResponsiveContainer width="100%" height="100%" minWidth={0}><BarChart data={series.buckets} margin={{ top: 8, right: 8, left: -5, bottom: 0 }} accessibilityLayer><CartesianGrid vertical={false} stroke="var(--business-line)"/><XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fill:"var(--business-muted)",fontSize:11 }}/><YAxis axisLine={false} tickLine={false} tick={{fill:"var(--business-muted)",fontSize:10}} tickFormatter={shortValue} width={52} domain={[0, (dataMax: number) => dataMax > 0 ? dataMax : 1000]}/><Tooltip cursor={{ fill:"var(--business-accent-soft)" }} formatter={value => money(value, currency)} contentStyle={{background:"var(--business-surface)",border:"1px solid var(--business-line)",borderRadius:9,color:"var(--business-ink)",fontSize:12}}/>{showCommitted ? <Bar dataKey="committed" name="Committed" stackId="revenue" fill="var(--business-accent)" maxBarSize={42} isAnimationActive={false}/> : null}{showPotential ? <Bar dataKey="potential" name="Potential" stackId="revenue" fill="var(--business-chart-potential)" radius={[3,3,0,0]} maxBarSize={42} isAnimationActive={false}/> : null}</BarChart></ResponsiveContainer>
           {!forecastTotal && !forecastBusy ? <div className="business-dashboard__chart-empty"><strong>No scheduled revenue yet</strong><span>Add close dates to opportunities to see the forecast.</span></div> : null}{forecastBusy ? <div className="business-dashboard__chart-empty" role="status"><span className="business-dashboard__spinner"/>Updating forecast…</div> : null}
           <div className="business-dashboard__chart-dates" aria-hidden="true">{series.buckets.map(bucket => <span key={bucket.label}>{bucket.dates}</span>)}</div>

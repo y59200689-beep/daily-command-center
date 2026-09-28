@@ -1,3 +1,4 @@
+import { withUsdInput } from "@/lib/currency/route";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { apiError } from "@/lib/api";
@@ -131,7 +132,7 @@ const dealReviewSchema = z.object({
   notes: z.string().trim().max(4000).optional().nullable(),
 });
 
-export async function POST(request: Request) {
+async function handlePOST(request: Request) {
   try {
     const input = dealReviewSchema.parse(await request.json());
     const { supabase, userId } = await requireUser();
@@ -176,3 +177,5 @@ export async function POST(request: Request) {
     return apiError(error, "Deal review could not be saved.");
   }
 }
+
+export const POST = withUsdInput(handlePOST);

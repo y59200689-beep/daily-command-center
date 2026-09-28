@@ -1,3 +1,4 @@
+import { withUsdInput } from "@/lib/currency/route";
 import { NextRequest, NextResponse } from "next/server";
 import { apiError } from "@/lib/api";
 import { isPersistedDomain, parseDomainInput } from "@/lib/domains";
@@ -21,7 +22,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ dom
   } catch (error) { return apiError(error, "Records could not be loaded."); }
 }
 
-export async function POST(request: NextRequest, context: { params: Promise<{ domain: string }> }) {
+async function handlePOST(request: NextRequest, context: { params: Promise<{ domain: string }> }) {
   try {
     const { domain } = await context.params;
     if (!isPersistedDomain(domain)) return NextResponse.json({ error: "Unknown collection." }, { status: 404 });
@@ -39,3 +40,5 @@ export async function POST(request: NextRequest, context: { params: Promise<{ do
 }
 
 async function syncPromptVariables(client:Awaited<ReturnType<typeof requireUser>>["supabase"],userId:string,promptId:string,text:string){const names=promptVariables(text);if(!names.length)return;const{error}=await client.from("prompt_variables").upsert(names.map((name)=>({user_id:userId,prompt_id:promptId,name,label:name.replaceAll("_"," "),required:true})),{onConflict:"prompt_id,name"});if(error)throw error}
+
+export const POST = withUsdInput(handlePOST);

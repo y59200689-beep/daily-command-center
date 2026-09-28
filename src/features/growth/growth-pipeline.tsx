@@ -6,10 +6,10 @@ import { useDeferredEffect } from "@/lib/use-deferred-effect";
 
 type Row = Record<string, unknown> & { id: string };
 
-function fmt(n: number, currency = "MAD") {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M ${currency}`;
-  if (n >= 1_000) return `${(n / 1_000).toFixed(0)}k ${currency}`;
-  return `${n} ${currency}`;
+function fmt(n: number, currency = "USD") {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M ${currency==='USD'?'$':currency}`;
+  if (n >= 1_000) return `${(n / 1_000).toFixed(0)}k ${currency==='USD'?'$':currency}`;
+  return `${n} ${currency==='USD'?'$':currency}`;
 }
 
 function healthClass(h: string) {
@@ -135,7 +135,7 @@ export function GrowthPipeline() {
                     <span className="pipeline-score">Score: {score}</span>
                   </div>
                   <div className="pipeline-deal-value">
-                    {fmt(Number(opp.estimated_value ?? 0), String(opp.currency ?? "MAD"))}
+                    {fmt(Number(opp.estimated_value ?? 0), String(opp.currency ?? "USD"))}
                   </div>
                   {nextAction ? (
                     <div className="pipeline-deal-action">
