@@ -1,0 +1,52 @@
+/* Keep keyboard focus clear without the violet outline used by older screens. */
+:root {
+  --focus-neutral: #697386;
+  --focus-neutral-border: #9aa4b5;
+  --focus-neutral-halo: rgba(105, 115, 134, .16);
+}
+
+html[data-theme="dark"] {
+  --focus-neutral: #c2cad8;
+  --focus-neutral-border: #8792a7;
+  --focus-neutral-halo: rgba(194, 202, 216, .2);
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus-neutral) !important;
+  box-shadow: none !important;
+}
+
+:is(input, textarea, select):focus {
+  border-color: var(--focus-neutral-border) !important;
+  box-shadow: 0 0 0 3px var(--focus-neutral-halo) !important;
+}
+
+:is(input, textarea, select):focus-visible {
+  outline: 0 !important;
+}
+
+:is(
+  .search-control,
+  .styled-select__search,
+  .projects-ui__search,
+  .clients-ui__search,
+  .leads-dashboard__search,
+  .tr-search,
+  .files-ui__search,
+  .files-ui__toolbar .file-filters label,
+  .files-ui__sort
+):focus-within {
+  outline: 0 !important;
+  border-color: var(--focus-neutral-border) !important;
+  box-shadow: 0 0 0 3px var(--focus-neutral-halo) !important;
+}
+
+.search-control > .search-control__input:focus {
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+}
+
+:is(.styled-select__trigger, .date-picker-trigger):focus-visible {
+  border-color: var(--focus-neutral-border) !important;
+}
