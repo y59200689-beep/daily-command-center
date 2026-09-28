@@ -3,6 +3,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import "./product-system.css";
+import "./search-controls.css";
 import "./dark-workspaces.css";
 import "./focus-treatment.css";
 

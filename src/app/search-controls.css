@@ -1,0 +1,85 @@
+/* Shared SearchInput chrome. Keep the input itself visually transparent. */
+.search-control {
+  width: 100%;
+  max-width: 420px;
+  min-width: 0;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--muted);
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+.search-control:hover { border-color: var(--focus-neutral-border, var(--line-strong)); }
+.search-control:focus-within {
+  border-color: var(--focus-neutral-border, var(--line-strong));
+  box-shadow: 0 0 0 3px var(--focus-neutral-halo, rgba(105, 115, 134, .16));
+}
+
+.search-control__icon { display: block; flex: none; color: var(--muted); pointer-events: none; }
+.search-control > .search-control__input,
+.search-control > .search-control__input:focus {
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  outline: 0;
+  box-shadow: none;
+  background: transparent;
+  color: var(--ink);
+  font: 500 13px var(--font-geist-sans), sans-serif;
+  appearance: none;
+}
+
+.search-control__input::-webkit-search-decoration,
+.search-control__input::-webkit-search-cancel-button,
+.search-control__input::-webkit-search-results-button,
+.search-control__input::-webkit-search-results-decoration { appearance: none; }
+.search-control__input::placeholder { color: var(--muted); opacity: 1; }
+.search-control__clear {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+.search-control__clear:hover { background: var(--surface-2); color: var(--ink); }
+.search-control__adornment { display: grid; flex: none; place-items: center; color: var(--muted); }
+.search-control--full { max-width: none; }
+.search-control--compact { max-width: 320px; }
+
+.command-search.search-control {
+  max-width: none;
+  height: 48px;
+  margin-top: 16px;
+  padding: 0 14px;
+  border-radius: 10px;
+}
+.command-search .search-control__input { font-size: 14px; }
+.command-search .search-control__adornment kbd {
+  padding: 4px 6px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: var(--surface-2);
+  color: var(--muted);
+  font: 600 10px var(--font-geist-mono), monospace;
+}
+
+@media (max-width: 767px) {
+  .search-control, .search-control--compact { max-width: none; }
+}
