@@ -194,7 +194,7 @@ export async function executeAssistantTool(ctx:Ctx,name:string,raw:unknown){
     const input = z.object({ metric_type: z.enum(["monthly_revenue", "new_leads", "qualified_leads", "proposals_sent", "deals_won", "new_clients", "expansion_revenue", "pipeline_generated"]), target_value: z.number().nonnegative(), period: z.enum(["week", "month", "quarter", "year"]), period_start: z.iso.date(), period_end: z.iso.date(), confirmed: z.boolean() }).strict().parse(raw);
     const blocked = writeGuard(input.confirmed);
     if (blocked) return blocked;
-    const { data, error } = await ctx.client.from("sales_targets").insert({ user_id: ctx.userId, metric_type: input.metric_type, target_value: input.target_value, current_value: 0, period: input.period, period_start: input.period_start, period_end: input.period_end, currency: "MAD" } as never).select("*").single();
+    const { data, error } = await ctx.client.from("sales_targets").insert({ user_id: ctx.userId, metric_type: input.metric_type, target_value: input.target_value, current_value: 0, period: input.period, period_start: input.period_start, period_end: input.period_end, currency: "USD" } as never).select("*").single();
     if (error) throw error;
     return data;
   }

@@ -1,3 +1,4 @@
+import { withUsdInput } from "@/lib/currency/route";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { apiError } from "@/lib/api";
@@ -13,7 +14,7 @@ const experimentSchema = z.object({
   start_date: z.string().optional().nullable(),
   end_date: z.string().optional().nullable(),
   budget: z.coerce.number().finite().nonnegative().optional().nullable(),
-  currency: z.string().length(3).default("MAD"),
+  currency: z.string().length(3).default("USD"),
   status: z.enum(["idea", "planned", "running", "completed", "cancelled"]).default("idea"),
   notes: z.string().optional().nullable(),
 });
@@ -35,7 +36,7 @@ export async function GET() {
   }
 }
 
-export async function POST(request: Request) {
+async function handlePOST(request: Request) {
   try {
     const input = experimentSchema.parse(await request.json());
     const { supabase, userId } = await requireUser();
@@ -66,3 +67,5 @@ export async function POST(request: Request) {
     return apiError(error, "Growth experiment could not be created.");
   }
 }
+
+export const POST = withUsdInput(handlePOST);

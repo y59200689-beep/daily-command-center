@@ -87,7 +87,7 @@ export const currencyCodeSchema = z
   .trim()
   .length(3)
   .transform((v) => v.toUpperCase())
-  .default("MAD");
+  .default("USD");
 
 export const inventoryPolicySchema = z.object({
   id: z.string().uuid().optional(),
@@ -349,7 +349,7 @@ export function evaluateOverstockRisk(params: {
 } {
   const stock = Math.max(0, Number(params.availableStock) || 0);
   const maxDays = Math.max(1, Number(params.maxStockDays) || 60);
-  const currency = params.currency || "MAD";
+  const currency = params.currency || "USD";
 
   if (params.dailyVelocity === null || params.dailyVelocity <= 0) {
     if (stock > 0) {
@@ -456,7 +456,7 @@ export function buildReorderRecommendation(params: {
   const maxDays = Math.max(minDays + 7, Number(params.maxStockDays) || 60);
   const safety = Math.max(0, Number(params.safetyStockUnits) || 0);
   const moq = Math.max(1, Number(params.moq) || 1);
-  const currency = params.product.currency || "MAD";
+  const currency = params.product.currency || "USD";
 
   if (params.dailyVelocity === null) {
     return {
@@ -585,7 +585,7 @@ export function detectSlowMovingStock(params: {
         ? Number((p.availableStock * p.unit_cost).toFixed(2))
         : null;
 
-    const currency = p.currency || "MAD";
+    const currency = p.currency || "USD";
 
     if (velocity === 0 || (daysSinceSale !== null && daysSinceSale >= threshold)) {
       results.push({
@@ -1164,7 +1164,7 @@ export function buildCommerceReview(params: {
 } {
   const currencyBuckets: Record<string, { inventoryValue: number; sales30d: number; orderCount: number }> = {};
   for (const p of params.products) {
-    const curr = p.currency || "MAD";
+    const curr = p.currency || "USD";
     if (!currencyBuckets[curr]) {
       currencyBuckets[curr] = { inventoryValue: 0, sales30d: 0, orderCount: 0 };
     }

@@ -21,10 +21,10 @@ type ForecastData = {
   totalOpenValue: number;
 };
 
-function fmt(n: number, currency = "MAD") {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M ${currency}`;
-  if (n >= 1_000) return `${(n / 1_000).toFixed(0)}k ${currency}`;
-  return `${n} ${currency}`;
+function fmt(n: number, currency = "USD") {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M ${currency==='USD'?'$':currency}`;
+  if (n >= 1_000) return `${(n / 1_000).toFixed(0)}k ${currency==='USD'?'$':currency}`;
+  return `${n} ${currency==='USD'?'$':currency}`;
 }
 
 const BUCKET_COLORS: Record<string, string> = {

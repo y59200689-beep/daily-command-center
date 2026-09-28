@@ -21,10 +21,10 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
     const failures = [scope, changes, tasks, directFocus, expenses, invoices, payments, settings].find((query) => query.error); if (failures?.error) throw failures.error;
     const taskIds = (tasks.data ?? []).map((task) => task.id); const taskFocus = taskIds.length ? await supabase.from("focus_sessions").select("id,project_id,task_id,duration_seconds,started_at").eq("user_id", userId).in("task_id", taskIds) : { data: [], error: null };
     if (taskFocus.error) throw taskFocus.error;
-    const focus = [...(directFocus.data ?? []), ...(taskFocus.data ?? [])]; const currency = String(project.currency ?? "MAD");
-    const currencyExpenses = (expenses.data ?? []).filter((expense) => String(expense.currency ?? "MAD") === currency);
-    const currencyInvoices = (invoices.data ?? []).filter((invoice) => String(invoice.currency ?? "MAD") === currency);
-    const currencyPayments = (payments.data ?? []).filter((payment) => String(payment.currency ?? "MAD") === currency);
+    const focus = [...(directFocus.data ?? []), ...(taskFocus.data ?? [])]; const currency = String(project.currency ?? "USD");
+    const currencyExpenses = (expenses.data ?? []).filter((expense) => String(expense.currency ?? "USD") === currency);
+    const currencyInvoices = (invoices.data ?? []).filter((invoice) => String(invoice.currency ?? "USD") === currency);
+    const currencyPayments = (payments.data ?? []).filter((payment) => String(payment.currency ?? "USD") === currency);
     const trackedSeconds = trackedProjectSeconds(id, focus, tasks.data ?? []);
     const directExpenses = currencyExpenses.reduce((sum, expense) => sum + Number(expense.amount ?? 0), 0);
     const received = currencyPayments.reduce((sum, payment) => sum + Number(payment.amount ?? 0), 0);

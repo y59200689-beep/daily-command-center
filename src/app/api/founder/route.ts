@@ -1,3 +1,4 @@
+import { withUsdInput } from "@/lib/currency/route";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { apiError } from "@/lib/api";
@@ -35,7 +36,7 @@ export async function GET() {
     const inventoryRows = (products.data ?? []).map((product) => { const snapshot = latestInventory.get(product.id); const risk = inventoryRisk(snapshot ?? {}, null); return { ...product, ...(snapshot ?? {}), ...risk }; });
     const supportMetrics = supportSummary(support.data ?? []);
     const attention = founderAttention({ incidents: (incidents.data ?? []).map((item) => ({ id: item.id, title: item.title, severity: item.severity })), deployments: (deployments.data ?? []).map((item) => ({ id: item.id, status: item.status, environment: item.environment })), inventory: inventoryRows.map((item) => ({ id: item.id, name: item.name, state: item.state })), supportOpen: supportMetrics.open });
-    const funnel = growthFunnel(funnelSnapshots.data?.[0] ?? null); const marketingByCurrency = (marketing.data ?? []).reduce<Record<string, { spend: number; revenue: number; orders: number; customers: number }>>((result, row) => { const currency = String(row.currency ?? "MAD"); const target = result[currency] ??= { spend: 0, revenue: 0, orders: 0, customers: 0 }; target.spend += Number(row.spend ?? 0); target.revenue += Number(row.attributed_revenue ?? 0); target.orders += Number(row.orders_count ?? 0); target.customers += Number(row.new_customers ?? 0); return result; }, {}); const usage = aiUsage.data ?? []; const estimatedCost = usage.filter((row) => row.estimated_cost != null).reduce((sum, row) => sum + Number(row.estimated_cost), 0);
+    const funnel = growthFunnel(funnelSnapshots.data?.[0] ?? null); const marketingByCurrency = (marketing.data ?? []).reduce<Record<string, { spend: number; revenue: number; orders: number; customers: number }>>((result, row) => { const currency = String(row.currency ?? "USD"); const target = result[currency] ??= { spend: 0, revenue: 0, orders: 0, customers: 0 }; target.spend += Number(row.spend ?? 0); target.revenue += Number(row.attributed_revenue ?? 0); target.orders += Number(row.orders_count ?? 0); target.customers += Number(row.new_customers ?? 0); return result; }, {}); const usage = aiUsage.data ?? []; const estimatedCost = usage.filter((row) => row.estimated_cost != null).reduce((sum, row) => sum + Number(row.estimated_cost), 0);
     const repositories = (githubRepositories.data ?? []).map((repository) => { const metadata = (repository.metadata ?? {}) as Record<string, unknown>; return { id: repository.id, name: repository.title, url: repository.url, updatedAt: repository.external_updated_at, openIssues: Number(metadata.open_issues_count ?? 0), openPullRequests: Number(metadata.open_pr_count ?? 0) }; });
     const development = { repositories, openIssues: repositories.reduce((sum, item) => sum + item.openIssues, 0), openPullRequests: repositories.reduce((sum, item) => sum + item.openPullRequests, 0), lastActivity: repositories[0]?.updatedAt ?? null };
     const latestDeployment = (deployments.data ?? []).find((item) => item.environment === "production") ?? null;
@@ -44,12 +45,14 @@ export async function GET() {
   } catch (error) { return apiError(error, "Founder dashboard could not be loaded."); }
 }
 
-export async function POST(request: Request) {
+async function handlePOST(request: Request) {
   try {
     const input = createCompany.parse(await request.json()); const { supabase, userId } = await requireUser();
     if (input.primaryProjectId) { const project = await supabase.from("projects").select("id").eq("id", input.primaryProjectId).eq("user_id", userId).is("deleted_at", null).maybeSingle(); if (project.error) throw project.error; if (!project.data) return NextResponse.json({ error: "The selected project is not available." }, { status: 422 }); }
-    const saved = await supabase.from("companies").insert({ user_id: userId, name: input.name, primary_project_id: input.primaryProjectId ?? null, industry: "e-commerce", country_code: "MA", currency: "MAD" }).select("*").single();
+    const saved = await supabase.from("companies").insert({ user_id: userId, name: input.name, primary_project_id: input.primaryProjectId ?? null, industry: "e-commerce", country_code: "MA", currency: "USD" }).select("*").single();
     if (saved.error) throw saved.error; if (input.primaryProjectId) { const updated = await supabase.from("projects").update({ company_id: saved.data.id } as never).eq("id", input.primaryProjectId).eq("user_id", userId); if (updated.error) throw updated.error; }
     return NextResponse.json({ company: saved.data }, { status: 201 });
   } catch (error) { return apiError(error, "Company could not be created."); }
 }
+
+export const POST = withUsdInput(handlePOST);

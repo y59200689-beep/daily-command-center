@@ -18,7 +18,7 @@ test("V5 forecast keeps currencies separate and distinguishes committed from wei
 test("V5 schemas reject invalid commercial values and keep optional values nullable", () => {
   assert.equal(opportunitySchema.safeParse({ title: "Opportunity", stage: "new", probability: 101 }).success, false);
   const proposal = proposalSchema.parse({ title: "Proposal", items: [] });
-  assert.equal(proposal.currency, "MAD"); assert.deepEqual(proposal.items, []);
+  assert.equal(proposal.currency, "USD"); assert.deepEqual(proposal.items, []);
   assert.equal(businessSettingsSchema.safeParse({ default_currency: "MAD", default_tax_rate: 101 }).success, false);
 });
 

@@ -1,3 +1,4 @@
+import { withUsdInput } from "@/lib/currency/route";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { apiError } from "@/lib/api";
@@ -6,7 +7,7 @@ import { requireUser } from "@/lib/supabase/server";
 
 const input = z.object({ recipient: z.email().optional() });
 
-export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
+async function handlePOST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const clientId = z.uuid().parse((await params).id);
     const requested = input.parse(await request.json());
@@ -33,3 +34,5 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     return NextResponse.json({ approval, replyingInThread: inThread }, { status: 201 });
   } catch (error) { return apiError(error, "A follow-up draft could not be prepared."); }
 }
+
+export const POST = withUsdInput(handlePOST);

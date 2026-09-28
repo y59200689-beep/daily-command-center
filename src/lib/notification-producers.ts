@@ -158,7 +158,7 @@ export async function emitGrowthNotifications(client: SupabaseClient, userId: st
       await notifyOnce(client, userId, {
         type: "clients",
         title: "Opportunity has no next action",
-        body: `${opp.title} (${val} ${opp.currency ?? "MAD"}) has no scheduled next sales action.`,
+        body: `${opp.title} (${val} ${opp.currency ?? "USD"}) has no scheduled next sales action.`,
         entityType: "opportunity",
         entityId: opp.id,
         severity: val >= 20000 ? "important" : "attention",
@@ -175,7 +175,7 @@ export async function emitGrowthNotifications(client: SupabaseClient, userId: st
       await notifyOnce(client, userId, {
         type: "clients",
         title: "High-value deal at risk",
-        body: `${opp.title} (${val} ${opp.currency ?? "MAD"}) is stalled or past its close date.`,
+        body: `${opp.title} (${val} ${opp.currency ?? "USD"}) is stalled or past its close date.`,
         entityType: "opportunity",
         entityId: opp.id,
         severity: "important",
@@ -812,7 +812,7 @@ export async function emitExecutiveNotifications(
     await notifyOnce(client, userId, {
       type: "finance",
       title: "Executive Alert: High Overdue Receivables",
-      body: `${totalOverdue.toLocaleString()} MAD in overdue invoices. Immediate follow-up required.`,
+      body: `${totalOverdue.toLocaleString()} USD in overdue invoices. Immediate follow-up required.`,
       entityType: "executive_signal",
       severity: "important",
       dedupeKey: `executive:overdue-receivables:${today}`,

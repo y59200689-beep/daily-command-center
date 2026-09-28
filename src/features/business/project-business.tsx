@@ -9,7 +9,7 @@ import { announceWorkspaceMutation } from "@/lib/workspace-mutations";
 
 type Row = Record<string, unknown> & { id: string };
 type Data = { project: Row; scope: Row[]; changes: Row[]; tasks: Row[]; metrics: Record<string, unknown>; scopeProgress: Record<string, unknown> };
-const money = (amount: unknown, currency: unknown) => amount == null ? "—" : new Intl.NumberFormat(undefined, { style: "currency", currency: String(currency ?? "MAD") }).format(Number(amount));
+const money = (amount: unknown, currency: unknown) => amount == null ? "—" : new Intl.NumberFormat(undefined, { style: "currency", currency: String(currency ?? "USD") }).format(Number(amount));
 const label = (value: unknown) => String(value ?? "—").replaceAll("_", " ");
 
 export function ProjectBusiness({ projectId }: { projectId: string }) {

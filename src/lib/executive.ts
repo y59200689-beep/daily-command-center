@@ -176,10 +176,10 @@ export function evaluateMateriality(
   if (signal.moneyAmount != null && signal.moneyAmount > 0) {
     if (signal.moneyAmount >= 20000) {
       score += 30;
-      reasons.push(`Significant financial exposure (${signal.currency ?? "MAD"} ${signal.moneyAmount.toLocaleString()})`);
+      reasons.push(`Significant financial exposure (${signal.currency ?? "USD"} ${signal.moneyAmount.toLocaleString()})`);
     } else if (signal.moneyAmount >= 5000) {
       score += 15;
-      reasons.push(`Material financial amount (${signal.currency ?? "MAD"} ${signal.moneyAmount.toLocaleString()})`);
+      reasons.push(`Material financial amount (${signal.currency ?? "USD"} ${signal.moneyAmount.toLocaleString()})`);
     }
   }
 
@@ -327,7 +327,7 @@ export function rankExecutivePriorities(
       title: s.title,
       why: s.reason,
       urgency: s.deadline ? `Deadline: ${s.deadline}` : "High urgency",
-      impact: s.moneyAmount ? `${s.currency ?? "MAD"} ${s.moneyAmount.toLocaleString()} exposure` : "Operational & strategic",
+      impact: s.moneyAmount ? `${s.currency ?? "USD"} ${s.moneyAmount.toLocaleString()} exposure` : "Operational & strategic",
       route: s.route,
       score,
     };

@@ -6,7 +6,7 @@ import { useDeferredEffect } from "@/lib/use-deferred-effect";
 
 type Campaign = { id:string; name:string; channel:string|null; source:string|null; periodStart:string; periodEnd:string; currency:string; spend:number|null; revenue:number|null; orders:number|null; customers:number|null; rows:number; roas:number|null; cac:number|null };
 type Data = { campaigns:Campaign[]; comparisons:Record<string,{highestRevenue:string|null;highestRoas:string|null;lowestCac:string|null}|null> };
-const amount=(value:number|null,currency:string)=>value==null?"Unavailable":`${value.toLocaleString()} ${currency}`;
+const amount=(value:number|null,currency:string)=>value==null?"Unavailable":`${value.toLocaleString()} ${currency==='USD'?'$':currency}`;
 export function FounderMarketing(){const[data,setData]=useState<Data|null>(null);const[error,setError]=useState("");const load=useCallback(async()=>{try{const response=await fetch("/api/founder/marketing",{cache:"no-store"});const body=await response.json() as Data&{error?:string};if(!response.ok)throw new Error(body.error??"Campaign performance could not be loaded.");setData(body);setError("")}catch(reason){setError(reason instanceof Error?reason.message:"Campaign performance could not be loaded.")}},[]);useDeferredEffect(useCallback(()=>{void load()},[load]));if(error)return <div className="domain-page"><section className="inline-error" role="alert"><p>{error}</p><Button emphasis="outline" onClick={()=>void load()}>Try again</Button></section></div>;if(!data)return <div className="domain-page"><div className="empty-state"><span>···</span><h2>Loading campaign performance</h2></div></div>;  return (
     <main className="domain-page founder-page">
       <header className="task-context-header">

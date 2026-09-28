@@ -1,3 +1,4 @@
+import { withUsdInput } from "@/lib/currency/route";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { apiError, isMissingOptionalSchema } from "@/lib/api";
@@ -8,7 +9,7 @@ const nullableText = (max = 5000) => z.preprocess(blank, z.string().trim().max(m
 const nullableUuid = z.preprocess(blank, z.uuid().nullable().optional());
 const nullableDate = z.preprocess(blank, z.iso.date().nullable().optional());
 const nullableDateTime = z.preprocess(blank, z.iso.datetime({ offset: true }).nullable().optional());
-const currency = z.string().trim().length(3).transform((value) => value.toUpperCase()).default("MAD");
+const currency = z.string().trim().length(3).transform((value) => value.toUpperCase()).default("USD");
 
 const resources = {
   trips: { table: "trips", order: "start_date", schema: z.object({ title: z.string().trim().min(1).max(240), destination_country: nullableText(120), destination_city: nullableText(120), start_date: nullableDate, end_date: nullableDate, purpose: nullableText(240), status: z.enum(["idea","planning","booked","in_progress","completed","canceled"]).default("idea"), budget: z.preprocess(blank, z.coerce.number().nonnegative().nullable().optional()), currency, notes: nullableText(10000) }) },
@@ -38,6 +39,8 @@ export async function GET(_: Request, context: { params: Promise<{ resource: str
   }
 }
 
-export async function POST(request: Request, context: { params: Promise<{ resource: string }> }) {
+async function handlePOST(request: Request, context: { params: Promise<{ resource: string }> }) {
   try { const resource = (await context.params).resource; if (!isResource(resource)) return NextResponse.json({ error: "Unknown life collection." }, { status: 404 }); const parsed = resources[resource].schema.safeParse(await request.json()); if (!parsed.success) return NextResponse.json({ error: "Check the highlighted life details and try again." }, { status: 422 }); const { supabase, userId } = await requireUser(); const { data, error } = await supabase.from(resources[resource].table).insert({ ...parsed.data, user_id: userId } as never).select("*").single(); if (error) throw error; await supabase.from("action_audit_log").insert({ user_id: userId, actor: "user", action_type: `life_${resource}_created`, entity_type: resource, entity_id: data.id, summary: `Created ${resource.slice(0, -1)}.` } as never); return NextResponse.json({ record: data }, { status: 201 }); } catch (error) { return apiError(error, "Life record could not be saved."); }
 }
+
+export const POST = withUsdInput(handlePOST);

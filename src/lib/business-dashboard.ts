@@ -14,7 +14,7 @@ export const salesStageGroups = [
   { id: "negotiation", label: "Negotiation", stages: ["negotiation"] },
   { id: "won", label: "Won", stages: ["won"] },
 ] as const;
-export function recordCurrency(row: BusinessRecord) { return String(row.currency || "MAD"); }
+export function recordCurrency(row: BusinessRecord) { return String(row.currency || "USD"); }
 export function isOpenOpportunity(row: BusinessRecord) { return !["won", "lost"].includes(String(row.stage)); }
 export function weightedOpportunity(row: BusinessRecord) {
   return Number(row.estimated_value ?? 0) * Number(row.probability ?? stageProbability[row.stage as OpportunityStage] ?? 0) / 100;

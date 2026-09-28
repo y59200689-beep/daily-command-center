@@ -1,4 +1,5 @@
 "use client";
+import { CurrencySelect } from "@/components/ui/currency-select";
 import Link from "next/link";
 
 import { useCallback, useState } from "react";
@@ -53,6 +54,7 @@ export function GrowthExperiments() {
   const [audience, setAudience] = useState("");
   const [status, setStatus] = useState<Experiment["status"]>("idea");
   const [budget, setBudget] = useState("");
+  const [currency,setCurrency] = useState("USD");
 
   const load = useCallback(async () => {
     const res = await fetch("/api/growth/experiments", { cache: "no-store" });
@@ -77,7 +79,7 @@ export function GrowthExperiments() {
       body: JSON.stringify({
         name, hypothesis, target_metric: metric,
         channel: channel || null, audience: audience || null,
-        status, budget: budget ? Number(budget) : null, currency: "MAD",
+        status, budget: budget ? Number(budget) : null, currency,
       }),
     });
     setSaving(false);
@@ -187,11 +189,11 @@ export function GrowthExperiments() {
           </label>
           <label>
             Audience (optional)
-            <input value={audience} onChange={(e) => setAudience(e.target.value)} placeholder="e.g. Warm leads over 50k MAD" />
+            <input value={audience} onChange={(e) => setAudience(e.target.value)} placeholder="e.g. Warm leads over 50k USD" />
           </label>
           <label>
-            Budget (MAD, optional)
-            <input type="number" value={budget} onChange={(e) => setBudget(e.target.value)} min="0" />
+            Budget (optional)
+            <CurrencySelect aria-label="Budget currency" value={currency} onChange={e=>setCurrency(e.target.value)}/><input type="number" value={budget} onChange={(e) => setBudget(e.target.value)} min="0" />
           </label>
           <label>
             Initial status

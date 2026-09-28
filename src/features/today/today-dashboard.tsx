@@ -586,7 +586,7 @@ export function TodayDashboard() {
 }
 function AdaptiveBrief({ intelligence, nextEvent, projects }: { intelligence: Intelligence; nextEvent: Item | null; projects: Item[] }) {
   const rows = intelligence.mode === "finance_heavy"
-    ? [{ label: "Overdue", value: `${intelligence.finance.overdueAmount.toLocaleString()} MAD` }, { label: "Expected", value: `${intelligence.finance.expectedThisWeek.toLocaleString()} MAD` }, { label: "Renewals", value: `${intelligence.finance.renewalsNext7Days.toLocaleString()} MAD` }]
+    ? [{ label: "Overdue", value: `${intelligence.finance.overdueAmount.toLocaleString()} USD` }, { label: "Expected", value: `${intelligence.finance.expectedThisWeek.toLocaleString()} USD` }, { label: "Renewals", value: `${intelligence.finance.renewalsNext7Days.toLocaleString()} USD` }]
     : intelligence.mode === "content_deadline"
       ? [{ label: "Due soon", value: String(intelligence.content.dueSoon) }, { label: "In review", value: String(intelligence.content.stuckInReview) }, { label: "Scheduled", value: String(intelligence.content.scheduledNext7Days) }]
       : intelligence.mode === "meeting_heavy"

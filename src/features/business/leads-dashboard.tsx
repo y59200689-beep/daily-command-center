@@ -10,7 +10,7 @@ import { opportunityStages } from '@/lib/business';
 import { filterLeads, followUpLabel, leadLabel, leadSources, leadStatuses, leadSummary, type LeadRow } from '@/lib/leads-dashboard';
 import './leads-dashboard.css';
 const initials=(row:LeadRow)=>String(row.name||'Lead').split(/\s+/).slice(0,2).map(word=>word[0]).join('').toUpperCase();
-const cash=(row:LeadRow)=>row.potential_value==null?'Not estimated':new Intl.NumberFormat('en',{style:'currency',currency:String(row.currency||'MAD'),maximumFractionDigits:0}).format(Number(row.potential_value));
+const cash=(row:LeadRow)=>row.potential_value==null?'Not estimated':new Intl.NumberFormat('en',{style:'currency',currency:String(row.currency||'USD'),maximumFractionDigits:0}).format(Number(row.potential_value));
 const date=(value:unknown)=>value?new Date(String(value)).toLocaleDateString('en',{month:'short',day:'numeric',year:'numeric'}):'Not scheduled';
 const options=(values:readonly string[],all:string)=>[{value:'',label:all},...values.map(value=>({value,label:leadLabel(value)}))];
 const subscribeCompact=(notify:()=>void)=>{const media=window.matchMedia('(max-width:1000px)');media.addEventListener('change',notify);return()=>media.removeEventListener('change',notify);};

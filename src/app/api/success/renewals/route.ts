@@ -1,3 +1,4 @@
+import { withUsdInput } from "@/lib/currency/route";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { apiError, isMissingOptionalSchema } from "@/lib/api";
@@ -33,7 +34,7 @@ export async function GET(request: Request) {
   }
 }
 
-export async function POST(request: Request) {
+async function handlePOST(request: Request) {
   try {
     const { supabase, userId } = await requireUser();
     const body = await request.json();
@@ -61,7 +62,7 @@ export async function POST(request: Request) {
       ]).default("upcoming"),
       forecast_category: z.enum(["committed", "likely", "uncertain", "at_risk"]).default("uncertain"),
       value: z.number().nonnegative().nullable().optional(),
-      currency: z.string().length(3).default("MAD"),
+      currency: z.string().length(3).default("USD"),
       owner_person_id: z.string().uuid().nullable().optional(),
       preparation_state: z.enum(["not_started", "in_progress", "ready", "not_needed"]).default("not_started"),
       last_review_at: z.string().nullable().optional(),
@@ -111,3 +112,5 @@ export async function POST(request: Request) {
     return apiError(error, "Renewal could not be created.");
   }
 }
+
+export const POST = withUsdInput(handlePOST);

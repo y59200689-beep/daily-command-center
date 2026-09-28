@@ -24,8 +24,8 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
     const trackedByProject = new Map(serviceProjectIds.map((projectId) => [projectId, trackedProjectSeconds(projectId, focus.data ?? [], (tasks.data ?? []).filter((task) => task.project_id === projectId))]));
     const trackedByProposal = new Map((projectRows.data ?? []).map((project) => [project.proposal_id, trackedByProject.get(project.id) ?? 0]));
     const currencyGroups: Record<string, ReturnType<typeof pricingHistory>> = {};
-    for (const currency of new Set((accepted).map((item) => String((item.proposals as { currency?: string } | null)?.currency ?? service.currency ?? "MAD")))) {
-      const rows = accepted.filter((item) => String((item.proposals as { currency?: string } | null)?.currency ?? service.currency ?? "MAD") === currency).map((item) => ({ amount: item.total, trackedSeconds: trackedByProposal.get(item.proposal_id) || null, status: "accepted" }));
+    for (const currency of new Set((accepted).map((item) => String((item.proposals as { currency?: string } | null)?.currency ?? service.currency ?? "USD")))) {
+      const rows = accepted.filter((item) => String((item.proposals as { currency?: string } | null)?.currency ?? service.currency ?? "USD") === currency).map((item) => ({ amount: item.total, trackedSeconds: trackedByProposal.get(item.proposal_id) || null, status: "accepted" }));
       currencyGroups[currency] = pricingHistory(rows);
     }
     return NextResponse.json({ service, proposalCount: (items ?? []).length, acceptedCount: accepted.length, winRate: (items ?? []).length ? accepted.length / (items ?? []).length : null, pricing: currencyGroups, recentProposals: (items ?? []).slice(0, 5).map((item) => ({ id: item.proposal_id, title: (item.proposals as { title?: string } | null)?.title ?? item.title, status: (item.proposals as { status?: string } | null)?.status, currency: (item.proposals as { currency?: string } | null)?.currency, total: item.total })), recentProjects: projectRows.data ?? [] });

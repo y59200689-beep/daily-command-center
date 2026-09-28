@@ -1,4 +1,5 @@
 "use client";
+import { CurrencySelect } from "@/components/ui/currency-select";
 
 import { useCallback, useState } from "react";
 import Link from "next/link";
@@ -8,10 +9,10 @@ import { useDeferredEffect } from "@/lib/use-deferred-effect";
 
 type Row = Record<string, unknown> & { id: string };
 
-function fmt(n: number, currency = "MAD") {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M ${currency}`;
-  if (n >= 1_000) return `${(n / 1_000).toFixed(0)}k ${currency}`;
-  return `${n} ${currency}`;
+function fmt(n: number, currency = "USD") {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M ${currency==='USD'?'$':currency}`;
+  if (n >= 1_000) return `${(n / 1_000).toFixed(0)}k ${currency==='USD'?'$':currency}`;
+  return `${n} ${currency==='USD'?'$':currency}`;
 }
 
 export function GrowthReviews() {
@@ -35,6 +36,7 @@ export function GrowthReviews() {
   // Target form state
   const [metricType, setMetricType] = useState("monthly_revenue");
   const [targetValue, setTargetValue] = useState("");
+  const [currency,setCurrency] = useState("USD");
   const [period, setPeriod] = useState<"week" | "month" | "quarter" | "year">("month");
   const [periodStart, setPeriodStart] = useState(new Date().toISOString().slice(0, 10));
   const [periodEnd, setPeriodEnd] = useState(
@@ -94,7 +96,7 @@ export function GrowthReviews() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           metric_type: metricType,
-          target_value: Number(targetValue),
+          target_value: Number(targetValue), currency,
           period,
           period_start: periodStart,
           period_end: periodEnd,
@@ -191,7 +193,7 @@ export function GrowthReviews() {
                       <strong>{String(t.metric_type ?? "").replace(/_/g, " ")}</strong>
                       <small>{String(t.period)} · {String(t.period_start)} to {String(t.period_end)}</small>
                     </div>
-                    <em>{fmt(currentVal, String(t.currency ?? "MAD"))} / {fmt(targetVal, String(t.currency ?? "MAD"))} ({pct}%)</em>
+                    <em>{fmt(currentVal, String(t.currency ?? "USD"))} / {fmt(targetVal, String(t.currency ?? "USD"))} ({pct}%)</em>
                   </div>
                 );
               })}
@@ -217,7 +219,7 @@ export function GrowthReviews() {
                     <small>{String(opp.stage ?? "").replace(/_/g, " ")}</small>
                   </div>
                   <div className="integration-actions">
-                    <em>{fmt(Number(opp.estimated_value ?? 0), String(opp.currency ?? "MAD"))}</em>
+                    <em>{fmt(Number(opp.estimated_value ?? 0), String(opp.currency ?? "USD"))}</em>
                     <Button
                       emphasis="ghost"
                       onClick={() => {
@@ -406,7 +408,7 @@ export function GrowthReviews() {
               <option value="expansion_revenue">Expansion revenue</option>
             </select>
 
-            <label htmlFor="target-val">Target value</label>
+            <label>Entry currency<CurrencySelect value={currency} onChange={e=>setCurrency(e.target.value)}/></label><label htmlFor="target-val">Target value</label>
             <input
               id="target-val"
               type="number"

@@ -1,4 +1,5 @@
 "use client";
+import { CurrencySelect } from "@/components/ui/currency-select";
 
 import { useEffect, useState } from "react";
 import { Icons } from "@/components/icons";
@@ -38,7 +39,7 @@ export function ProductsPerformanceView() {
     sku: "",
     category: "",
     brand: "",
-    currency: "MAD",
+    currency: "USD",
     unit_cost: "",
     selling_price: "",
   });
@@ -104,7 +105,7 @@ export function ProductsPerformanceView() {
         sku: "",
         category: "",
         brand: "",
-        currency: "MAD",
+        currency: "USD",
         unit_cost: "",
         selling_price: "",
       });
@@ -224,7 +225,7 @@ export function ProductsPerformanceView() {
                 <Icons.X className="h-5 w-5" />
               </button>
             </div>
-            <form noValidate onSubmit={handleSubmit} className="space-y-4">
+            <form noValidate onSubmit={handleSubmit} className="space-y-4"><label>Entry currency<CurrencySelect value={formData.currency} onChange={e=>setFormData({...formData,currency:e.target.value})}/></label>
               <div>
                 <label className="text-xs font-semibold text-muted-foreground uppercase">Product Name *</label>
                 <input

@@ -29,7 +29,7 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
     const [projects, tasks, followups, waiting, notes, content, invoices, payments, files, threads, activity] = queries.map((item) => item.data ?? []);
     const today = new Date().toISOString().slice(0, 10);
     const enriched = invoices.map((item) => ({ ...item, effective_status: effectiveInvoiceStatus(item, today) }));
-    const defaultInvoices=enriched.filter((item)=>String(item.currency??"MAD")==="MAD");const defaultPayments=payments.filter((item)=>String(item.currency??"MAD")==="MAD");
+    const defaultInvoices=enriched.filter((item)=>String(item.currency??"USD")==="USD");const defaultPayments=payments.filter((item)=>String(item.currency??"USD")==="USD");
     const invoiced = defaultInvoices.reduce((sum, item) => sum + Number(item.total_amount ?? item.amount ?? 0), 0);
     const received = defaultPayments.reduce((sum, item) => sum + Number(item.amount ?? 0), 0);
     const overdue = defaultInvoices.filter((item) => item.effective_status === "overdue").reduce((sum, item) => sum + Number(item.amount_remaining ?? 0), 0);

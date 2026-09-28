@@ -1,3 +1,4 @@
+import { withUsdInput } from "@/lib/currency/route";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { apiError } from "@/lib/api";
@@ -18,7 +19,7 @@ const targetSchema = z.object({
   ]),
   target_value: z.coerce.number().finite().nonnegative(),
   current_value: z.coerce.number().finite().nonnegative().default(0),
-  currency: z.string().length(3).default("MAD"),
+  currency: z.string().length(3).default("USD"),
   period: z.enum(["week", "month", "quarter", "year"]).default("month"),
   period_start: z.string(),
   period_end: z.string(),
@@ -41,7 +42,7 @@ export async function GET() {
   }
 }
 
-export async function POST(request: Request) {
+async function handlePOST(request: Request) {
   try {
     const input = targetSchema.parse(await request.json());
     const { supabase, userId } = await requireUser();
@@ -91,3 +92,5 @@ export async function POST(request: Request) {
     return apiError(error, "Sales target could not be saved.");
   }
 }
+
+export const POST = withUsdInput(handlePOST);

@@ -87,18 +87,18 @@ export async function GET() {
     const leadReactivations = identifyLeadReactivations(leads, opportunities, today);
     const offerMetrics = computeOfferIntelligence(services, proposalItems, proposals, opportunities);
     const channelMetrics = computeChannelPerformance(leads, opportunities, proposals);
-    const growthRisks = Array.from(new Set(opportunities.map(row => row.currency || "MAD"))).flatMap(currency =>
-      detectGrowthRisks(opportunities.filter(row => (row.currency || "MAD") === currency), clients, proposals.filter(row => (row.currency || "MAD") === currency), today).map(risk => ({ ...risk, id: `${risk.id}:${currency}`, currency, evidence: risk.evidence.replaceAll("MAD", currency) }))
+    const growthRisks = Array.from(new Set(opportunities.map(row => row.currency || "USD"))).flatMap(currency =>
+      detectGrowthRisks(opportunities.filter(row => (row.currency || "USD") === currency), clients, proposals.filter(row => (row.currency || "USD") === currency), today).map(risk => ({ ...risk, id: `${risk.id}:${currency}`, currency, evidence: risk.evidence.replaceAll("USD", currency) }))
     );
 
     const dashboard = { opportunities, invoices, payments, proposals, proposalItems, clients, services };
-    const totals = growthTotals(dashboard, "MAD");
+    const totals = growthTotals(dashboard, "USD");
     return NextResponse.json({
       dashboard,
       nextGrowthMove,
       revenueInMotion: {
         ...totals,
-        currency: "MAD",
+        currency: "USD",
       },
       pipelineQuality,
       scoredOpportunities,

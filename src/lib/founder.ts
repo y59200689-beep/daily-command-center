@@ -2,7 +2,7 @@ export type FounderOrder = { id: string; status: string; currency: string; total
 export type FounderOrderItem = { order_id?: string; product_id?: string | null; product_name: string; quantity: number | string; unit_price: number | string; unit_cost?: number | string | null };
 
 export function byCurrency<T extends { currency?: string | null }>(rows: T[], value: (row: T) => number) {
-  return rows.reduce<Record<string, number>>((result, row) => { const currency = String(row.currency ?? "MAD"); result[currency] = (result[currency] ?? 0) + value(row); return result; }, {});
+  return rows.reduce<Record<string, number>>((result, row) => { const currency = String(row.currency ?? "USD"); result[currency] = (result[currency] ?? 0) + value(row); return result; }, {});
 }
 
 export function commerceSummary(orders: FounderOrder[]) {

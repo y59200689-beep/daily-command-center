@@ -45,7 +45,7 @@ export function assessClientHealth(snapshot: WorkspaceSnapshot, recommendations:
     const lastContact = asString(client.last_contact_at);
     const contactGap = lastContact ? Math.max(0, daysBetween(lastContact, snapshot.today)) : null;
     const reasons: string[] = [];
-    if (overdue.length) reasons.push(`${outstanding.toLocaleString("en")} MAD overdue`);
+    if (overdue.length) reasons.push(`${outstanding.toLocaleString("en")} USD overdue`);
     if (waiting.length) reasons.push(`${waiting.length} waiting item${waiting.length === 1 ? "" : "s"}`);
     if (followups.length) reasons.push(`${followups.length} open follow-up${followups.length === 1 ? "" : "s"}`);
     if (contactGap === null) reasons.push("No contact date recorded");

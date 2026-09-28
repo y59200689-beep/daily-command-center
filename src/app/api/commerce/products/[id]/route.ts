@@ -1,3 +1,4 @@
+import { withUsdInput } from "@/lib/currency/route";
 import { NextResponse } from "next/server";
 import { apiError } from "@/lib/api";
 import { getCommerceContext } from "@/lib/commerce-server";
@@ -71,7 +72,7 @@ export async function GET(
   }
 }
 
-export async function PATCH(
+async function handlePATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
@@ -137,3 +138,5 @@ export async function DELETE(
     return apiError(error, "Product could not be deleted.");
   }
 }
+
+export const PATCH = withUsdInput(handlePATCH);

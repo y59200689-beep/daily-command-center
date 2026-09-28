@@ -39,7 +39,7 @@ export async function GET() {
       entry.availableStockUnits += p.availableStock;
       entry.soldUnits30d += p.totalSold30d;
 
-      const curr = p.currency || "MAD";
+      const curr = p.currency || "USD";
       if (!entry.currencyTotals[curr]) {
         entry.currencyTotals[curr] = { inventoryValue: 0, salesValue30d: 0 };
       }

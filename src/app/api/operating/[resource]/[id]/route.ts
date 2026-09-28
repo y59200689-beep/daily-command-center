@@ -1,10 +1,11 @@
+import { withUsdInput } from "@/lib/currency/route";
 import { NextResponse } from "next/server";
 import { apiError } from "@/lib/api";
 import { requireUser } from "@/lib/supabase/server";
 import { z } from "zod";
 import { resources, isResource } from "@/lib/founder-os/resources";
 import { saveOperatingRecord, removeOperatingRecord } from "@/lib/founder-os/repository";
-export async function PATCH(request: Request, context: { params: Promise<{ resource: string; id: string }> }) {
+async function handlePATCH(request: Request, context: { params: Promise<{ resource: string; id: string }> }) {
   try {
     const { resource, id } = await context.params;
     if (!isResource(resource)) return NextResponse.json({ error: "Unknown resource." }, { status: 404 });
@@ -35,3 +36,5 @@ export async function DELETE(_request: Request, context: { params: Promise<{ res
     return record ? NextResponse.json({ record }) : NextResponse.json({ error: "Record not found." }, { status: 404 });
   } catch (error) { return apiError(error, "Record could not be removed."); }
 }
+
+export const PATCH = withUsdInput(handlePATCH);

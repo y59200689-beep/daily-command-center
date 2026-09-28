@@ -9,7 +9,7 @@ export const growthStages = [
   { id: "new", label: "Discovery", stages: ["new", "discovery"], color: "#7fe0b1" },
   { id: "won", label: "Won", stages: ["won"], color: "#b9a1f7" },
 ];
-const code = (row: GrowthRow) => String(row.currency || "MAD");
+const code = (row: GrowthRow) => String(row.currency || "USD");
 const value = (row: GrowthRow, key: string) => Number(row[key] ?? 0);
 export function growthTotals(snapshot: GrowthSnapshot, currency: string, now = new Date()) {
   const month = now.toISOString().slice(0, 7);

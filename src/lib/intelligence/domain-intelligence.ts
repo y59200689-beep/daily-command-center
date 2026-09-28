@@ -11,10 +11,10 @@ export function getFinancialIntelligence(snapshot: WorkspaceSnapshot) {
   const overdueAmount = overdue.reduce((sum, invoice) => sum + asNumber(invoice.amount_remaining), 0);
   const renewalsNext7Days = renewals.reduce((sum, item) => sum + asNumber(item.amount), 0);
   const insights: string[] = [];
-  if (expectedThisWeek > 0) insights.push(`${expectedThisWeek.toLocaleString("en")} MAD is expected this week.`);
-  if (overdueAmount > 0) insights.push(`${overdueAmount.toLocaleString("en")} MAD is overdue across ${overdue.length} invoice${overdue.length === 1 ? "" : "s"}.`);
-  if (renewalsNext7Days > 0) insights.push(`Subscription renewals total ${renewalsNext7Days.toLocaleString("en")} MAD in the next 7 days.`);
-  return { expectedThisWeek, overdueAmount, overdueCount: overdue.length, renewalsNext7Days, currency: "MAD", insights };
+  if (expectedThisWeek > 0) insights.push(`${expectedThisWeek.toLocaleString("en")} USD is expected this week.`);
+  if (overdueAmount > 0) insights.push(`${overdueAmount.toLocaleString("en")} USD is overdue across ${overdue.length} invoice${overdue.length === 1 ? "" : "s"}.`);
+  if (renewalsNext7Days > 0) insights.push(`Subscription renewals total ${renewalsNext7Days.toLocaleString("en")} USD in the next 7 days.`);
+  return { expectedThisWeek, overdueAmount, overdueCount: overdue.length, renewalsNext7Days, currency: "USD", insights };
 }
 
 export function getContentIntelligence(snapshot: WorkspaceSnapshot) {

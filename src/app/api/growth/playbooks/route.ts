@@ -1,3 +1,4 @@
+import { withUsdInput } from "@/lib/currency/route";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { apiError } from "@/lib/api";
@@ -39,7 +40,7 @@ export async function GET() {
   }
 }
 
-export async function POST(request: Request) {
+async function handlePOST(request: Request) {
   try {
     const input = playbookSchema.parse(await request.json());
     const { supabase, userId } = await requireUser();
@@ -66,3 +67,5 @@ export async function POST(request: Request) {
     return apiError(error, "Playbook could not be created.");
   }
 }
+
+export const POST = withUsdInput(handlePOST);

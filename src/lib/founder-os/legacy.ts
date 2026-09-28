@@ -1,7 +1,7 @@
 import { z } from "zod";
 const blank = (value: unknown) => typeof value === "string" && !value.trim() ? null : value;
 const nullableUuid = z.preprocess(blank, z.uuid().nullable().optional());
-const currency = z.string().trim().length(3).transform((value) => value.toUpperCase()).default("MAD");
+const currency = z.string().trim().length(3).transform((value) => value.toUpperCase()).default("USD");
 export const legacyResources = {
   suppliers: { table: "supplier_records", sort: "updated_at", schema: z.object({ company_id: z.uuid(), name: z.string().trim().min(1).max(240), contact_reference: z.preprocess(blank, z.string().max(500).nullable().optional()), lead_time_days: z.preprocess(blank, z.coerce.number().int().nonnegative().nullable().optional()), minimum_order_value: z.preprocess(blank, z.coerce.number().nonnegative().nullable().optional()), currency, payment_terms: z.preprocess(blank, z.string().max(500).nullable().optional()), notes: z.preprocess(blank, z.string().max(5000).nullable().optional()), active: z.boolean().default(true) }) },
   "supplier-orders": { table: "supplier_orders", sort: "updated_at", schema: z.object({ company_id: z.uuid(), supplier_id: z.uuid(), status: z.enum(["draft", "ordered", "partially_received", "received", "canceled"]).default("draft"), reference: z.preprocess(blank, z.string().max(160).nullable().optional()), total_value: z.preprocess(blank, z.coerce.number().nonnegative().nullable().optional()), currency, notes: z.preprocess(blank, z.string().max(5000).nullable().optional()) }) },

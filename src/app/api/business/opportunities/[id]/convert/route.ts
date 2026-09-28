@@ -1,8 +1,9 @@
+import { withUsdInput } from "@/lib/currency/route";
 import { NextResponse } from "next/server";
 import { apiError } from "@/lib/api";
 import { requireUser } from "@/lib/supabase/server";
 
-export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
+async function handlePOST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     const body = await request.json().catch(() => ({})) as { createClient?: boolean; projectName?: string };
@@ -16,3 +17,5 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     return NextResponse.json({ result: data });
   } catch (error) { return apiError(error, "This opportunity could not be converted safely."); }
 }
+
+export const POST = withUsdInput(handlePOST);
