@@ -10,6 +10,7 @@ import { useToast } from "@/components/toast-provider";
 import { minutesLabel } from "@/lib/utils";
 import { useDeferredEffect } from "@/lib/use-deferred-effect";
 import { subscribeToWorkspaceMutations } from "@/lib/workspace-mutations";
+import { MissionCard } from "./mission-card";
 
 type Item = Record<string, unknown> & { id: string };
 type Insight = {
@@ -180,6 +181,7 @@ export function TodayDashboard() {
     (data.priorities[0] ? `/focus?task=${data.priorities[0].id}` : "/tasks");
   return (
     <div className="today-page">
+      <MissionCard />
       {data.founderState ? <FounderStatePanel state={data.founderState} compact /> : <p className="founder-coverage">Founder State is unavailable. <Link href="/state">Review monitoring</Link>.</p>}
       <section className="brief-hero">
         <div className="brief-hero__main">
