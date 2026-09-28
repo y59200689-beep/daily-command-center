@@ -6,3 +6,17 @@
 .domain-page:has(.task-board) [data-status="inbox"] .task-card{background:#fafdff;border-color:#ccdaf7;box-shadow:0 9px 19px rgba(48,92,177,.09)}.domain-page:has(.task-board) [data-status="planned"] .task-card{background:#fffafd;border-color:#f2cddd;box-shadow:0 9px 19px rgba(174,64,116,.09)}.domain-page:has(.task-board) [data-status="in_progress"] .task-card{background:#fcfbff;border-color:#d9d0fa;box-shadow:0 9px 19px rgba(96,70,174,.09)}.domain-page:has(.task-board) [data-status="waiting"] .task-card{background:#f9fcff;border-color:#c8def7;box-shadow:0 9px 19px rgba(49,108,180,.09)}.domain-page:has(.task-board) [data-status="still_waiting"] .task-card{background:#fff9fb;border-color:#f1c8d5;box-shadow:0 9px 19px rgba(181,64,97,.09)}.domain-page:has(.task-board) [data-status="blocked"] .task-card{background:#fffaf8;border-color:#f2d1c6}.domain-page:has(.task-board) [data-status="completed"] .task-card{background:#f8fffb;border-color:#c8e9d5}.domain-page:has(.task-board) [data-status="cancelled"] .task-card{background:#fbfbfd;border-color:#dcdee7}
 
 .domain-page:has(.task-board) .task-card--compact{min-height:0;gap:7px}.domain-page:has(.task-board) .task-card--compact footer{margin-top:4px;padding-top:0}
+
+@media (min-width: 768px) {
+  .domain-page:has(.task-board) .task-board {
+    grid-auto-columns: clamp(210px, calc((100% - 48px) / 5), 235px);
+  }
+  .domain-page:has(.task-board) .task-board__column { padding: 9px; }
+  .domain-page:has(.task-board) .task-board__title-anchor { gap: 7px; }
+  .domain-page:has(.task-board) .task-board__lane-icon { width: 34px; height: 34px; }
+  .domain-page:has(.task-board) .task-board__title-btn .status { font-size: 14px; }
+  .domain-page:has(.task-board) .task-board__lane-copy p { overflow: hidden; text-overflow: ellipsis; font-size: 10px; }
+  .domain-page:has(.task-board) .task-board__header-actions { gap: 4px; }
+  .domain-page:has(.task-board) .task-board__column > header small,
+  .domain-page:has(.task-board) .task-board__column-add-btn { width: 27px; height: 27px; }
+}
