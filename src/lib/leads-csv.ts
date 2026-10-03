@@ -38,7 +38,7 @@ export function readLeadsCsv(text: string): { rows: LeadCsvRow[]; errors: string
     if (row.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(row.email)) errors.push(`Row ${line}: email is invalid.`);
     if (row.potential_value && (!/^\d+(?:\.\d{1,2})?$/.test(row.potential_value) || Number(row.potential_value) > 999999999999.99)) errors.push(`Row ${line}: potential_value must be a non-negative amount.`);
     if (row.currency && !["USD", "MAD"].includes(row.currency.toUpperCase())) errors.push(`Row ${line}: currency must be USD or MAD.`);
-    if (row.source && !["referral", "instagram", "website", "email", "whatsapp_manual", "networking", "existing_client", "other"].includes(row.source)) errors.push(`Row ${line}: source is not supported.`);
+    if (row.source && !["referral", "instagram", "website", "email", "whatsapp_manual", "networking", "existing_client", "other", "clinahir"].includes(row.source)) errors.push(`Row ${line}: source is not supported.`);
     if (row.status && !["new", "contacted", "qualified", "unqualified", "converted", "lost"].includes(row.status)) errors.push(`Row ${line}: status is not supported.`);
     for (const key of ["last_contact_at", "next_follow_up_at"] as const) if (row[key] && Number.isNaN(Date.parse(row[key]))) errors.push(`Row ${line}: ${key} must be an ISO date or date and time.`);
     rows.push(row);

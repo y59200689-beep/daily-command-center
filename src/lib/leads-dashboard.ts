@@ -1,6 +1,6 @@
 export type LeadRow = Record<string, unknown> & { id: string; created_at?: string; updated_at?: string };
 export const leadStatuses = ['new','contacted','qualified','unqualified','converted','lost'] as const;
-export const leadSources = ['referral','instagram','website','email','whatsapp_manual','networking','existing_client','other'] as const;
+export const leadSources = ['referral','instagram','website','email','whatsapp_manual','networking','existing_client','other','clinahir'] as const;
 export const leadLabel = (value: unknown) => String(value ?? 'Not recorded').replaceAll('_',' ').replace(/^./, char => char.toUpperCase());
 export function leadSummary(rows: LeadRow[], now = new Date()) {
  const today = new Date(now.getFullYear(),now.getMonth(),now.getDate()); const tomorrow = new Date(today);tomorrow.setDate(today.getDate()+1);const week = new Date(now);week.setDate(now.getDate()-7);

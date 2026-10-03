@@ -8,8 +8,8 @@ const optionalDate = z.preprocess(blank, z.iso.date().nullable().optional());
 export const businessCurrency = z.string().trim().length(3).transform((value) => value.toUpperCase()).default("USD");
 
 export const leadSchema = z.object({
-  name: z.string().trim().min(1).max(240), company: optionalText(240), email: z.preprocess(blank, z.email().nullable().optional()), phone: optionalText(80),
-  source: z.enum(["referral", "instagram", "website", "email", "whatsapp_manual", "networking", "existing_client", "other"]).default("other"),
+  name: z.string().trim().min(1).max(240), company: optionalText(240), city: optionalText(120), email: z.preprocess(blank, z.email().nullable().optional()), phone: optionalText(80),
+  source: z.enum(["referral", "instagram", "website", "email", "whatsapp_manual", "networking", "existing_client", "other", "clinahir"]).default("other"),
   status: z.enum(["new", "contacted", "qualified", "unqualified", "converted", "lost"]).default("new"), potential_value: optionalMoney, currency: businessCurrency,
   notes: optionalText(10000), last_contact_at: z.preprocess(blank, z.iso.datetime({ offset: true }).nullable().optional()), next_follow_up_at: z.preprocess(blank, z.iso.datetime({ offset: true }).nullable().optional()),
 });
