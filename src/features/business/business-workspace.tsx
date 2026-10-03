@@ -49,10 +49,11 @@ export function BusinessWorkspace({ screen, pipelineView = "opportunities" }: { 
   const { showToast } = useToast();
   const router = useRouter();
   const loadController = useRef<AbortController | null>(null);
+  const deletingLead = useRef(false);
   const required = useMemo(() => screen === "business" ? (["leads", "opportunities", "proposals", "services"] as Resource[]) : screen === "leads" ? (["leads", "opportunities"] as Resource[]) : [screen === "pipeline" ? "opportunities" : screen as Resource], [screen]);
   const load = useCallback(async (background = false) => {
     // A background refresh must not interrupt an initial load or explicit retry.
-    if (background && loadController.current) return;
+    if (background && (loadController.current || deletingLead.current)) return;
     loadController.current?.abort();
     const controller = new AbortController();
     loadController.current = controller;
@@ -154,8 +155,22 @@ export function BusinessWorkspace({ screen, pipelineView = "opportunities" }: { 
     setRecords(current => ({ ...current, leads: (current.leads ?? []).map(item => item.id === row.id ? { ...item, ...body.record } : item) }));
     announceWorkspaceMutation("clients"); showToast("Lead updated.", "success");
   };
+  const deleteLead = async (row: RecordRow) => {
+    deletingLead.current = true;
+    // Cancel older reads so they cannot put a just-deleted lead back in the list.
+    loadController.current?.abort();
+    loadController.current = null;
+    try {
+      const response = await fetch(`/api/business/leads?id=${encodeURIComponent(row.id)}`, { method: "DELETE" });
+      const body = await response.json();
+      if (!response.ok) throw new Error(body.error ?? "Lead could not be deleted. Try again.");
+      setRecords(current => ({ ...current, leads: (current.leads ?? []).filter(item => item.id !== row.id) }));
+      announceWorkspaceMutation("clients");
+      showToast("Lead deleted.", "success");
+    } finally { deletingLead.current = false; }
+  };
   if (screen === "leads") return <>
-    <LeadsDashboard records={records.leads ?? []} opportunities={records.opportunities ?? []} loading={loading} error={error} onRetry={() => void load()} onImported={() => void load()} onCreate={() => open("leads")} onEdit={row => open("leads", row)} onPatch={patchLead} onOpportunity={row => { setPipelineDraft({ lead_id: row.id, title: String(row.name), currency: row.currency ?? "USD", estimated_value: row.potential_value ?? "", source: row.source }); open("opportunities"); }}/>
+    <LeadsDashboard records={records.leads ?? []} opportunities={records.opportunities ?? []} loading={loading} error={error} onRetry={() => void load()} onImported={() => void load()} onCreate={() => open("leads")} onEdit={row => open("leads", row)} onPatch={patchLead} onDelete={deleteLead} onOpportunity={row => { setPipelineDraft({ lead_id: row.id, title: String(row.name), currency: row.currency ?? "USD", estimated_value: row.potential_value ?? "", source: row.source }); open("opportunities"); }}/>
     <BusinessEditor key={`${editor ?? "closed"}-${editing?.id ?? "new"}`} resource={editor} record={editing} defaults={editor === "opportunities" ? pipelineDraft : undefined} onClose={() => { setEditor(null); setEditing(null); }} onSave={save}/>
   </>;
   if (screen === "pipeline") return <>
