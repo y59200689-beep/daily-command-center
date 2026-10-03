@@ -1,0 +1,110 @@
+/* Canonical action skin. Important presentation properties intentionally beat
+   legacy page-specific borders/bevels; geometry and behavior stay feature-owned. */
+:root {
+  --action-glass-backdrop: blur(16px) saturate(145%);
+  --action-glass-fill: linear-gradient(155deg, rgba(255,255,255,.88), rgba(242,243,250,.72));
+  --action-glass-hover: linear-gradient(155deg, rgba(255,255,255,.98), rgba(235,234,249,.86));
+  --action-glass-ink: #30354b;
+  --action-glass-depth: 0 3px 9px rgba(28,33,61,.075), inset 0 1px 0 rgba(255,255,255,.65);
+  --action-glass-depth-hover: 0 5px 14px rgba(28,33,61,.12), inset 0 1px 0 rgba(255,255,255,.8);
+  --action-glass-primary: linear-gradient(145deg, #7959e9, #6040cc);
+  --action-glass-primary-hover: linear-gradient(145deg, #8463ee, #6846d7);
+  --action-glass-danger: linear-gradient(145deg, #c14b58, #a83345);
+  --action-glass-success: linear-gradient(145deg, #32835d, #236444);
+  --action-glass-warning: linear-gradient(145deg, #a96c24, #865019);
+}
+html[data-theme="dark"] {
+  --action-glass-fill: linear-gradient(155deg, rgba(62,67,88,.82), rgba(37,41,57,.74));
+  --action-glass-hover: linear-gradient(155deg, rgba(77,81,106,.9), rgba(48,51,73,.86));
+  --action-glass-ink: #f2f1fa;
+  --action-glass-depth: 0 3px 10px rgba(0,0,0,.2), inset 0 1px 0 rgba(255,255,255,.08);
+  --action-glass-depth-hover: 0 5px 15px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.12);
+  --action-glass-primary: linear-gradient(145deg, #7858dc, #5c3cbd);
+  --action-glass-primary-hover: linear-gradient(145deg, #8565e7, #6948cd);
+}
+html[data-theme] body :is(.button,.btn,.btn-brand,.executive-btn,.learning-btn-primary,.learning-btn-secondary,.learning-btn-danger,.icon-button,.desktop-topbar .topbar-actions .icon-button,.growth-overview__icon-button,.pipeline-dashboard__icon-button,.inbox-ui__iconbutton,.sidebar-create,.capture-button,.chief-next-action-cta,.mission-card__open,.rd-action,:is(button,a):is(.cash-planning__primary,.cs-primary,.fh-primary,.finance-overview__primary,.focus-experience__primary,.growth-next__cta,.operations-next__cta,.iv-primary,.life-primary,.pv-primary,.rd-primary,.rm-settings-card__primary,.chief-primary-link,.bg-primary,.is-primary),.styled-select__trigger,.date-picker-trigger,.task-board__column-add-btn,.task-board__palette-reset-btn,.task-goal-log-btn,.field-inline-create-btn,.row-action,.leads-dashboard__more,.date-picker-nav-btn,:is(.view-switch,.task-view-switch,.today-tabs,.leads-dashboard__layout,.calendar-board__controls) button) {
+  border-color: transparent !important;
+  border-radius: 11px !important;
+  background: var(--action-glass-fill) !important;
+  color: var(--action-glass-ink) !important;
+  box-shadow: var(--action-glass-depth) !important;
+  -webkit-backdrop-filter: var(--action-glass-backdrop);
+  backdrop-filter: var(--action-glass-backdrop);
+  background-clip: padding-box;
+  transition: background .18s ease, box-shadow .18s ease, opacity .18s ease, transform .18s ease;
+  transform: none !important;
+}
+html[data-theme] body :is(.button,.btn,.btn-brand,.executive-btn,.learning-btn-primary,.learning-btn-secondary,.learning-btn-danger,.icon-button,.desktop-topbar .topbar-actions .icon-button,.growth-overview__icon-button,.pipeline-dashboard__icon-button,.inbox-ui__iconbutton,.sidebar-create,.capture-button,.chief-next-action-cta,.mission-card__open,.rd-action,:is(button,a):is(.cash-planning__primary,.cs-primary,.fh-primary,.finance-overview__primary,.focus-experience__primary,.growth-next__cta,.operations-next__cta,.iv-primary,.life-primary,.pv-primary,.rd-primary,.rm-settings-card__primary,.chief-primary-link,.bg-primary,.is-primary),.styled-select__trigger,.date-picker-trigger,.task-board__column-add-btn,.task-board__palette-reset-btn,.task-goal-log-btn,.field-inline-create-btn,.row-action,.leads-dashboard__more,.date-picker-nav-btn,:is(.view-switch,.task-view-switch,.today-tabs,.leads-dashboard__layout,.calendar-board__controls) button):hover:not(:disabled):not([aria-disabled="true"]) {
+  background: var(--action-glass-hover) !important;
+  box-shadow: var(--action-glass-depth-hover) !important;
+}
+html[data-theme] body :is(.button--solid.button--brand,.button--primary,.btn-primary,.btn-brand,.executive-btn-primary,.learning-btn-primary,.sidebar-create,.capture-button,.chief-next-action-cta,.mission-card__open,:is(button,a):is(.cash-planning__primary,.cs-primary,.fh-primary,.finance-overview__primary,.focus-experience__primary,.growth-next__cta,.operations-next__cta,.iv-primary,.life-primary,.pv-primary,.rd-primary,.rm-settings-card__primary,.chief-primary-link,.bg-primary,.is-primary)) {
+  --action-glass-fill: var(--action-glass-primary);
+  --action-glass-hover: var(--action-glass-primary-hover);
+  --action-glass-ink: #fff;
+}
+html[data-theme] body :is(.button--solid.button--neutral) {
+  --action-glass-fill: linear-gradient(145deg, #44495e, #292e42);
+  --action-glass-hover: linear-gradient(145deg, #535970, #363c52);
+  --action-glass-ink: #fff;
+}
+html[data-theme] body :is(.button--solid.button--danger,.button--danger:not(.button--ghost):not(.button--outline),.learning-btn-danger) {
+  --action-glass-fill: var(--action-glass-danger);
+  --action-glass-hover: linear-gradient(145deg, #cf5966, #b73b4e);
+  --action-glass-ink: #fff;
+}
+html[data-theme] body .button--solid.button--success {
+  --action-glass-fill: var(--action-glass-success);
+  --action-glass-hover: linear-gradient(145deg, #398c65, #2a704e);
+  --action-glass-ink: #fff;
+}
+html[data-theme] body .button--solid.button--warning {
+  --action-glass-fill: var(--action-glass-warning);
+  --action-glass-hover: linear-gradient(145deg, #b7792d, #935c22);
+  --action-glass-ink: #fff;
+}
+/* Ghost actions stay visually quieter than commit buttons. */
+html[data-theme] body .button--ghost {
+  --action-glass-fill: transparent;
+  --action-glass-depth: none;
+  --action-glass-depth-hover: none;
+  --action-glass-backdrop: none;
+  --action-glass-hover: color-mix(in srgb, var(--surface) 68%, transparent);
+  box-shadow: none !important;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+html[data-theme] body :is(.button--ghost.button--danger,.button--outline.button--danger) { --action-glass-ink: var(--danger); }
+html[data-theme] body :is(.button,.btn,.btn-brand,.executive-btn,.learning-btn-primary,.learning-btn-secondary,.learning-btn-danger,.icon-button,.desktop-topbar .topbar-actions .icon-button,.sidebar-create,.capture-button,.chief-next-action-cta,.mission-card__open,.rd-action,:is(button,a):is(.cash-planning__primary,.cs-primary,.fh-primary,.finance-overview__primary,.focus-experience__primary,.growth-next__cta,.operations-next__cta,.iv-primary,.life-primary,.pv-primary,.rd-primary,.rm-settings-card__primary,.chief-primary-link,.bg-primary,.is-primary),.styled-select__trigger,.date-picker-trigger,.task-board__column-add-btn,.task-board__palette-reset-btn,.task-goal-log-btn,.field-inline-create-btn,.row-action,.leads-dashboard__more,.date-picker-nav-btn,:is(.view-switch,.task-view-switch,.today-tabs,.leads-dashboard__layout,.calendar-board__controls) button):active:not(:disabled) {
+  box-shadow: inset 0 2px 4px rgba(25,28,50,.13) !important;
+  transform: translateY(1px) !important;
+}
+html[data-theme] body :is(.button,.btn,.btn-brand,.executive-btn,.learning-btn-primary,.learning-btn-secondary,.learning-btn-danger,.icon-button,.desktop-topbar .topbar-actions .icon-button,.sidebar-create,.capture-button,.chief-next-action-cta,.mission-card__open,.rd-action,:is(button,a):is(.cash-planning__primary,.cs-primary,.fh-primary,.finance-overview__primary,.focus-experience__primary,.growth-next__cta,.operations-next__cta,.iv-primary,.life-primary,.pv-primary,.rd-primary,.rm-settings-card__primary,.chief-primary-link,.bg-primary,.is-primary),.styled-select__trigger,.date-picker-trigger,.task-board__column-add-btn,.task-board__palette-reset-btn,.task-goal-log-btn,.field-inline-create-btn,.row-action,.leads-dashboard__more,.date-picker-nav-btn,:is(.view-switch,.task-view-switch,.today-tabs,.leads-dashboard__layout,.calendar-board__controls) button):is(:disabled,[aria-disabled="true"]) {
+  opacity: .48;
+  box-shadow: none !important;
+  cursor: not-allowed;
+}
+/* A neutral keyboard-only indicator replaces the old permanent colored rim. */
+html[data-theme] body :is(.button,.btn,.btn-brand,.executive-btn,.learning-btn-primary,.learning-btn-secondary,.learning-btn-danger,.icon-button,.desktop-topbar .topbar-actions .icon-button,.sidebar-create,.capture-button,.chief-next-action-cta,.mission-card__open,.rd-action,:is(button,a):is(.cash-planning__primary,.cs-primary,.fh-primary,.finance-overview__primary,.focus-experience__primary,.growth-next__cta,.operations-next__cta,.iv-primary,.life-primary,.pv-primary,.rd-primary,.rm-settings-card__primary,.chief-primary-link,.bg-primary,.is-primary),.styled-select__trigger,.date-picker-trigger,.task-board__column-add-btn,.task-board__palette-reset-btn,.task-goal-log-btn,.field-inline-create-btn,.row-action,.leads-dashboard__more,.date-picker-nav-btn,:is(.view-switch,.task-view-switch,.today-tabs,.leads-dashboard__layout,.calendar-board__controls) button):focus-visible {
+  outline: 2px solid var(--focus-neutral, #697386) !important;
+  outline-offset: 3px;
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-theme] body :is(.button,.btn,.btn-brand,.executive-btn,.learning-btn-primary,.learning-btn-secondary,.learning-btn-danger,.icon-button,.desktop-topbar .topbar-actions .icon-button,.sidebar-create,.capture-button,.chief-next-action-cta,.mission-card__open,.rd-action,:is(button,a):is(.cash-planning__primary,.cs-primary,.fh-primary,.finance-overview__primary,.focus-experience__primary,.growth-next__cta,.operations-next__cta,.iv-primary,.life-primary,.pv-primary,.rd-primary,.rm-settings-card__primary,.chief-primary-link,.bg-primary,.is-primary),.styled-select__trigger,.date-picker-trigger,.task-board__column-add-btn,.task-board__palette-reset-btn,.task-goal-log-btn,.field-inline-create-btn,.row-action,.leads-dashboard__more,.date-picker-nav-btn,:is(.view-switch,.task-view-switch,.today-tabs,.leads-dashboard__layout,.calendar-board__controls) button) { transition: none !important; transform: none !important; }
+}
+@media (forced-colors: active) {
+  html[data-theme] body :is(.button,.btn,.btn-brand,.executive-btn,.learning-btn-primary,.learning-btn-secondary,.learning-btn-danger,.icon-button,.desktop-topbar .topbar-actions .icon-button,.sidebar-create,.capture-button,.chief-next-action-cta,.mission-card__open,.rd-action,:is(button,a):is(.cash-planning__primary,.cs-primary,.fh-primary,.finance-overview__primary,.focus-experience__primary,.growth-next__cta,.operations-next__cta,.iv-primary,.life-primary,.pv-primary,.rd-primary,.rm-settings-card__primary,.chief-primary-link,.bg-primary,.is-primary),.styled-select__trigger,.date-picker-trigger,.task-board__column-add-btn,.task-board__palette-reset-btn,.task-goal-log-btn,.field-inline-create-btn,.row-action,.leads-dashboard__more,.date-picker-nav-btn,:is(.view-switch,.task-view-switch,.today-tabs,.leads-dashboard__layout,.calendar-board__controls) button) {
+    border: 1px solid ButtonText !important;
+    background: ButtonFace !important;
+    color: ButtonText !important;
+    box-shadow: none !important;
+    backdrop-filter: none;
+  }
+}
+
+/* Selected views use a soft tint instead of an outlined inset tile. */
+html[data-theme] body :is(.view-switch,.task-view-switch,.today-tabs,.leads-dashboard__layout) button:is(.active,.is-active,[aria-pressed="true"],[aria-selected="true"]) {
+  --action-glass-fill: color-mix(in srgb, var(--attention-soft) 78%, var(--surface));
+  --action-glass-hover: color-mix(in srgb, var(--attention-soft) 90%, var(--surface));
+  --action-glass-ink: var(--attention);
+}

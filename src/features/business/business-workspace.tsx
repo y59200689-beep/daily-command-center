@@ -1,5 +1,6 @@
 "use client";
 
+import { deleteLeads } from "@/lib/delete-leads";
 import { CurrencySelect } from "@/components/ui/currency-select";
 import { StyledSelect } from "@/components/ui/styled-select";
 import Link from "next/link";
@@ -155,18 +156,20 @@ export function BusinessWorkspace({ screen, pipelineView = "opportunities" }: { 
     setRecords(current => ({ ...current, leads: (current.leads ?? []).map(item => item.id === row.id ? { ...item, ...body.record } : item) }));
     announceWorkspaceMutation("clients"); showToast("Lead updated.", "success");
   };
-  const deleteLead = async (row: RecordRow) => {
+  const deleteLead = async (rows: RecordRow[]) => {
     deletingLead.current = true;
-    // Cancel older reads so they cannot put a just-deleted lead back in the list.
+    // Keep old reads and polling from restoring rows during a bulk deletion.
     loadController.current?.abort();
     loadController.current = null;
     try {
-      const response = await fetch(`/api/business/leads?id=${encodeURIComponent(row.id)}`, { method: "DELETE" });
-      const body = await response.json();
-      if (!response.ok) throw new Error(body.error ?? "Lead could not be deleted. Try again.");
-      setRecords(current => ({ ...current, leads: (current.leads ?? []).filter(item => item.id !== row.id) }));
-      announceWorkspaceMutation("clients");
-      showToast("Lead deleted.", "success");
+      const result = await deleteLeads(rows.map(row => row.id));
+      const removed = new Set(result.deletedIds);
+      setRecords(current => ({ ...current, leads: (current.leads ?? []).filter(item => !removed.has(item.id)) }));
+      if (removed.size) {
+        announceWorkspaceMutation("clients");
+        showToast(removed.size === 1 ? "Lead deleted." : `${removed.size} leads deleted.`, "success");
+      }
+      return result;
     } finally { deletingLead.current = false; }
   };
   if (screen === "leads") return <>
