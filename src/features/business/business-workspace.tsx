@@ -50,11 +50,13 @@ export function BusinessWorkspace({ screen, pipelineView = "opportunities" }: { 
   const router = useRouter();
   const loadController = useRef<AbortController | null>(null);
   const required = useMemo(() => screen === "business" ? (["leads", "opportunities", "proposals", "services"] as Resource[]) : screen === "leads" ? (["leads", "opportunities"] as Resource[]) : [screen === "pipeline" ? "opportunities" : screen as Resource], [screen]);
-  const load = useCallback(async () => {
+  const load = useCallback(async (background = false) => {
+    // A background refresh must not interrupt an initial load or explicit retry.
+    if (background && loadController.current) return;
     loadController.current?.abort();
     const controller = new AbortController();
     loadController.current = controller;
-    setLoading(true); setError("");
+    if (!background) { setLoading(true); setError(""); }
     try {
       if (screen === "pipeline") {
         const [opportunities, clients] = await Promise.all([readPipelineCollection("/api/business/opportunities", controller.signal), readPipelineCollection("/api/entities/clients", controller.signal)]);
@@ -76,15 +78,36 @@ export function BusinessWorkspace({ screen, pipelineView = "opportunities" }: { 
       }));
       if (controller.signal.aborted) return;
       setRecords(Object.fromEntries(responses));
+      setError("");
       if (screen === "business") {
         const response = await fetch("/api/business/overview?horizon=this_month", { cache: "no-store", signal: controller.signal });
         const body = await response.json(); if (!response.ok) throw new Error(body.error ?? "Business overview could not be loaded.");
         if (!controller.signal.aborted) setOverview(body as Overview);
       } else setOverview(null);
-    } catch (reason) { if (!controller.signal.aborted) setError(reason instanceof Error ? reason.message : "Business records could not be loaded."); }
-    finally { if (!controller.signal.aborted) setLoading(false); }
+    } catch (reason) { if (!controller.signal.aborted && !background) setError(reason instanceof Error ? reason.message : "Business records could not be loaded."); }
+    finally {
+      if (!controller.signal.aborted) setLoading(false);
+      if (loadController.current === controller) loadController.current = null;
+    }
   }, [required, screen]);
   useDeferredEffect(useCallback(() => { void load(); return () => loadController.current?.abort(); }, [load]));
+  useDeferredEffect(useCallback(() => {
+    if (screen !== "leads") return;
+    // Use the existing authenticated API; no Realtime publication or extra DB access needed.
+    const refresh = () => {
+      if (document.visibilityState === "visible" && navigator.onLine && !editor) void load(true);
+    };
+    const timer = window.setInterval(refresh, 10000);
+    window.addEventListener("focus", refresh);
+    window.addEventListener("online", refresh);
+    document.addEventListener("visibilitychange", refresh);
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener("focus", refresh);
+      window.removeEventListener("online", refresh);
+      document.removeEventListener("visibilitychange", refresh);
+    };
+  }, [screen, editor, load]));
   const open = (resource: Resource, record?: RecordRow) => { setEditor(resource); setEditing(record ?? null); };
   const save = async (resource: Resource, values: Record<string, unknown>) => {
     const response = await fetch(`/api/business/${resource}`, { method: editing ? "PATCH" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(editing ? { ...cleanBusinessValues(values), id: editing.id } : cleanBusinessValues(values)) });
