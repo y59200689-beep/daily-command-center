@@ -2,25 +2,29 @@
    legacy page-specific borders/bevels; geometry and behavior stay feature-owned. */
 :root {
   --action-glass-backdrop: blur(16px) saturate(145%);
-  --action-glass-shine: radial-gradient(ellipse at 16% 0%, rgba(255,255,255,.62), transparent 56%), linear-gradient(180deg, rgba(255,255,255,.32) 0%, rgba(255,255,255,.12) 32%, transparent 33%);
-  --action-glass-primary: var(--action-glass-shine), linear-gradient(155deg, #9974f2 0%, #7650dc 42%, #5533be 78%, #7850e5 100%);
-  --action-glass-primary-hover: var(--action-glass-shine), linear-gradient(155deg, #aa85ff 0%, #8059e7 42%, #623ccb 78%, #875ff0 100%);
-  --action-glass-fill: var(--action-glass-primary);
-  --action-glass-hover: var(--action-glass-primary-hover);
-  --action-glass-ink: #fff;
-  --action-glass-depth: inset 0 1px 1px rgba(255,255,255,.9), inset 0 0 0 1px rgba(226,206,255,.65), inset 0 -2px 3px rgba(197,166,255,.6), 0 5px 12px rgba(100,62,198,.2);
-  --action-glass-depth-hover: inset 0 1px 1px rgba(255,255,255,.95), inset 0 0 0 1px rgba(237,220,255,.8), inset 0 -2px 4px rgba(207,183,255,.75), 0 7px 17px rgba(100,62,198,.3);
-  --action-glass-danger: var(--action-glass-shine), linear-gradient(155deg, #d9687b, #a52949);
-  --action-glass-success: var(--action-glass-shine), linear-gradient(155deg, #399d77, #146043);
-  --action-glass-warning: var(--action-glass-shine), linear-gradient(155deg, #b47b36, #774511);
+  --action-glass-fill: linear-gradient(155deg, rgba(255,255,255,.88), rgba(242,243,250,.72));
+  --action-glass-hover: linear-gradient(155deg, rgba(255,255,255,.98), rgba(235,234,249,.86));
+  --action-glass-ink: #30354b;
+  --action-glass-depth: 0 3px 9px rgba(28,33,61,.075), inset 0 1px 0 rgba(255,255,255,.65);
+  --action-glass-depth-hover: 0 5px 14px rgba(28,33,61,.12), inset 0 1px 0 rgba(255,255,255,.8);
+  --action-glass-primary: linear-gradient(145deg, #7959e9, #6040cc);
+  --action-glass-primary-hover: linear-gradient(145deg, #8463ee, #6846d7);
+  --action-glass-danger: linear-gradient(145deg, #c14b58, #a83345);
+  --action-glass-success: linear-gradient(145deg, #32835d, #236444);
+  --action-glass-warning: linear-gradient(145deg, #a96c24, #865019);
 }
 html[data-theme="dark"] {
-  --action-glass-depth: inset 0 1px 1px rgba(255,255,255,.75), inset 0 0 0 1px rgba(207,174,255,.6), inset 0 -2px 3px rgba(179,137,255,.5), 0 5px 14px rgba(0,0,0,.3);
-  --action-glass-depth-hover: inset 0 1px 1px rgba(255,255,255,.9), inset 0 0 0 1px rgba(229,205,255,.8), inset 0 -2px 4px rgba(207,183,255,.6), 0 7px 18px rgba(112,71,223,.3);
+  --action-glass-fill: linear-gradient(155deg, rgba(62,67,88,.82), rgba(37,41,57,.74));
+  --action-glass-hover: linear-gradient(155deg, rgba(77,81,106,.9), rgba(48,51,73,.86));
+  --action-glass-ink: #f2f1fa;
+  --action-glass-depth: 0 3px 10px rgba(0,0,0,.2), inset 0 1px 0 rgba(255,255,255,.08);
+  --action-glass-depth-hover: 0 5px 15px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.12);
+  --action-glass-primary: linear-gradient(145deg, #7858dc, #5c3cbd);
+  --action-glass-primary-hover: linear-gradient(145deg, #8565e7, #6948cd);
 }
 html[data-theme] body :is(.button,.btn,.btn-brand,.executive-btn,.learning-btn-primary,.learning-btn-secondary,.learning-btn-danger,.icon-button,.desktop-topbar .topbar-actions .icon-button,.growth-overview__icon-button,.pipeline-dashboard__icon-button,.inbox-ui__iconbutton,.sidebar-create,.capture-button,.chief-next-action-cta,.mission-card__open,.rd-action,:is(button,a):is(.cash-planning__primary,.cs-primary,.fh-primary,.finance-overview__primary,.focus-experience__primary,.growth-next__cta,.operations-next__cta,.iv-primary,.life-primary,.pv-primary,.rd-primary,.rm-settings-card__primary,.chief-primary-link,.bg-primary,.is-primary),.styled-select__trigger,.date-picker-trigger,.task-board__column-add-btn,.task-board__palette-reset-btn,.task-goal-log-btn,.field-inline-create-btn,.row-action,.leads-dashboard__more,.date-picker-nav-btn,:is(.view-switch,.task-view-switch,.today-tabs,.leads-dashboard__layout,.calendar-board__controls) button) {
   border-color: transparent !important;
-  border-radius: 999px !important;
+  border-radius: 11px !important;
   background: var(--action-glass-fill) !important;
   color: var(--action-glass-ink) !important;
   box-shadow: var(--action-glass-depth) !important;
@@ -39,21 +43,38 @@ html[data-theme] body :is(.button--solid.button--brand,.button--primary,.btn-pri
   --action-glass-hover: var(--action-glass-primary-hover);
   --action-glass-ink: #fff;
 }
+html[data-theme] body :is(.button--solid.button--neutral) {
+  --action-glass-fill: linear-gradient(145deg, #44495e, #292e42);
+  --action-glass-hover: linear-gradient(145deg, #535970, #363c52);
+  --action-glass-ink: #fff;
+}
 html[data-theme] body :is(.button--solid.button--danger,.button--danger:not(.button--ghost):not(.button--outline),.learning-btn-danger) {
   --action-glass-fill: var(--action-glass-danger);
-  --action-glass-hover: var(--action-glass-shine), linear-gradient(155deg, #e7798a, #b43455);
+  --action-glass-hover: linear-gradient(145deg, #cf5966, #b73b4e);
   --action-glass-ink: #fff;
 }
 html[data-theme] body .button--solid.button--success {
   --action-glass-fill: var(--action-glass-success);
-  --action-glass-hover: var(--action-glass-shine), linear-gradient(155deg, #40aa82, #1c7150);
+  --action-glass-hover: linear-gradient(145deg, #398c65, #2a704e);
   --action-glass-ink: #fff;
 }
 html[data-theme] body .button--solid.button--warning {
   --action-glass-fill: var(--action-glass-warning);
-  --action-glass-hover: var(--action-glass-shine), linear-gradient(155deg, #c18a43, #89531b);
+  --action-glass-hover: linear-gradient(145deg, #b7792d, #935c22);
   --action-glass-ink: #fff;
 }
+/* Ghost actions stay visually quieter than commit buttons. */
+html[data-theme] body .button--ghost {
+  --action-glass-fill: transparent;
+  --action-glass-depth: none;
+  --action-glass-depth-hover: none;
+  --action-glass-backdrop: none;
+  --action-glass-hover: color-mix(in srgb, var(--surface) 68%, transparent);
+  box-shadow: none !important;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+html[data-theme] body :is(.button--ghost.button--danger,.button--outline.button--danger) { --action-glass-ink: var(--danger); }
 html[data-theme] body :is(.button,.btn,.btn-brand,.executive-btn,.learning-btn-primary,.learning-btn-secondary,.learning-btn-danger,.icon-button,.desktop-topbar .topbar-actions .icon-button,.sidebar-create,.capture-button,.chief-next-action-cta,.mission-card__open,.rd-action,:is(button,a):is(.cash-planning__primary,.cs-primary,.fh-primary,.finance-overview__primary,.focus-experience__primary,.growth-next__cta,.operations-next__cta,.iv-primary,.life-primary,.pv-primary,.rd-primary,.rm-settings-card__primary,.chief-primary-link,.bg-primary,.is-primary),.styled-select__trigger,.date-picker-trigger,.task-board__column-add-btn,.task-board__palette-reset-btn,.task-goal-log-btn,.field-inline-create-btn,.row-action,.leads-dashboard__more,.date-picker-nav-btn,:is(.view-switch,.task-view-switch,.today-tabs,.leads-dashboard__layout,.calendar-board__controls) button):active:not(:disabled) {
   box-shadow: inset 0 2px 4px rgba(25,28,50,.13) !important;
   transform: translateY(1px) !important;
@@ -81,9 +102,9 @@ html[data-theme] body :is(.button,.btn,.btn-brand,.executive-btn,.learning-btn-p
   }
 }
 
-/* Selected views deepen the glass fill so selection remains visible. */
+/* Selected views use a soft tint instead of an outlined inset tile. */
 html[data-theme] body :is(.view-switch,.task-view-switch,.today-tabs,.leads-dashboard__layout) button:is(.active,.is-active,[aria-pressed="true"],[aria-selected="true"]) {
-  --action-glass-fill: var(--action-glass-shine), linear-gradient(155deg, #6540cc, #432292);
-  --action-glass-hover: var(--action-glass-primary-hover);
-  --action-glass-ink: #fff;
+  --action-glass-fill: color-mix(in srgb, var(--attention-soft) 78%, var(--surface));
+  --action-glass-hover: color-mix(in srgb, var(--attention-soft) 90%, var(--surface));
+  --action-glass-ink: var(--attention);
 }
