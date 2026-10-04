@@ -6,9 +6,9 @@ import { Check, ChevronDown, Search } from "lucide-react";
 import "./styled-select.css";
 
 export type SelectOption = { value: string; label: string; disabled?: boolean };
-type Props = { value: string; onChange: (value: string) => void; options: SelectOption[]; label: string; id?: string; placeholder?: string; disabled?: boolean; searchable?: boolean; className?: string };
+type Props = { value: string; onChange: (value: string) => void; options: SelectOption[]; label: string; id?: string; placeholder?: string; disabled?: boolean; searchable?: boolean; className?: string; menuClassName?: string; menuMinWidth?: number };
 
-export function StyledSelect({ value, onChange, options, label, id, placeholder = "Select an option", disabled, searchable, className = "" }: Props) {
+export function StyledSelect({ value, onChange, options, label, id, placeholder = "Select an option", disabled, searchable, className = "", menuClassName = "", menuMinWidth = 0 }: Props) {
   const generatedId = useId();
   const listId = `${generatedId}-list`;
   const menuId = `${generatedId}-menu`;
@@ -28,16 +28,17 @@ export function StyledSelect({ value, onChange, options, label, id, placeholder 
     const position = () => {
       const box = trigger.current?.getBoundingClientRect();
       if (!box) return;
+      const width = Math.min(Math.max(box.width, menuMinWidth), window.innerWidth - 16);
       const below = window.innerHeight - box.bottom;
       const above = box.top;
       const height = Math.min(320, Math.max(160, Math.max(below, above) - 12));
-      setRect({ left: Math.max(8, Math.min(box.left, window.innerWidth - box.width - 8)), top: below >= Math.min(240, height) || below >= above ? box.bottom + 6 : Math.max(8, box.top - height - 6), width: box.width, maxHeight: height });
+      setRect({ left: Math.max(8, Math.min(box.left, window.innerWidth - width - 8)), top: below >= Math.min(240, height) || below >= above ? box.bottom + 6 : Math.max(8, box.top - height - 6), width, maxHeight: height });
     };
     position();
     window.addEventListener("resize", position);
     window.addEventListener("scroll", position, true);
     return () => { window.removeEventListener("resize", position); window.removeEventListener("scroll", position, true); };
-  }, [open]);
+  }, [open, menuMinWidth]);
 
   useEffect(() => {
     if (!open) return;
@@ -79,7 +80,7 @@ export function StyledSelect({ value, onChange, options, label, id, placeholder 
     <button ref={trigger} id={id} type="button" className="styled-select__trigger" aria-label={label} aria-haspopup="listbox" aria-expanded={open} aria-controls={open ? listId : undefined} disabled={disabled} onClick={() => { setQuery(""); setOpen(current => !current); }} onKeyDown={onKeyDown}>
       <span className={!selected ? "styled-select__placeholder" : ""}>{selected?.label ?? placeholder}</span><ChevronDown size={16} aria-hidden="true"/>
     </button>
-    {open && createPortal(<div id={menuId} className="styled-select__menu" style={{ left: rect.left, top: rect.top, width: rect.width, maxHeight: rect.maxHeight }} onKeyDown={onKeyDown} onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget as Node) && event.relatedTarget !== trigger.current) setOpen(false); }}>
+    {open && createPortal(<div id={menuId} className={`styled-select__menu ${menuClassName}`} style={{ left: rect.left, top: rect.top, width: rect.width, maxHeight: rect.maxHeight }} onKeyDown={onKeyDown} onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget as Node) && event.relatedTarget !== trigger.current) setOpen(false); }}>
       {hasSearch && <label className="styled-select__search"><Search size={15} aria-hidden="true"/><input ref={search} aria-label={`Search ${label.toLowerCase()} options`} value={query} onChange={event => { setQuery(event.target.value); setActive(0); }} placeholder="Search options…"/></label>}
       <div id={listId} className="styled-select__options" role="listbox" aria-label={label}>{filtered.length ? filtered.map((option, index) => <button key={option.value} ref={node => { optionRefs.current[index] = node; }} type="button" role="option" aria-selected={option.value === value} disabled={option.disabled} tabIndex={hasSearch ? -1 : index === active ? 0 : -1} className={`styled-select__option ${index === active ? "is-active" : ""}`} onMouseEnter={() => setActive(index)} onClick={() => choose(option)}>{option.label}{option.value === value && <Check size={16} aria-hidden="true"/>}</button>) : <p className="styled-select__empty">No matching options</p>}</div>
     </div>, document.body)}
