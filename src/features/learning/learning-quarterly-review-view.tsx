@@ -39,13 +39,13 @@ export function LearningQuarterlyReviewView() {
       </div>
 
       {loading ? (
-        <p style={{ color: "#94a3b8" }}>Loading quarterly review...</p>
+        <p style={{ color: "var(--muted)" }}>Loading quarterly review...</p>
       ) : (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "1rem" }}>
           {/* Predictable vs Unpredictable */}
           <div className="learning-card">
             <strong style={{ fontSize: "0.95rem", color: "#34d399" }}>What Became Predictable</strong>
-            <ul style={{ margin: "0.5rem 0 0 0", paddingLeft: "1.2rem", fontSize: "0.85rem", color: "#cbd5e1" }}>
+            <ul style={{ margin: "0.5rem 0 0 0", paddingLeft: "1.2rem", fontSize: "0.85rem", color: "var(--ink)" }}>
               {review?.whatBecamePredictable?.length === 0 ? (
                 <li>No strong predictability trends stabilized this quarter.</li>
               ) : (
@@ -56,7 +56,7 @@ export function LearningQuarterlyReviewView() {
 
           <div className="learning-card">
             <strong style={{ fontSize: "0.95rem", color: "#fb7185" }}>What Stayed Unpredictable</strong>
-            <ul style={{ margin: "0.5rem 0 0 0", paddingLeft: "1.2rem", fontSize: "0.85rem", color: "#cbd5e1" }}>
+            <ul style={{ margin: "0.5rem 0 0 0", paddingLeft: "1.2rem", fontSize: "0.85rem", color: "var(--ink)" }}>
               {review?.whatStayedUnpredictable?.length === 0 ? (
                 <li>Variance contained across primary domains.</li>
               ) : (
@@ -67,8 +67,8 @@ export function LearningQuarterlyReviewView() {
 
           {/* Repeated Mistakes vs Successes */}
           <div className="learning-card">
-            <strong style={{ fontSize: "0.95rem", color: "#fbbf24" }}>Repeated Operating Mistakes</strong>
-            <ul style={{ margin: "0.5rem 0 0 0", paddingLeft: "1.2rem", fontSize: "0.85rem", color: "#cbd5e1" }}>
+            <strong style={{ fontSize: "0.95rem", color: "var(--warning)" }}>Repeated Operating Mistakes</strong>
+            <ul style={{ margin: "0.5rem 0 0 0", paddingLeft: "1.2rem", fontSize: "0.85rem", color: "var(--ink)" }}>
               {review?.repeatedMistakes?.length === 0 ? (
                 <li>No repeating failure patterns detected.</li>
               ) : (
@@ -79,7 +79,7 @@ export function LearningQuarterlyReviewView() {
 
           <div className="learning-card">
             <strong style={{ fontSize: "0.95rem", color: "#60a5fa" }}>Repeated Successes</strong>
-            <ul style={{ margin: "0.5rem 0 0 0", paddingLeft: "1.2rem", fontSize: "0.85rem", color: "#cbd5e1" }}>
+            <ul style={{ margin: "0.5rem 0 0 0", paddingLeft: "1.2rem", fontSize: "0.85rem", color: "var(--ink)" }}>
               {review?.repeatedSuccesses?.length === 0 ? (
                 <li>Documented baseline executions.</li>
               ) : (
@@ -91,7 +91,7 @@ export function LearningQuarterlyReviewView() {
           {/* Rules & Knowledge to Retire */}
           <div className="learning-card">
             <strong style={{ fontSize: "0.95rem", color: "#a78bfa" }}>Rules to Review</strong>
-            <ul style={{ margin: "0.5rem 0 0 0", paddingLeft: "1.2rem", fontSize: "0.85rem", color: "#cbd5e1" }}>
+            <ul style={{ margin: "0.5rem 0 0 0", paddingLeft: "1.2rem", fontSize: "0.85rem", color: "var(--ink)" }}>
               {review?.rulesToReview?.length === 0 ? (
                 <li>Current operating rules remain aligned.</li>
               ) : (
@@ -101,8 +101,8 @@ export function LearningQuarterlyReviewView() {
           </div>
 
           <div className="learning-card">
-            <strong style={{ fontSize: "0.95rem", color: "#94a3b8" }}>Knowledge to Retire</strong>
-            <ul style={{ margin: "0.5rem 0 0 0", paddingLeft: "1.2rem", fontSize: "0.85rem", color: "#cbd5e1" }}>
+            <strong style={{ fontSize: "0.95rem", color: "var(--muted)" }}>Knowledge to Retire</strong>
+            <ul style={{ margin: "0.5rem 0 0 0", paddingLeft: "1.2rem", fontSize: "0.85rem", color: "var(--ink)" }}>
               {review?.knowledgeToRetire?.length === 0 ? (
                 <li>No stale lessons identified for retirement.</li>
               ) : (

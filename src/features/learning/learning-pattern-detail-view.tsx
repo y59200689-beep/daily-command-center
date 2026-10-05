@@ -56,7 +56,7 @@ export function LearningPatternDetailView({ id }: PatternDetailProps) {
   if (loading) {
     return (
       <div className="learning-container">
-        <p style={{ color: "#94a3b8" }}>Loading pattern detail...</p>
+        <p style={{ color: "var(--muted)" }}>Loading pattern detail...</p>
       </div>
     );
   }
@@ -85,7 +85,7 @@ export function LearningPatternDetailView({ id }: PatternDetailProps) {
               <span className={`learning-badge badge-${pattern.confidence}`}>
                 {pattern.confidence}
               </span>
-              <span style={{ fontSize: "0.8rem", textTransform: "uppercase", color: "#94a3b8" }}>
+              <span style={{ fontSize: "0.8rem", textTransform: "uppercase", color: "var(--muted)" }}>
                 {pattern.domain} &bull; {pattern.pattern_type}
               </span>
             </div>
@@ -107,8 +107,8 @@ export function LearningPatternDetailView({ id }: PatternDetailProps) {
           </p>
           {pattern.suggested_action && (
             <div style={{ borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: "0.75rem", marginTop: "0.5rem" }}>
-              <strong style={{ fontSize: "0.85rem", color: "#94a3b8" }}>Suggested Operating Action:</strong>
-              <p style={{ margin: "0.25rem 0 0 0", fontSize: "0.9rem", color: "#cbd5e1" }}>
+              <strong style={{ fontSize: "0.85rem", color: "var(--muted)" }}>Suggested Operating Action:</strong>
+              <p style={{ margin: "0.25rem 0 0 0", fontSize: "0.9rem", color: "var(--ink)" }}>
                 {pattern.suggested_action}
               </p>
             </div>
@@ -122,7 +122,7 @@ export function LearningPatternDetailView({ id }: PatternDetailProps) {
           <span>Supporting Observations ({evidence.length})</span>
         </div>
         {evidence.length === 0 ? (
-          <div className="learning-card" style={{ color: "#94a3b8" }}>
+          <div className="learning-card" style={{ color: "var(--muted)" }}>
             No individual observation records logged yet.
           </div>
         ) : (
@@ -131,7 +131,7 @@ export function LearningPatternDetailView({ id }: PatternDetailProps) {
               <div key={item.id} className="learning-card" style={{ padding: "0.75rem" }}>
                 <div style={{ display: "flex", justifyContent: "space-between" }}>
                   <span style={{ fontSize: "0.875rem" }}>{item.observation_text}</span>
-                  <span style={{ fontSize: "0.75rem", color: "#94a3b8" }}>
+                  <span style={{ fontSize: "0.75rem", color: "var(--muted)" }}>
                     {new Date(item.observed_at).toLocaleDateString()}
                   </span>
                 </div>
@@ -147,7 +147,7 @@ export function LearningPatternDetailView({ id }: PatternDetailProps) {
           <span>Counterexamples &amp; Exceptions ({counterexamples.length})</span>
         </div>
         {counterexamples.length === 0 ? (
-          <div className="learning-card" style={{ color: "#94a3b8" }}>
+          <div className="learning-card" style={{ color: "var(--muted)" }}>
             No counterexamples observed for this pattern.
           </div>
         ) : (
@@ -156,7 +156,7 @@ export function LearningPatternDetailView({ id }: PatternDetailProps) {
               <div key={cnt.id} className="learning-card" style={{ padding: "0.75rem", borderColor: "rgba(244,63,94,0.3)" }}>
                 <div style={{ display: "flex", justifyContent: "space-between" }}>
                   <span style={{ fontSize: "0.875rem", color: "#fb7185" }}>{cnt.reason}</span>
-                  <span style={{ fontSize: "0.75rem", color: "#94a3b8" }}>
+                  <span style={{ fontSize: "0.75rem", color: "var(--muted)" }}>
                     {new Date(cnt.observed_at).toLocaleDateString()}
                   </span>
                 </div>

@@ -1,5 +1,8 @@
 "use client";
 
+import { Modal } from "@/components/ui/modal";
+import { StyledSelect } from "@/components/ui/styled-select";
+
 import Link from "next/link";
 import { useCallback, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -20,6 +23,7 @@ export function SystemsRegistry() {
   const [error, setError] = useState("");
   const [schemaUnavailable, setSchemaUnavailable] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [name, setName] = useState("");
   const [purpose, setPurpose] = useState("");
   const [vendor, setVendor] = useState("");
@@ -48,8 +52,10 @@ export function SystemsRegistry() {
 
   const handleCreateSystem = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) return;
-
+    if (saving) return;
+    if (!name.trim()) { setError("Enter a system name."); return; }
+    setError("");
+    setSaving(true);
     try {
       const res = await fetch("/api/operations/systems", {
         method: "POST",
@@ -75,6 +81,8 @@ export function SystemsRegistry() {
       }
     } catch (err: unknown) {
       setError((err as Error).message);
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -143,11 +151,8 @@ export function SystemsRegistry() {
         )}
       </div>}
 
-      {showModal && (
-        <div className="modal-backdrop" role="dialog" aria-modal="true">
-          <div className="modal-card">
-            <h2>Register Internal System or Tool</h2>
-            <form noValidate onSubmit={handleCreateSystem}>
+      <Modal open={showModal} onClose={() => { if (!saving) setShowModal(false); }} title="Register Internal System or Tool">
+            <form className="operating-editor" noValidate onSubmit={handleCreateSystem}>
               <label>
                 System Name
                 <input
@@ -178,33 +183,23 @@ export function SystemsRegistry() {
               </label>
               <label>
                 Criticality Tier
-                <select value={tier} onChange={(e) => setTier(e.target.value)}>
-                  <option value="Tier 1">Tier 1 (Mission Critical - Revenue/Data)</option>
-                  <option value="Tier 2">Tier 2 (Important - Day-to-day)</option>
-                  <option value="Tier 3">Tier 3 (Non-critical - Back-office)</option>
-                </select>
+                <StyledSelect menuMinWidth={280} label="Criticality tier" value={tier} onChange={setTier} options={[{ value: "Tier 1", label: "Tier 1 (Mission Critical - Revenue/Data)" }, { value: "Tier 2", label: "Tier 2 (Important - Day-to-day)" }, { value: "Tier 3", label: "Tier 3 (Non-critical - Back-office)" }]} />
               </label>
               <label>
                 Blast Radius
-                <select value={blastRadius} onChange={(e) => setBlastRadius(e.target.value)}>
-                  <option value="Critical">Critical (Whole company stalled)</option>
-                  <option value="High">High (Major client impact)</option>
-                  <option value="Medium">Medium (Internal workflow blocked)</option>
-                  <option value="Low">Low (Isolated nuisance)</option>
-                </select>
+                <StyledSelect menuMinWidth={280} label="Blast radius" value={blastRadius} onChange={setBlastRadius} options={[{ value: "Critical", label: "Critical (Whole company stalled)" }, { value: "High", label: "High (Major client impact)" }, { value: "Medium", label: "Medium (Internal workflow blocked)" }, { value: "Low", label: "Low (Isolated nuisance)" }]} />
               </label>
+              {error && <p role="alert" className="field-error">{error}</p>}
               <div className="modal__actions">
-                <Button type="button" emphasis="outline" onClick={() => setShowModal(false)}>
+                <Button type="button" disabled={saving} emphasis="outline" onClick={() => setShowModal(false)}>
                   Cancel
                 </Button>
-                <Button type="submit" intent="brand">
-                  Register System
+                <Button type="submit" disabled={saving} intent="brand">
+                  {saving ? "Saving…" : "Register System"}
                 </Button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
+      </Modal>
     </main>
   );
 }

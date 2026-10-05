@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { StyledSelect } from "@/components/ui/styled-select";
 import { Modal } from "@/components/ui/modal";
 import { SearchInput } from "@/components/ui/search-input";
 import { useDeferredEffect } from "@/lib/use-deferred-effect";
@@ -111,18 +112,11 @@ export function DecisionResearchPanel({ decisionId }: { decisionId: string }) {
       <Modal open onClose={() => setOpen(false)} title="Link research to decision" description="Attach owned knowledge to track supporting context and readiness.">
         <form noValidate className="simple-form knowledge-selector" onSubmit={linkResearch}>
           <label htmlFor={`research-type-${decisionId}`}>Research type</label>
-          <select id={`research-type-${decisionId}`} value={researchType} onChange={(event) => { const next = event.target.value as "topic" | "finding" | "brief"; setResearchType(next); setSelected(""); void loadOptions(next); }}>
-            <option value="topic">Topic</option>
-            <option value="finding">Finding</option>
-            <option value="brief">Research Brief</option>
-          </select>
+          <StyledSelect id={`research-type-${decisionId}`} label="Research type" value={researchType} onChange={value => { const next = value as "topic" | "finding" | "brief"; setResearchType(next); setSelected(""); void loadOptions(next); }} options={[{ value: "topic", label: "Topic" }, { value: "finding", label: "Finding" }, { value: "brief", label: "Research Brief" }]} menuMinWidth={240} />
           <label htmlFor={`research-search-${decisionId}`}>Search</label>
           <SearchInput id={`research-search-${decisionId}`} label="Search research" containerClassName="search-control--full" value={query} onChange={(event) => setQuery(event.target.value)} onClear={() => setQuery("")} placeholder="Search by title" />
           <label htmlFor={`research-item-${decisionId}`}>Owned record</label>
-          <select id={`research-item-${decisionId}`} required value={selected} onChange={(event) => setSelected(event.target.value)}>
-            <option value="">{filteredOptions.length ? "Select a record" : "No records available"}</option>
-            {filteredOptions.map((opt) => <option key={opt.id} value={opt.id}>{String(opt.title)} · {words(opt.status)}</option>)}
-          </select>
+          <StyledSelect id={`research-item-${decisionId}`} label="Owned record" value={selected} onChange={setSelected} searchable options={[{ value: "", label: filteredOptions.length ? "Select a record" : "No records available" }, ...filteredOptions.map(opt => ({ value: opt.id, label: `${String(opt.title)} · ${words(opt.status)}` }))]} menuMinWidth={260} />
           <div className="modal__actions">
             <Button emphasis="ghost" onClick={() => setOpen(false)}>Cancel</Button>
             <Button intent="brand" type="submit" disabled={!selected || linking}>{linking ? "Linking…" : "Link research"}</Button>

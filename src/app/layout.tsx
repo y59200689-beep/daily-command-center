@@ -7,6 +7,7 @@ import "./search-controls.css";
 import "./dark-workspaces.css";
 import "./focus-treatment.css";
 import "./glass-buttons.css";
+import "./premium-workspaces.css";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });

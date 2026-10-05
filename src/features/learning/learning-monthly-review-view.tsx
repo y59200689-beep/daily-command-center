@@ -69,10 +69,10 @@ export function LearningMonthlyReviewView() {
           <span>Monthly Highlights &amp; Insights</span>
         </div>
         {loading ? (
-          <p style={{ color: "#94a3b8" }}>Loading monthly review...</p>
+          <p style={{ color: "var(--muted)" }}>Loading monthly review...</p>
         ) : (
           <div className="learning-card">
-            <ul style={{ margin: 0, paddingLeft: "1.25rem", color: "#cbd5e1", lineHeight: 1.6 }}>
+            <ul style={{ margin: 0, paddingLeft: "1.25rem", color: "var(--ink)", lineHeight: 1.6 }}>
               {review?.highlights?.map((h: string, idx: number) => (
                 <li key={idx}>{h}</li>
               ))}

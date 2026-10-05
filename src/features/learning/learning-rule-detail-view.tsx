@@ -40,7 +40,7 @@ export function LearningRuleDetailView({ id }: RuleDetailProps) {
   if (loading) {
     return (
       <div className="learning-container">
-        <p style={{ color: "#94a3b8" }}>Loading rule detail...</p>
+        <p style={{ color: "var(--muted)" }}>Loading rule detail...</p>
       </div>
     );
   }
@@ -67,7 +67,7 @@ export function LearningRuleDetailView({ id }: RuleDetailProps) {
               <span className={`learning-badge ${rule.status === "accepted" ? "badge-current" : "badge-review_soon"}`}>
                 {rule.status}
               </span>
-              <span style={{ fontSize: "0.8rem", textTransform: "uppercase", color: "#94a3b8" }}>
+              <span style={{ fontSize: "0.8rem", textTransform: "uppercase", color: "var(--muted)" }}>
                 {rule.domain} &bull; {rule.rule_type}
               </span>
             </div>
@@ -85,28 +85,28 @@ export function LearningRuleDetailView({ id }: RuleDetailProps) {
         </div>
         <div className="learning-card">
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
-            <div style={{ background: "#1e293b", padding: "1rem", borderRadius: "0.5rem" }}>
-              <strong style={{ fontSize: "0.85rem", color: "#94a3b8" }}>Current Value:</strong>
-              <pre style={{ margin: "0.5rem 0 0 0", color: "#cbd5e1" }}>
+            <div style={{ background: "var(--surface-2)", padding: "1rem", borderRadius: "0.5rem" }}>
+              <strong style={{ fontSize: "0.85rem", color: "var(--muted)" }}>Current Value:</strong>
+              <pre style={{ margin: "0.5rem 0 0 0", color: "var(--ink)" }}>
                 {JSON.stringify(rule.current_value, null, 2)}
               </pre>
             </div>
-            <div style={{ background: "#1e293b", padding: "1rem", borderRadius: "0.5rem", border: "1px solid rgba(245,158,11,0.3)" }}>
-              <strong style={{ fontSize: "0.85rem", color: "#fbbf24" }}>Proposed Value:</strong>
-              <pre style={{ margin: "0.5rem 0 0 0", color: "#f8fafc" }}>
+            <div style={{ background: "var(--surface-2)", padding: "1rem", borderRadius: "0.5rem", border: "1px solid rgba(245,158,11,0.3)" }}>
+              <strong style={{ fontSize: "0.85rem", color: "var(--warning)" }}>Proposed Value:</strong>
+              <pre style={{ margin: "0.5rem 0 0 0", color: "var(--ink)" }}>
                 {JSON.stringify(rule.proposed_value, null, 2)}
               </pre>
             </div>
           </div>
 
           <div style={{ marginTop: "1rem" }}>
-            <strong style={{ fontSize: "0.85rem", color: "#94a3b8" }}>Expected Operational Effect:</strong>
+            <strong style={{ fontSize: "0.85rem", color: "var(--muted)" }}>Expected Operational Effect:</strong>
             <p style={{ margin: "0.25rem 0 0 0", fontSize: "0.95rem" }}>{rule.expected_effect}</p>
           </div>
 
           <div style={{ marginTop: "1rem" }}>
-            <strong style={{ fontSize: "0.85rem", color: "#94a3b8" }}>Rollback Procedure:</strong>
-            <p style={{ margin: "0.25rem 0 0 0", fontSize: "0.9rem", color: "#cbd5e1" }}>{rule.rollback_path}</p>
+            <strong style={{ fontSize: "0.85rem", color: "var(--muted)" }}>Rollback Procedure:</strong>
+            <p style={{ margin: "0.25rem 0 0 0", fontSize: "0.9rem", color: "var(--ink)" }}>{rule.rollback_path}</p>
           </div>
         </div>
       </section>

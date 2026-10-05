@@ -1,5 +1,8 @@
 "use client";
 
+import { Modal } from "@/components/ui/modal";
+import { StyledSelect } from "@/components/ui/styled-select";
+
 import Link from "next/link";
 import { useCallback, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -18,6 +21,7 @@ export function QualityCenter() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showModal, setShowModal] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [title, setTitle] = useState("");
   const [severity, setSeverity] = useState("Major");
   const [rootCause, setRootCause] = useState("");
@@ -44,8 +48,10 @@ export function QualityCenter() {
 
   const handleCreateIncident = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim()) return;
-
+    if (saving) return;
+    if (!title.trim()) { setError("Enter an incident title."); return; }
+    setError("");
+    setSaving(true);
     try {
       const res = await fetch("/api/operations/quality", {
         method: "POST",
@@ -69,6 +75,8 @@ export function QualityCenter() {
       }
     } catch (err: unknown) {
       setError((err as Error).message);
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -152,11 +160,8 @@ export function QualityCenter() {
         )}
       </div>
 
-      {showModal && (
-        <div className="modal-backdrop" role="dialog" aria-modal="true">
-          <div className="modal-card">
-            <h2>Log Quality Incident</h2>
-            <form noValidate onSubmit={handleCreateIncident}>
+      <Modal open={showModal} onClose={() => { if (!saving) setShowModal(false); }} title="Log Quality Incident">
+            <form className="operating-editor" noValidate onSubmit={handleCreateIncident}>
               <label>
                 Title / Symptom
                 <input
@@ -169,11 +174,7 @@ export function QualityCenter() {
               </label>
               <label>
                 Severity
-                <select value={severity} onChange={(e) => setSeverity(e.target.value)}>
-                  <option value="Minor">Minor</option>
-                  <option value="Major">Major</option>
-                  <option value="Critical">Critical</option>
-                </select>
+                <StyledSelect menuMinWidth={280} label="Severity" value={severity} onChange={setSeverity} options={[{ value: "Minor", label: "Minor" }, { value: "Major", label: "Major" }, { value: "Critical", label: "Critical" }]} />
               </label>
               <label>
                 Impact Summary
@@ -193,18 +194,17 @@ export function QualityCenter() {
                   placeholder="Why did this failure occur?"
                 />
               </label>
+              {error && <p role="alert" className="field-error">{error}</p>}
               <div className="modal__actions">
-                <Button type="button" emphasis="outline" onClick={() => setShowModal(false)}>
+                <Button type="button" disabled={saving} emphasis="outline" onClick={() => setShowModal(false)}>
                   Cancel
                 </Button>
-                <Button type="submit" intent="brand">
-                  Log Incident
+                <Button type="submit" disabled={saving} intent="brand">
+                  {saving ? "Saving…" : "Log Incident"}
                 </Button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
+      </Modal>
     </main>
   );
 }

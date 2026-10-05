@@ -1,5 +1,7 @@
 "use client";
 
+import { Modal } from "@/components/ui/modal";
+
 import Link from "next/link";
 import { useCallback, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -127,11 +129,8 @@ export function RunbooksView() {
         )}
       </div>}
 
-      {showModal && (
-        <div className="modal-backdrop" role="dialog" aria-modal="true">
-          <div className="modal-card">
-            <h2>Create Emergency Runbook</h2>
-            <form noValidate onSubmit={handleCreateRunbook}>
+      <Modal open={showModal} onClose={() => setShowModal(false)} title="Create Emergency Runbook">
+            <form className="operating-editor" noValidate onSubmit={event => { event.preventDefault(); const invalid = event.currentTarget.querySelector<HTMLInputElement | HTMLTextAreaElement>("input:invalid,textarea:invalid"); if (invalid) { setError(invalid.validationMessage); invalid.focus(); return; } setError(""); void handleCreateRunbook(event); }}>
               <label>
                 Runbook Title
                 <input
@@ -169,6 +168,7 @@ export function RunbooksView() {
                   placeholder="e.g. Call Tech Lead immediately via WhatsApp"
                 />
               </label>
+              {error && <p role="alert" className="field-error">{error}</p>}
               <div className="modal__actions">
                 <Button type="button" emphasis="outline" onClick={() => setShowModal(false)}>
                   Cancel
@@ -178,9 +178,7 @@ export function RunbooksView() {
                 </Button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
+      </Modal>
     </main>
   );
 }

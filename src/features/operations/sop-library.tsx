@@ -1,5 +1,7 @@
 "use client";
 
+import { Modal } from "@/components/ui/modal";
+
 import Link from "next/link";
 import { useCallback, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -159,11 +161,8 @@ export function SopLibrary() {
         )}
       </div></>}
 
-      {showModal && (
-        <div className="modal-backdrop" role="dialog" aria-modal="true">
-          <div className="modal-card">
-            <h2>Create New SOP</h2>
-            <form noValidate onSubmit={handleCreateSop}>
+      <Modal open={showModal} onClose={() => setShowModal(false)} title="Create New SOP">
+            <form className="operating-editor" noValidate onSubmit={event => { event.preventDefault(); const invalid = event.currentTarget.querySelector<HTMLInputElement | HTMLTextAreaElement>("input:invalid,textarea:invalid"); if (invalid) { setError(invalid.validationMessage); invalid.focus(); return; } setError(""); void handleCreateSop(event); }}>
               <label>
                 Title
                 <input
@@ -211,6 +210,7 @@ export function SopLibrary() {
                   placeholder="# Procedure Steps&#10;1. Step one...&#10;2. Step two..."
                 />
               </label>
+              {error && <p role="alert" className="field-error">{error}</p>}
               <div className="modal__actions">
                 <Button type="button" emphasis="outline" onClick={() => setShowModal(false)}>
                   Cancel
@@ -220,9 +220,7 @@ export function SopLibrary() {
                 </Button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
+      </Modal>
     </main>
   );
 }

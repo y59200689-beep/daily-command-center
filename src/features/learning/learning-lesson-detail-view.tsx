@@ -109,7 +109,7 @@ export function LearningLessonDetailView({ id }: LessonDetailProps) {
   if (loading) {
     return (
       <div className="learning-container">
-        <p style={{ color: "#94a3b8" }}>Loading lesson detail...</p>
+        <p style={{ color: "var(--muted)" }}>Loading lesson detail...</p>
       </div>
     );
   }
@@ -141,7 +141,7 @@ export function LearningLessonDetailView({ id }: LessonDetailProps) {
               <span className={`learning-badge badge-${lesson.confidence_state}`}>
                 {lesson.confidence_state} confidence
               </span>
-              <span style={{ fontSize: "0.8rem", textTransform: "uppercase", color: "#94a3b8" }}>
+              <span style={{ fontSize: "0.8rem", textTransform: "uppercase", color: "var(--muted)" }}>
                 {lesson.domain} ({lesson.scope})
               </span>
             </div>
@@ -193,15 +193,15 @@ export function LearningLessonDetailView({ id }: LessonDetailProps) {
             {lesson.statement}
           </p>
           <div style={{ borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: "0.75rem", marginTop: "0.5rem" }}>
-            <strong style={{ fontSize: "0.85rem", color: "#94a3b8" }}>Why Proposed (Empirical Basis):</strong>
-            <p style={{ margin: "0.25rem 0 0 0", fontSize: "0.9rem", color: "#cbd5e1" }}>
+            <strong style={{ fontSize: "0.85rem", color: "var(--muted)" }}>Why Proposed (Empirical Basis):</strong>
+            <p style={{ margin: "0.25rem 0 0 0", fontSize: "0.9rem", color: "var(--ink)" }}>
               {lesson.why_proposed}
             </p>
           </div>
           {lesson.suggested_use && (
             <div style={{ borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: "0.75rem", marginTop: "0.5rem" }}>
-              <strong style={{ fontSize: "0.85rem", color: "#94a3b8" }}>Suggested Operating Use:</strong>
-              <p style={{ margin: "0.25rem 0 0 0", fontSize: "0.9rem", color: "#cbd5e1" }}>
+              <strong style={{ fontSize: "0.85rem", color: "var(--muted)" }}>Suggested Operating Use:</strong>
+              <p style={{ margin: "0.25rem 0 0 0", fontSize: "0.9rem", color: "var(--ink)" }}>
                 {lesson.suggested_use}
               </p>
             </div>
@@ -215,7 +215,7 @@ export function LearningLessonDetailView({ id }: LessonDetailProps) {
           <span>Evidence Ledger ({evidence.length})</span>
         </div>
         {evidence.length === 0 ? (
-          <div className="learning-card" style={{ color: "#94a3b8" }}>
+          <div className="learning-card" style={{ color: "var(--muted)" }}>
             No individual historical evidence links attached to this lesson.
           </div>
         ) : (
@@ -226,7 +226,7 @@ export function LearningLessonDetailView({ id }: LessonDetailProps) {
                   <span className={`learning-badge ${item.is_counterexample ? "badge-conflicting" : "badge-current"}`}>
                     {item.is_counterexample ? "Counterexample" : "Supporting Evidence"}
                   </span>
-                  <span style={{ fontSize: "0.75rem", color: "#94a3b8" }}>{item.source_table} ({item.source_quality})</span>
+                  <span style={{ fontSize: "0.75rem", color: "var(--muted)" }}>{item.source_table} ({item.source_quality})</span>
                 </div>
                 <p style={{ margin: "0.35rem 0 0 0", fontSize: "0.875rem" }}>{item.description}</p>
               </div>
@@ -245,9 +245,9 @@ export function LearningLessonDetailView({ id }: LessonDetailProps) {
             <div key={log.id} style={{ display: "flex", justifyContent: "space-between", padding: "0.5rem 0", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
               <div>
                 <strong style={{ textTransform: "uppercase", fontSize: "0.8rem", marginRight: "0.5rem" }}>{log.action}</strong>
-                <span style={{ fontSize: "0.85rem", color: "#cbd5e1" }}>{log.notes}</span>
+                <span style={{ fontSize: "0.85rem", color: "var(--ink)" }}>{log.notes}</span>
               </div>
-              <span style={{ fontSize: "0.75rem", color: "#94a3b8" }}>{new Date(log.reviewed_at).toLocaleDateString()}</span>
+              <span style={{ fontSize: "0.75rem", color: "var(--muted)" }}>{new Date(log.reviewed_at).toLocaleDateString()}</span>
             </div>
           ))}
         </div>
@@ -258,7 +258,7 @@ export function LearningLessonDetailView({ id }: LessonDetailProps) {
         <div className="learning-modal-overlay">
           <div className="learning-modal-content">
             <h2 style={{ fontSize: "1.25rem", margin: 0 }}>Human Acceptance Confirmation</h2>
-            <div style={{ background: "rgba(245, 158, 11, 0.1)", border: "1px solid rgba(245, 158, 11, 0.3)", borderRadius: "0.5rem", padding: "0.75rem", color: "#fbbf24", fontSize: "0.85rem" }}>
+            <div style={{ background: "rgba(245, 158, 11, 0.1)", border: "1px solid rgba(245, 158, 11, 0.3)", borderRadius: "0.5rem", padding: "0.75rem", color: "var(--warning)", fontSize: "0.85rem" }}>
               <strong>Operational Impact Preview:</strong>
               <p style={{ margin: "0.25rem 0 0 0" }}>
                 Accepting this lesson will add it to the active Operating Memory for domain <strong>{lesson.domain}</strong>.
@@ -266,12 +266,12 @@ export function LearningLessonDetailView({ id }: LessonDetailProps) {
               </p>
             </div>
 
-            <div className="learning-card" style={{ background: "#1e293b", padding: "0.85rem" }}>
-              <span style={{ fontSize: "0.75rem", color: "#94a3b8" }}>Lesson statement:</span>
+            <div className="learning-card" style={{ background: "var(--surface-2)", padding: "0.85rem" }}>
+              <span style={{ fontSize: "0.75rem", color: "var(--muted)" }}>Lesson statement:</span>
               <p style={{ margin: "0.25rem 0 0 0", fontSize: "0.9rem" }}>{lesson.statement}</p>
             </div>
 
-            <p style={{ fontSize: "0.8rem", color: "#94a3b8", margin: 0 }}>
+            <p style={{ fontSize: "0.8rem", color: "var(--muted)", margin: 0 }}>
               Review cadence: automatically scheduled for review in 90 days. You can supersede or retire this lesson at any time.
             </p>
 
@@ -306,7 +306,7 @@ export function LearningLessonDetailView({ id }: LessonDetailProps) {
               rows={4}
               value={editStatement}
               onChange={(e) => setEditStatement(e.target.value)}
-              style={{ width: "100%", background: "#1e293b", border: "1px solid rgba(255,255,255,0.15)", borderRadius: "0.375rem", padding: "0.5rem", color: "#f8fafc" }}
+              style={{ width: "100%", background: "var(--surface-2)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: "0.375rem", padding: "0.5rem", color: "var(--ink)" }}
             />
             <div style={{ display: "flex", justifyContent: "flex-end", gap: "0.5rem" }}>
               <button

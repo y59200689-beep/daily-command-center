@@ -49,9 +49,9 @@ export function LearningDecisionsView() {
           <span>Tracked Operating Decisions ({decisions.length})</span>
         </div>
         {loading ? (
-          <p style={{ color: "#94a3b8" }}>Loading decisions...</p>
+          <p style={{ color: "var(--muted)" }}>Loading decisions...</p>
         ) : decisions.length === 0 ? (
-          <div className="learning-card" style={{ color: "#94a3b8" }}>
+          <div className="learning-card" style={{ color: "var(--muted)" }}>
             No evaluated decisions recorded yet. Decisions will populate as outcome review dates are reached.
           </div>
         ) : (
@@ -60,12 +60,12 @@ export function LearningDecisionsView() {
               <div key={d.id} className="learning-card">
                 <div style={{ display: "flex", justifyContent: "space-between" }}>
                   <span className="learning-badge badge-current">Decision</span>
-                  <span style={{ fontSize: "0.75rem", color: "#94a3b8" }}>
+                  <span style={{ fontSize: "0.75rem", color: "var(--muted)" }}>
                     {new Date(d.created_at).toLocaleDateString()}
                   </span>
                 </div>
                 <strong style={{ fontSize: "1rem" }}>{d.title}</strong>
-                <p style={{ margin: "0.25rem 0 0 0", fontSize: "0.875rem", color: "#cbd5e1" }}>
+                <p style={{ margin: "0.25rem 0 0 0", fontSize: "0.875rem", color: "var(--ink)" }}>
                   {d.decision}
                 </p>
               </div>

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useCallback, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
+import { StyledSelect } from "@/components/ui/styled-select";
 import { useDeferredEffect } from "@/lib/use-deferred-effect";
 
 type WatchEntity = { id: string; name: string; watch_type: string; status: string; next_check_at: string | null; last_checked_at: string | null; notes: string | null; topic_id: string | null };
@@ -24,16 +25,11 @@ function WatchForm({ item, topics, onClose, onSave }: { item?: WatchEntity | nul
       <form noValidate className="simple-form" onSubmit={async (e) => { e.preventDefault(); setSaving(true); await onSave({ name, watch_type: watchType, topic_id: topicId || null, next_check_at: nextCheck || null, notes: notes || null }); setSaving(false); onClose(); }}>
         <label>Name<input required value={name} onChange={(e) => setName(e.target.value)} /></label>
         <label>Watch type
-          <select value={watchType} onChange={(e) => setWatchType(e.target.value)}>
-            {WATCH_TYPES.map((t) => <option key={t} value={t}>{t.replaceAll("_"," ")}</option>)}
-          </select>
+          <StyledSelect label="Watch type" value={watchType} onChange={setWatchType} menuMinWidth={220} options={WATCH_TYPES.map(t => ({ value:t,label:t.replaceAll("_"," ") }))} />
         </label>
         {topics.length ? (
           <label>Linked topic (optional)
-            <select value={topicId} onChange={(e) => setTopicId(e.target.value)}>
-              <option value="">No topic</option>
-              {topics.map((t) => <option key={t.id} value={t.id}>{t.title}</option>)}
-            </select>
+            <StyledSelect label="Linked topic" value={topicId} onChange={setTopicId} searchable menuMinWidth={260} options={[{value:"",label:"No topic"},...topics.map(t => ({value:t.id,label:t.title}))]} />
           </label>
         ) : null}
         <label>Next review date (optional)<input type="date" value={nextCheck} onChange={(e) => setNextCheck(e.target.value)} /></label>
@@ -60,9 +56,7 @@ function UpdateForm({ watchId, onClose, onSave }: { watchId: string; onClose: ()
           <textarea className="resize-none" required rows={4} value={summary} onChange={(e) => setSummary(e.target.value)} maxLength={4000} />
         </label>
         <label>Update type
-          <select value={updateType} onChange={(e) => setUpdateType(e.target.value)}>
-            {UPDATE_TYPES.map((t) => <option key={t} value={t}>{t.replaceAll("_"," ")}</option>)}
-          </select>
+          <StyledSelect label="Update type" value={updateType} onChange={setUpdateType} menuMinWidth={220} options={UPDATE_TYPES.map(t => ({value:t,label:t.replaceAll("_"," ")}))} />
         </label>
         <label>Observed on<input type="date" required value={observedAt} onChange={(e) => setObservedAt(e.target.value)} /></label>
         <div className="modal__actions">

@@ -1,5 +1,7 @@
 "use client";
 
+import { Modal } from "@/components/ui/modal";
+
 import Link from "next/link";
 import { useCallback, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -212,11 +214,8 @@ export function SopDetail({ id }: SOPDetailProps) {
         </section>
       </div>
 
-      {showVersionModal && (
-        <div className="modal-backdrop" role="dialog" aria-modal="true">
-          <div className="modal-card">
-            <h2>Publish New SOP Version (v{Number(sop.current_version) + 1})</h2>
-            <form noValidate onSubmit={handleCreateVersion}>
+      <Modal open={showVersionModal} onClose={() => setShowVersionModal(false)} title={`Publish New SOP Version (v${Number(sop.current_version) + 1})`}>
+            <form className="operating-editor" noValidate onSubmit={event => { event.preventDefault(); const invalid = event.currentTarget.querySelector<HTMLInputElement | HTMLTextAreaElement>("input:invalid,textarea:invalid"); if (invalid) { setError(invalid.validationMessage); invalid.focus(); return; } setError(""); void handleCreateVersion(event); }}>
               <label>
                 Summary of Changes
                 <input
@@ -237,6 +236,7 @@ export function SopDetail({ id }: SOPDetailProps) {
                   placeholder="# Procedure Steps..."
                 />
               </label>
+              {error && <p role="alert" className="field-error">{error}</p>}
               <div className="modal__actions">
                 <Button type="button" emphasis="outline" onClick={() => setShowVersionModal(false)}>
                   Cancel
@@ -246,9 +246,7 @@ export function SopDetail({ id }: SOPDetailProps) {
                 </Button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
+      </Modal>
     </main>
   );
 }

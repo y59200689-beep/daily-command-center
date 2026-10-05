@@ -68,9 +68,9 @@ export function LearningPatternsView() {
 
       <section className="learning-section">
         {loading ? (
-          <p style={{ color: "#94a3b8" }}>Loading patterns...</p>
+          <p style={{ color: "var(--muted)" }}>Loading patterns...</p>
         ) : filtered.length === 0 ? (
-          <div className="learning-card" style={{ color: "#94a3b8" }}>
+          <div className="learning-card" style={{ color: "var(--muted)" }}>
             No operating patterns recorded in this view.
           </div>
         ) : (
@@ -81,16 +81,16 @@ export function LearningPatternsView() {
                   <span className={`learning-badge badge-${pat.confidence}`}>
                     {pat.confidence} confidence
                   </span>
-                  <span style={{ fontSize: "0.75rem", textTransform: "uppercase", color: "#94a3b8" }}>
+                  <span style={{ fontSize: "0.75rem", textTransform: "uppercase", color: "var(--muted)" }}>
                     {pat.domain}
                   </span>
                 </div>
                 <strong style={{ fontSize: "1rem" }}>{pat.title}</strong>
-                <p style={{ margin: 0, fontSize: "0.875rem", color: "#cbd5e1" }}>
+                <p style={{ margin: 0, fontSize: "0.875rem", color: "var(--ink)" }}>
                   {pat.description}
                 </p>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "0.5rem", marginTop: "0.25rem" }}>
-                  <span style={{ fontSize: "0.8rem", color: "#94a3b8" }}>
+                  <span style={{ fontSize: "0.8rem", color: "var(--muted)" }}>
                     {pat.observation_count} observations &bull; {pat.counterexample_count} counterexamples
                   </span>
                   <Link href={`/learning/patterns/${pat.id}`} style={{ fontSize: "0.85rem", color: "#f59e0b" }}>

@@ -1,4 +1,6 @@
 "use client";
+
+import { StyledSelect } from "@/components/ui/styled-select";
 import { LessonProposal } from "@/features/founder-os/workflow-panel";
 
 import React, { useEffect, useState } from "react";
@@ -91,7 +93,7 @@ export function LearningRetrospectiveDetailView({ id }: RetroDetailProps) {
   if (loading) {
     return (
       <div className="learning-container">
-        <p style={{ color: "#94a3b8" }}>Loading retrospective...</p>
+        <p style={{ color: "var(--muted)" }}>Loading retrospective...</p>
       </div>
     );
   }
@@ -126,7 +128,7 @@ export function LearningRetrospectiveDetailView({ id }: RetroDetailProps) {
               <span className={`learning-badge ${retrospective.status === "completed" ? "badge-current" : "badge-review_soon"}`}>
                 {retrospective.status}
               </span>
-              <span style={{ fontSize: "0.8rem", textTransform: "uppercase", color: "#94a3b8" }}>
+              <span style={{ fontSize: "0.8rem", textTransform: "uppercase", color: "var(--muted)" }}>
                 {retrospective.retro_type} &bull; {retrospective.domain}
               </span>
             </div>
@@ -152,13 +154,13 @@ export function LearningRetrospectiveDetailView({ id }: RetroDetailProps) {
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
           <div className="learning-card">
-            <strong style={{ fontSize: "0.85rem", color: "#94a3b8" }}>Expected Plan:</strong>
+            <strong style={{ fontSize: "0.85rem", color: "var(--muted)" }}>Expected Plan:</strong>
             <p style={{ margin: "0.35rem 0 0 0", fontSize: "0.95rem" }}>
               {retrospective.expected_summary || "No expected plan documented."}
             </p>
           </div>
           <div className="learning-card">
-            <strong style={{ fontSize: "0.85rem", color: "#94a3b8" }}>Observed Reality:</strong>
+            <strong style={{ fontSize: "0.85rem", color: "var(--muted)" }}>Observed Reality:</strong>
             <p style={{ margin: "0.35rem 0 0 0", fontSize: "0.95rem" }}>
               {retrospective.actual_summary || "No reality summary recorded."}
             </p>
@@ -194,7 +196,7 @@ export function LearningRetrospectiveDetailView({ id }: RetroDetailProps) {
 
         {/* Surprises */}
         <div className="learning-card">
-          <strong style={{ fontSize: "0.9rem", color: "#fbbf24" }}>Surprises &amp; Unknowns ({surprises.length})</strong>
+          <strong style={{ fontSize: "0.9rem", color: "var(--warning)" }}>Surprises &amp; Unknowns ({surprises.length})</strong>
           <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem", marginTop: "0.5rem" }}>
             {surprises.map((s) => (
               <div key={s.id} style={{ background: "rgba(245,158,11,0.08)", padding: "0.5rem", borderRadius: "0.375rem", fontSize: "0.85rem" }}>
@@ -238,32 +240,22 @@ export function LearningRetrospectiveDetailView({ id }: RetroDetailProps) {
         </div>
         <form noValidate onSubmit={handleAddItem} className="learning-card" style={{ flexDirection: "row", gap: "0.75rem", alignItems: "flex-end" }}>
           <div style={{ flex: "0 0 160px" }}>
-            <label style={{ fontSize: "0.75rem", color: "#94a3b8", display: "block", marginBottom: "0.25rem" }}>
+            <label style={{ fontSize: "0.75rem", color: "var(--muted)", display: "block", marginBottom: "0.25rem" }}>
               Category
             </label>
-            <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              style={{ width: "100%", background: "#1e293b", border: "1px solid rgba(255,255,255,0.15)", borderRadius: "0.375rem", padding: "0.45rem", color: "#f8fafc", fontSize: "0.85rem" }}
-            >
-              <option value="went_well">Went Well</option>
-              <option value="didnt_go_well">Didn&apos;t Go Well</option>
-              <option value="surprise">Surprise</option>
-              <option value="action_item">Action Item</option>
-              <option value="lesson_candidate">Lesson Candidate</option>
-            </select>
+            <StyledSelect menuMinWidth={180} value={category} onChange={setCategory} label="Observation category" options={[{ value: "went_well", label: "Went Well" }, { value: "didnt_go_well", label: "Didn't Go Well" }, { value: "surprise", label: "Surprise" }, { value: "action_item", label: "Action Item" }, { value: "lesson_candidate", label: "Lesson Candidate" }]} />
           </div>
           <div style={{ flex: 1 }}>
-            <label style={{ fontSize: "0.75rem", color: "#94a3b8", display: "block", marginBottom: "0.25rem" }}>
+            <label htmlFor="learning-observation-or-insight" style={{ fontSize: "0.75rem", color: "var(--muted)", display: "block", marginBottom: "0.25rem" }}>
               Observation or Insight
             </label>
-            <input
+            <input id="learning-observation-or-insight"
               type="text"
               required
               value={content}
               onChange={(e) => setContent(e.target.value)}
               placeholder="e.g., Client communication was 3 days faster via dedicated Slack channel"
-              style={{ width: "100%", background: "#1e293b", border: "1px solid rgba(255,255,255,0.15)", borderRadius: "0.375rem", padding: "0.45rem", color: "#f8fafc", fontSize: "0.85rem" }}
+              style={{ width: "100%", background: "var(--surface-2)", border: "1px solid var(--line)", borderRadius: "0.375rem", padding: "0.45rem", color: "var(--ink)", fontSize: "0.85rem" }}
             />
           </div>
           <button type="submit" className="learning-btn-primary" disabled={addingItem}>

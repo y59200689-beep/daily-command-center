@@ -54,9 +54,9 @@ export function LearningActionsView() {
           <span>Action Outcome Verifications ({data.outcomes.length})</span>
         </div>
         {loading ? (
-          <p style={{ color: "#94a3b8" }}>Loading action outcomes...</p>
+          <p style={{ color: "var(--muted)" }}>Loading action outcomes...</p>
         ) : data.outcomes.length === 0 ? (
-          <div className="learning-card" style={{ color: "#94a3b8" }}>
+          <div className="learning-card" style={{ color: "var(--muted)" }}>
             No verified action outcomes recorded yet. Executed V17 actions track business impact following their observational windows.
           </div>
         ) : (
@@ -67,11 +67,11 @@ export function LearningActionsView() {
                   <span className={`learning-badge ${item.achieved ? "badge-current" : "badge-conflicting"}`}>
                     Outcome: {item.outcome_state}
                   </span>
-                  <span style={{ fontSize: "0.75rem", color: "#94a3b8" }}>
+                  <span style={{ fontSize: "0.75rem", color: "var(--muted)" }}>
                     Action Ref: {item.action_id || item.recommendation_id}
                   </span>
                 </div>
-                <p style={{ margin: "0.25rem 0 0 0", fontSize: "0.9rem", color: "#cbd5e1" }}>
+                <p style={{ margin: "0.25rem 0 0 0", fontSize: "0.9rem", color: "var(--ink)" }}>
                   {item.notes || "Action executed mechanically. Evaluating downstream impact."}
                 </p>
               </div>

@@ -76,9 +76,9 @@ export function LearningRulesView() {
           <span>Proposed Rule Modifications ({proposed.length})</span>
         </div>
         {loading ? (
-          <p style={{ color: "#94a3b8" }}>Loading rules...</p>
+          <p style={{ color: "var(--muted)" }}>Loading rules...</p>
         ) : proposed.length === 0 ? (
-          <div className="learning-card" style={{ color: "#94a3b8" }}>
+          <div className="learning-card" style={{ color: "var(--muted)" }}>
             No pending rule proposals awaiting acceptance.
           </div>
         ) : (
@@ -89,12 +89,12 @@ export function LearningRulesView() {
                   <div>
                     <div style={{ display: "flex", gap: "0.5rem", alignItems: "center", marginBottom: "0.35rem" }}>
                       <span className="learning-badge badge-review_soon">Proposed</span>
-                      <span style={{ fontSize: "0.75rem", textTransform: "uppercase", color: "#94a3b8" }}>
+                      <span style={{ fontSize: "0.75rem", textTransform: "uppercase", color: "var(--muted)" }}>
                         {r.domain} &bull; {r.rule_type}
                       </span>
                     </div>
                     <strong style={{ fontSize: "1rem" }}>{r.title}</strong>
-                    <p style={{ margin: "0.35rem 0 0 0", fontSize: "0.9rem", color: "#cbd5e1" }}>
+                    <p style={{ margin: "0.35rem 0 0 0", fontSize: "0.9rem", color: "var(--ink)" }}>
                       {r.expected_effect}
                     </p>
                     <div style={{ display: "flex", gap: "1rem", marginTop: "0.5rem", fontSize: "0.85rem" }}>
@@ -129,7 +129,7 @@ export function LearningRulesView() {
           <span>Active Operating Rules ({accepted.length})</span>
         </div>
         {accepted.length === 0 ? (
-          <div className="learning-card" style={{ color: "#94a3b8" }}>
+          <div className="learning-card" style={{ color: "var(--muted)" }}>
             No active operating rules.
           </div>
         ) : (
@@ -138,12 +138,12 @@ export function LearningRulesView() {
               <div key={r.id} className="learning-card">
                 <div style={{ display: "flex", justifyContent: "space-between" }}>
                   <span className="learning-badge badge-current">Active</span>
-                  <span style={{ fontSize: "0.75rem", textTransform: "uppercase", color: "#94a3b8" }}>{r.domain}</span>
+                  <span style={{ fontSize: "0.75rem", textTransform: "uppercase", color: "var(--muted)" }}>{r.domain}</span>
                 </div>
                 <strong style={{ fontSize: "0.95rem" }}>{r.title}</strong>
-                <p style={{ margin: 0, fontSize: "0.85rem", color: "#94a3b8" }}>{r.expected_effect}</p>
+                <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--muted)" }}>{r.expected_effect}</p>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "0.5rem" }}>
-                  <span style={{ fontSize: "0.8rem", color: "#cbd5e1" }}>Value: {JSON.stringify(r.proposed_value)}</span>
+                  <span style={{ fontSize: "0.8rem", color: "var(--ink)" }}>Value: {JSON.stringify(r.proposed_value)}</span>
                   <button
                     onClick={() => handleAction(r.id, "retire")}
                     className="learning-btn-secondary"

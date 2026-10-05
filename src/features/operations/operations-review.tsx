@@ -1,5 +1,7 @@
 "use client";
 
+import { Modal } from "@/components/ui/modal";
+
 import Link from "next/link";
 import { useCallback, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -230,11 +232,8 @@ export function OperationsReview() {
         )}
       </section>
 
-      {showModal && (
-        <div className="modal-backdrop" role="dialog" aria-modal="true">
-          <div className="modal-card">
-            <h2>Propose Continuous Improvement</h2>
-            <form noValidate onSubmit={handleCreateImprovement}>
+      <Modal open={showModal} onClose={() => setShowModal(false)} title="Propose Continuous Improvement">
+            <form className="operating-editor" noValidate onSubmit={event => { event.preventDefault(); const invalid = event.currentTarget.querySelector<HTMLInputElement | HTMLTextAreaElement>("input:invalid,textarea:invalid"); if (invalid) { setError(invalid.validationMessage); invalid.focus(); return; } setError(""); void handleCreateImprovement(event); }}>
               <label>
                 Improvement Title
                 <input
@@ -263,6 +262,7 @@ export function OperationsReview() {
                   placeholder="How can this be permanently resolved or updated in the SOP?"
                 />
               </label>
+              {error && <p role="alert" className="field-error">{error}</p>}
               <div className="modal__actions">
                 <Button type="button" emphasis="outline" onClick={() => setShowModal(false)}>
                   Cancel
@@ -272,9 +272,7 @@ export function OperationsReview() {
                 </Button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
+      </Modal>
     </main>
   );
 }

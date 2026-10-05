@@ -1,5 +1,8 @@
 "use client";
 
+import { Modal } from "@/components/ui/modal";
+import { StyledSelect } from "@/components/ui/styled-select";
+
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import "./learning.css";
@@ -117,9 +120,9 @@ export function LearningRetrospectivesView() {
 
       <section className="learning-section">
         {loading ? (
-          <p style={{ color: "#94a3b8" }}>Loading retrospectives...</p>
+          <p style={{ color: "var(--muted)" }}>Loading retrospectives...</p>
         ) : filtered.length === 0 ? (
-          <div className="learning-card" style={{ color: "#94a3b8" }}>
+          <div className="learning-card" style={{ color: "var(--muted)" }}>
             No retrospectives match filter &quot;{typeFilter}&quot;.
           </div>
         ) : (
@@ -132,16 +135,16 @@ export function LearningRetrospectivesView() {
                       <span className={`learning-badge ${r.status === "completed" ? "badge-current" : "badge-review_soon"}`}>
                         {r.status}
                       </span>
-                      <span style={{ fontSize: "0.75rem", textTransform: "uppercase", color: "#94a3b8" }}>
+                      <span style={{ fontSize: "0.75rem", textTransform: "uppercase", color: "var(--muted)" }}>
                         {r.retro_type} &bull; {r.domain}
                       </span>
                     </div>
                     <strong style={{ fontSize: "1rem" }}>{r.title}</strong>
                     {r.period && (
-                      <p style={{ margin: "0.25rem 0 0 0", fontSize: "0.8rem", color: "#94a3b8" }}>Period: {r.period}</p>
+                      <p style={{ margin: "0.25rem 0 0 0", fontSize: "0.8rem", color: "var(--muted)" }}>Period: {r.period}</p>
                     )}
                     {r.actual_summary && (
-                      <p style={{ margin: "0.35rem 0 0 0", fontSize: "0.9rem", color: "#cbd5e1" }}>{r.actual_summary}</p>
+                      <p style={{ margin: "0.35rem 0 0 0", fontSize: "0.9rem", color: "var(--ink)" }}>{r.actual_summary}</p>
                     )}
                   </div>
                   <Link href={`/learning/retrospectives/${r.id}`} className="learning-btn-secondary">
@@ -155,98 +158,72 @@ export function LearningRetrospectivesView() {
       </section>
 
       {/* Create Modal */}
-      {showCreateModal && (
-        <div className="learning-modal-overlay">
-          <div className="learning-modal-content">
-            <h2 style={{ fontSize: "1.25rem", margin: 0 }}>Start Structured Retrospective</h2>
-            <form noValidate onSubmit={handleCreate} style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+      <Modal open={showCreateModal} onClose={() => { if (!submitting) setShowCreateModal(false); }} title="Start Structured Retrospective">
+            <form className="learning-editor" noValidate onSubmit={handleCreate} style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
               <div>
-                <label style={{ fontSize: "0.8rem", color: "#94a3b8", display: "block", marginBottom: "0.25rem" }}>
+                <label htmlFor="learning-title" style={{ fontSize: "0.8rem", color: "var(--muted)", display: "block", marginBottom: "0.25rem" }}>
                   Title
                 </label>
-                <input
+                <input id="learning-title"
                   type="text"
                   required
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="e.g., Q3 Project Titan Launch Retrospective"
-                  style={{ width: "100%", background: "#1e293b", border: "1px solid rgba(255,255,255,0.15)", borderRadius: "0.375rem", padding: "0.5rem", color: "#f8fafc" }}
+                  style={{ width: "100%", background: "var(--surface-2)", border: "1px solid var(--line)", borderRadius: "0.375rem", padding: "0.5rem", color: "var(--ink)" }}
                 />
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "0.75rem" }}>
+              <div className="learning-editor__grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "0.75rem" }}>
                 <div>
-                  <label style={{ fontSize: "0.8rem", color: "#94a3b8", display: "block", marginBottom: "0.25rem" }}>
+                  <label style={{ fontSize: "0.8rem", color: "var(--muted)", display: "block", marginBottom: "0.25rem" }}>
                     Type
                   </label>
-                  <select
-                    value={retroType}
-                    onChange={(e) => setRetroType(e.target.value)}
-                    style={{ width: "100%", background: "#1e293b", border: "1px solid rgba(255,255,255,0.15)", borderRadius: "0.375rem", padding: "0.5rem", color: "#f8fafc" }}
-                  >
-                    <option value="project">Project</option>
-                    <option value="client">Client</option>
-                    <option value="incident">Incident</option>
-                    <option value="campaign">Campaign</option>
-                    <option value="decision">Decision</option>
-                    <option value="quarter">Quarter</option>
-                    <option value="custom">Custom</option>
-                  </select>
+                  <StyledSelect menuMinWidth={180} value={retroType} onChange={setRetroType} label="Retrospective type" options={[{ value: "project", label: "Project" }, { value: "client", label: "Client" }, { value: "incident", label: "Incident" }, { value: "campaign", label: "Campaign" }, { value: "decision", label: "Decision" }, { value: "quarter", label: "Quarter" }, { value: "custom", label: "Custom" }]} />
                 </div>
                 <div>
-                  <label style={{ fontSize: "0.8rem", color: "#94a3b8", display: "block", marginBottom: "0.25rem" }}>
+                  <label style={{ fontSize: "0.8rem", color: "var(--muted)", display: "block", marginBottom: "0.25rem" }}>
                     Domain
                   </label>
-                  <select
-                    value={domain}
-                    onChange={(e) => setDomain(e.target.value)}
-                    style={{ width: "100%", background: "#1e293b", border: "1px solid rgba(255,255,255,0.15)", borderRadius: "0.375rem", padding: "0.5rem", color: "#f8fafc" }}
-                  >
-                    <option value="operations">Operations</option>
-                    <option value="team">Team</option>
-                    <option value="success">Success</option>
-                    <option value="commerce">Commerce</option>
-                    <option value="finance">Finance</option>
-                    <option value="executive">Executive</option>
-                  </select>
+                  <StyledSelect menuMinWidth={180} value={domain} onChange={setDomain} label="Domain" options={[{ value: "operations", label: "Operations" }, { value: "team", label: "Team" }, { value: "success", label: "Success" }, { value: "commerce", label: "Commerce" }, { value: "finance", label: "Finance" }, { value: "executive", label: "Executive" }]} />
                 </div>
                 <div>
-                  <label style={{ fontSize: "0.8rem", color: "#94a3b8", display: "block", marginBottom: "0.25rem" }}>
+                  <label htmlFor="learning-period" style={{ fontSize: "0.8rem", color: "var(--muted)", display: "block", marginBottom: "0.25rem" }}>
                     Period
                   </label>
-                  <input
+                  <input id="learning-period"
                     type="text"
                     value={period}
                     onChange={(e) => setPeriod(e.target.value)}
                     placeholder="e.g. 2026-Q3"
-                    style={{ width: "100%", background: "#1e293b", border: "1px solid rgba(255,255,255,0.15)", borderRadius: "0.375rem", padding: "0.5rem", color: "#f8fafc" }}
+                    style={{ width: "100%", background: "var(--surface-2)", border: "1px solid var(--line)", borderRadius: "0.375rem", padding: "0.5rem", color: "var(--ink)" }}
                   />
                 </div>
               </div>
 
               <div>
-                <label style={{ fontSize: "0.8rem", color: "#94a3b8", display: "block", marginBottom: "0.25rem" }}>
+                <label htmlFor="learning-expected-plan-what-was-supposed-to-happen" style={{ fontSize: "0.8rem", color: "var(--muted)", display: "block", marginBottom: "0.25rem" }}>
                   Expected Plan (What was supposed to happen)
                 </label>
-                <textarea className="resize-none"
+                <textarea id="learning-expected-plan-what-was-supposed-to-happen" className="resize-none"
                   rows={2}
                   value={expectedSummary}
                   onChange={(e) => setExpectedSummary(e.target.value)}
                   placeholder="Summarize initial assumptions, deliverables, and targets."
-                  style={{ width: "100%", background: "#1e293b", border: "1px solid rgba(255,255,255,0.15)", borderRadius: "0.375rem", padding: "0.5rem", color: "#f8fafc" }}
+                  style={{ width: "100%", background: "var(--surface-2)", border: "1px solid var(--line)", borderRadius: "0.375rem", padding: "0.5rem", color: "var(--ink)" }}
                 />
               </div>
 
               <div>
-                <label style={{ fontSize: "0.8rem", color: "#94a3b8", display: "block", marginBottom: "0.25rem" }}>
+                <label htmlFor="learning-observed-reality-what-actually-happened" style={{ fontSize: "0.8rem", color: "var(--muted)", display: "block", marginBottom: "0.25rem" }}>
                   Observed Reality (What actually happened)
                 </label>
-                <textarea className="resize-none"
+                <textarea id="learning-observed-reality-what-actually-happened" className="resize-none"
                   rows={2}
                   value={actualSummary}
                   onChange={(e) => setActualSummary(e.target.value)}
                   placeholder="Summarize actual outcomes, delays, and discoveries."
-                  style={{ width: "100%", background: "#1e293b", border: "1px solid rgba(255,255,255,0.15)", borderRadius: "0.375rem", padding: "0.5rem", color: "#f8fafc" }}
+                  style={{ width: "100%", background: "var(--surface-2)", border: "1px solid var(--line)", borderRadius: "0.375rem", padding: "0.5rem", color: "var(--ink)" }}
                 />
               </div>
 
@@ -268,9 +245,7 @@ export function LearningRetrospectivesView() {
                 </button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
+      </Modal>
     </div>
   );
 }

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Crown, UserRound, Keyboard, CircleHelp } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
+import { usesPremiumWorkspace } from "@/lib/workspace-design";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { CommandPalette } from "@/components/command-palette";
@@ -270,7 +271,7 @@ function Shell({ children,user }: { children: ReactNode;user:ShellUser }) {
           </div>
         </header>
         <header className="mobile-header"><button className="icon-button" onClick={() => setMobileMenu(true)} aria-label="Open navigation" aria-expanded={mobileMenu}><Icons.Menu size={20} /></button><span className="mobile-brand"><strong>{currentArea.label}</strong><small>{pageTitle}</small></span><span className="mobile-header__actions"><NotificationCenter mobile/><button className="icon-button" onClick={() => setPaletteOpen(true)} aria-label="Search"><Icons.Search size={19} /></button></span></header>
-        <main id="main-content" className="workspace__content">{children}</main>
+        <main id="main-content" className="workspace__content" data-workspace-design={usesPremiumWorkspace(pathname) ? "premium" : undefined}>{children}</main>
       </div>
       <nav className="mobile-nav" aria-label="Mobile navigation">
         <Link className={pathname === "/today" ? "active" : ""} href="/today"><Icons.Zap size={19} /><span>Today</span></Link>

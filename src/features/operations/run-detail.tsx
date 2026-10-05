@@ -1,5 +1,7 @@
 "use client";
 
+import { Modal } from "@/components/ui/modal";
+
 import Link from "next/link";
 import { useCallback, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -331,11 +333,8 @@ export function RunDetail({ id }: RunDetailProps) {
       </section>
 
       {/* Blocker modal */}
-      {showBlockerModal && (
-        <div className="modal-backdrop" role="dialog" aria-modal="true">
-          <div className="modal-card">
-            <h2>Record Blocker on Run</h2>
-            <form noValidate onSubmit={handleBlockRun}>
+      <Modal open={showBlockerModal} onClose={() => setShowBlockerModal(false)} title="Record Blocker on Run">
+            <form className="operating-editor" noValidate onSubmit={event => { event.preventDefault(); const invalid = event.currentTarget.querySelector<HTMLInputElement | HTMLTextAreaElement>("input:invalid,textarea:invalid"); if (invalid) { setError(invalid.validationMessage); invalid.focus(); return; } setError(""); void handleBlockRun(event); }}>
               <label>
                 Blocker Reason & Impact
                 <textarea className="resize-none"
@@ -346,6 +345,7 @@ export function RunDetail({ id }: RunDetailProps) {
                   placeholder="e.g. Waiting on third-party API token / Client asset missing..."
                 />
               </label>
+              {error && <p role="alert" className="field-error">{error}</p>}
               <div className="modal__actions">
                 <Button type="button" emphasis="outline" onClick={() => setShowBlockerModal(false)}>
                   Cancel
@@ -355,15 +355,11 @@ export function RunDetail({ id }: RunDetailProps) {
                 </Button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
+      </Modal>
 
       {/* Override modal */}
-      {showOverrideModal && (
-        <div className="modal-backdrop" role="dialog" aria-modal="true">
-          <div className="modal-card">
-            <h2>Override Validation & Complete Run</h2>
+      <Modal open={showOverrideModal} onClose={() => setShowOverrideModal(false)} title="Override Validation & Complete Run">
+          <div className="operating-editor">
             <p style={{ fontSize: "12px", color: "var(--muted)", marginBottom: "12px" }}>
               A mandatory audit reason is required when completing a run with incomplete steps or failed checks.
             </p>
@@ -377,7 +373,8 @@ export function RunDetail({ id }: RunDetailProps) {
                 placeholder="e.g. Step skipped due to urgent production hotfix approved by lead..."
               />
             </label>
-            <div className="modal__actions">
+            {error && <p role="alert" className="field-error">{error}</p>}
+              <div className="modal__actions">
               <Button type="button" emphasis="outline" onClick={() => setShowOverrideModal(false)}>
                 Cancel
               </Button>
@@ -391,8 +388,7 @@ export function RunDetail({ id }: RunDetailProps) {
               </Button>
             </div>
           </div>
-        </div>
-      )}
+      </Modal>
     </main>
   );
 }

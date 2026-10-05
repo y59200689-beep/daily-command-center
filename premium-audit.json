@@ -11,26 +11,8 @@
     },
     {
       "category": "violation",
-      "file": "src/features/business/leads-dashboard.tsx",
-      "line": 41,
-      "message": "Application-owned form does not declare its validation owner.",
-      "remediation": "Add noValidate/novalidate and implement the canonical validation contract.",
-      "ruleId": "form.novalidate-missing",
-      "severity": "error"
-    },
-    {
-      "category": "violation",
       "file": "src/features/founder-os/daily-energy-checkin.tsx",
       "line": 99,
-      "message": "Application-owned form does not declare its validation owner.",
-      "remediation": "Add noValidate/novalidate and implement the canonical validation contract.",
-      "ruleId": "form.novalidate-missing",
-      "severity": "error"
-    },
-    {
-      "category": "violation",
-      "file": "src/features/founder-os/resource-workspace.tsx",
-      "line": 72,
       "message": "Application-owned form does not declare its validation owner.",
       "remediation": "Add noValidate/novalidate and implement the canonical validation contract.",
       "ruleId": "form.novalidate-missing",
@@ -120,7 +102,7 @@
     {
       "category": "violation",
       "file": "src/features/v2/fitness-sync-bar.tsx",
-      "line": 300,
+      "line": 177,
       "message": "Application-owned form does not declare its validation owner.",
       "remediation": "Add noValidate/novalidate and implement the canonical validation contract.",
       "ruleId": "form.novalidate-missing",
@@ -129,19 +111,10 @@
     {
       "category": "violation",
       "file": "src/features/v2/fitness-sync-bar.tsx",
-      "line": 377,
+      "line": 254,
       "message": "Application-owned form does not declare its validation owner.",
       "remediation": "Add noValidate/novalidate and implement the canonical validation contract.",
       "ruleId": "form.novalidate-missing",
-      "severity": "error"
-    },
-    {
-      "category": "violation",
-      "file": "src/features/business/leads-dashboard.tsx",
-      "line": 41,
-      "message": "Literal product textarea does not show evidence of the canonical resize-none rule.",
-      "remediation": "Use the shared Textarea owner or apply resize-none/resize: none with adequate height or auto-grow behavior.",
-      "ruleId": "form.textarea-resize-missing",
       "severity": "error"
     },
     {
@@ -157,15 +130,6 @@
       "category": "violation",
       "file": "src/features/founder-os/daily-energy-checkin.tsx",
       "line": 144,
-      "message": "Literal product textarea does not show evidence of the canonical resize-none rule.",
-      "remediation": "Use the shared Textarea owner or apply resize-none/resize: none with adequate height or auto-grow behavior.",
-      "ruleId": "form.textarea-resize-missing",
-      "severity": "error"
-    },
-    {
-      "category": "violation",
-      "file": "src/features/founder-os/resource-workspace.tsx",
-      "line": 72,
       "message": "Literal product textarea does not show evidence of the canonical resize-none rule.",
       "remediation": "Use the shared Textarea owner or apply resize-none/resize: none with adequate height or auto-grow behavior.",
       "ruleId": "form.textarea-resize-missing",
@@ -191,6 +155,15 @@
     },
     {
       "category": "violation",
+      "file": "src/features/growth/revenue-mission.tsx",
+      "line": 83,
+      "message": "Literal product textarea does not show evidence of the canonical resize-none rule.",
+      "remediation": "Use the shared Textarea owner or apply resize-none/resize: none with adequate height or auto-grow behavior.",
+      "ruleId": "form.textarea-resize-missing",
+      "severity": "error"
+    },
+    {
+      "category": "violation",
       "file": "src/features/ideas/ideas-dashboard.tsx",
       "line": 39,
       "message": "Literal product textarea does not show evidence of the canonical resize-none rule.",
@@ -200,8 +173,17 @@
     },
     {
       "category": "violation",
+      "file": "src/features/life/travel-workspace.tsx",
+      "line": 61,
+      "message": "Literal product textarea does not show evidence of the canonical resize-none rule.",
+      "remediation": "Use the shared Textarea owner or apply resize-none/resize: none with adequate height or auto-grow behavior.",
+      "ruleId": "form.textarea-resize-missing",
+      "severity": "error"
+    },
+    {
+      "category": "violation",
       "file": "src/app/product-system.css",
-      "line": 961,
+      "line": 998,
       "message": "Scrollbar theme does not provide both standards-based scrollbar properties.",
       "remediation": "Add global scrollbar-color and scrollbar-width standards properties plus fallbacks.",
       "ruleId": "scrollbar.webkit-only",
@@ -212,10 +194,10 @@
   "projectRoot": "/Users/youssefmahir/Documents/ChatGPT/ysf",
   "schemaVersion": 1,
   "summary": {
-    "errors": 23,
-    "total": 23,
+    "errors": 21,
+    "total": 21,
     "unresolved": 0,
-    "violations": 23,
+    "violations": 21,
     "warnings": 0
   }
 }

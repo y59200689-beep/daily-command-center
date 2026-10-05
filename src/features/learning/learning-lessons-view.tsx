@@ -1,5 +1,8 @@
 "use client";
 
+import { Modal } from "@/components/ui/modal";
+import { StyledSelect } from "@/components/ui/styled-select";
+
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import type { OperatingLesson } from "@/lib/learning";
@@ -114,9 +117,9 @@ export function LearningLessonsView() {
       {/* Lesson List */}
       <section className="learning-section">
         {loading ? (
-          <p style={{ color: "#94a3b8" }}>Loading lessons...</p>
+          <p style={{ color: "var(--muted)" }}>Loading lessons...</p>
         ) : filtered.length === 0 ? (
-          <div className="learning-card" style={{ color: "#94a3b8" }}>
+          <div className="learning-card" style={{ color: "var(--muted)" }}>
             No lessons match status filter &quot;{statusFilter}&quot;.
           </div>
         ) : (
@@ -132,15 +135,15 @@ export function LearningLessonsView() {
                       <span className={`learning-badge badge-${l.confidence_state}`}>
                         {l.confidence_state} confidence
                       </span>
-                      <span style={{ fontSize: "0.75rem", textTransform: "uppercase", color: "#94a3b8" }}>
+                      <span style={{ fontSize: "0.75rem", textTransform: "uppercase", color: "var(--muted)" }}>
                         {l.domain}
                       </span>
                     </div>
                     <strong style={{ fontSize: "1rem" }}>{l.title}</strong>
-                    <p style={{ margin: "0.5rem 0 0 0", fontSize: "0.9rem", color: "#cbd5e1" }}>
+                    <p style={{ margin: "0.5rem 0 0 0", fontSize: "0.9rem", color: "var(--ink)" }}>
                       {l.statement}
                     </p>
-                    <p style={{ margin: "0.25rem 0 0 0", fontSize: "0.8rem", color: "#94a3b8" }}>
+                    <p style={{ margin: "0.25rem 0 0 0", fontSize: "0.8rem", color: "var(--muted)" }}>
                       <em>Why proposed:</em> {l.why_proposed}
                     </p>
                   </div>
@@ -155,94 +158,68 @@ export function LearningLessonsView() {
       </section>
 
       {/* Propose Modal */}
-      {showProposeModal && (
-        <div className="learning-modal-overlay">
-          <div className="learning-modal-content">
-            <h2 style={{ fontSize: "1.25rem", margin: 0 }}>Propose Operating Lesson</h2>
-            <p style={{ fontSize: "0.85rem", color: "#94a3b8", margin: 0 }}>
-              Operating lessons require human review before they are accepted into active institutional memory.
-            </p>
-
+      <Modal open={showProposeModal} onClose={() => { if (!submitting) setShowProposeModal(false); }} title="Propose Operating Lesson" description="Operating lessons require human review before they are accepted into active institutional memory.">
             {errorMsg && (
-              <div style={{ padding: "0.75rem", background: "rgba(239, 68, 68, 0.15)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: "0.5rem", color: "#f87171", fontSize: "0.85rem" }}>
+              <div role="alert" style={{ padding: "0.75rem", background: "rgba(239, 68, 68, 0.15)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: "0.5rem", color: "#f87171", fontSize: "0.85rem" }}>
                 {errorMsg}
               </div>
             )}
 
-            <form noValidate onSubmit={handlePropose} style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
+            <form className="learning-editor" noValidate onSubmit={handlePropose} style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
               <div>
-                <label style={{ fontSize: "0.8rem", color: "#94a3b8", display: "block", marginBottom: "0.25rem" }}>
+                <label htmlFor="learning-title" style={{ fontSize: "0.8rem", color: "var(--muted)", display: "block", marginBottom: "0.25rem" }}>
                   Title
                 </label>
-                <input
+                <input id="learning-title"
                   type="text"
                   required
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="e.g., Client onboarding SLA buffer required"
-                  style={{ width: "100%", background: "#1e293b", border: "1px solid rgba(255,255,255,0.15)", borderRadius: "0.375rem", padding: "0.5rem", color: "#f8fafc" }}
+                  style={{ width: "100%", background: "var(--surface-2)", border: "1px solid var(--line)", borderRadius: "0.375rem", padding: "0.5rem", color: "var(--ink)" }}
                 />
               </div>
 
               <div>
-                <label style={{ fontSize: "0.8rem", color: "#94a3b8", display: "block", marginBottom: "0.25rem" }}>
+                <label htmlFor="learning-statement-operational-guidance" style={{ fontSize: "0.8rem", color: "var(--muted)", display: "block", marginBottom: "0.25rem" }}>
                   Statement (Operational Guidance)
                 </label>
-                <textarea className="resize-none"
+                <textarea id="learning-statement-operational-guidance" className="resize-none"
                   required
                   rows={3}
                   value={statement}
                   onChange={(e) => setStatement(e.target.value)}
                   placeholder="What operational behavior or guideline should be followed based on evidence?"
-                  style={{ width: "100%", background: "#1e293b", border: "1px solid rgba(255,255,255,0.15)", borderRadius: "0.375rem", padding: "0.5rem", color: "#f8fafc" }}
+                  style={{ width: "100%", background: "var(--surface-2)", border: "1px solid var(--line)", borderRadius: "0.375rem", padding: "0.5rem", color: "var(--ink)" }}
                 />
               </div>
 
               <div>
-                <label style={{ fontSize: "0.8rem", color: "#94a3b8", display: "block", marginBottom: "0.25rem" }}>
+                <label htmlFor="learning-why-proposed-empirical-evidence-basis" style={{ fontSize: "0.8rem", color: "var(--muted)", display: "block", marginBottom: "0.25rem" }}>
                   Why Proposed (Empirical Evidence Basis)
                 </label>
-                <textarea className="resize-none"
+                <textarea id="learning-why-proposed-empirical-evidence-basis" className="resize-none"
                   required
                   rows={2}
                   value={whyProposed}
                   onChange={(e) => setWhyProposed(e.target.value)}
                   placeholder="Observed across 4 customer deployments that 2 weeks buffer was needed."
-                  style={{ width: "100%", background: "#1e293b", border: "1px solid rgba(255,255,255,0.15)", borderRadius: "0.375rem", padding: "0.5rem", color: "#f8fafc" }}
+                  style={{ width: "100%", background: "var(--surface-2)", border: "1px solid var(--line)", borderRadius: "0.375rem", padding: "0.5rem", color: "var(--ink)" }}
                 />
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
+              <div className="learning-editor__grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
                 <div>
-                  <label style={{ fontSize: "0.8rem", color: "#94a3b8", display: "block", marginBottom: "0.25rem" }}>
+                  <label style={{ fontSize: "0.8rem", color: "var(--muted)", display: "block", marginBottom: "0.25rem" }}>
                     Domain
                   </label>
-                  <select
-                    value={domain}
-                    onChange={(e) => setDomain(e.target.value)}
-                    style={{ width: "100%", background: "#1e293b", border: "1px solid rgba(255,255,255,0.15)", borderRadius: "0.375rem", padding: "0.5rem", color: "#f8fafc" }}
-                  >
-                    <option value="operations">Operations</option>
-                    <option value="team">Team</option>
-                    <option value="success">Success</option>
-                    <option value="commerce">Commerce</option>
-                    <option value="finance">Finance</option>
-                    <option value="growth">Growth</option>
-                    <option value="executive">Executive</option>
-                  </select>
+                  <StyledSelect menuMinWidth={180} value={domain} onChange={setDomain} label="Domain" options={[{ value: "operations", label: "Operations" }, { value: "team", label: "Team" }, { value: "success", label: "Success" }, { value: "commerce", label: "Commerce" }, { value: "finance", label: "Finance" }, { value: "growth", label: "Growth" }, { value: "executive", label: "Executive" }]} />
                 </div>
                 <div>
-                  <label style={{ fontSize: "0.8rem", color: "#94a3b8", display: "block", marginBottom: "0.25rem" }}>
+                  <label style={{ fontSize: "0.8rem", color: "var(--muted)", display: "block", marginBottom: "0.25rem" }}>
                     Scope
                   </label>
-                  <select
-                    value={scope}
-                    onChange={(e) => setScope(e.target.value)}
-                    style={{ width: "100%", background: "#1e293b", border: "1px solid rgba(255,255,255,0.15)", borderRadius: "0.375rem", padding: "0.5rem", color: "#f8fafc" }}
-                  >
-                    <option value="business">Business</option>
-                    <option value="personal">Personal</option>
-                  </select>
+                  <StyledSelect menuMinWidth={180} value={scope} onChange={setScope} label="Scope" options={[{ value: "business", label: "Business" }, { value: "personal", label: "Personal" }]} />
                 </div>
               </div>
 
@@ -264,9 +241,7 @@ export function LearningLessonsView() {
                 </button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
+      </Modal>
     </div>
   );
 }
