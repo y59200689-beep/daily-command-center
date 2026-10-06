@@ -993,7 +993,7 @@ body { background: var(--canvas); font-size: 13px; letter-spacing: -.005em; }
 .life-page .signal-row > span { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; overflow-wrap: normal; word-break: normal; }
 .life-page .signal-row strong { flex: 0 1 auto; min-width: 120px; overflow-wrap: anywhere; }
 .task-board__column { min-height: min(62vh, 640px); }
-.task-board { scrollbar-color: var(--muted) transparent; }
+.task-board { scrollbar-color: var(--muted) transparent; scrollbar-width: thin; }
 .task-board { padding-bottom: 22px; }
 .task-board::-webkit-scrollbar { height: 10px; }
 .task-board::-webkit-scrollbar-thumb { border-radius: 10px; background: var(--muted); }
@@ -1129,3 +1129,6 @@ body { background: var(--canvas); font-size: 13px; letter-spacing: -.005em; }
 .account-help-copy p { line-height: 1.65; color: var(--muted); }
 @media(max-height:650px) { .desktop-topbar .account-menu { max-height: calc(100dvh - 80px); overflow-y: auto; } }
 @media(prefers-reduced-motion:reduce) { .desktop-topbar .account-menu__switch > span { transition: none; } }
+
+/* Long notes grow within the viewport; scrolling remains available at the cap. */
+textarea.audit-textarea { field-sizing: content; min-height: 96px; max-height: min(360px, 45vh); overflow-y: auto; }

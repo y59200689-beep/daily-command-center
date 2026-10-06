@@ -1,5 +1,7 @@
 "use client";
 
+import { ValidatedForm } from "@/components/ui/validated-form";
+
 import { useCallback, useState } from "react";
 import { Icons } from "@/components/icons";
 import { Button } from "@/components/ui/button";
@@ -193,7 +195,7 @@ export function MyFitnessPalCard() {
       </div>
 
       {activeTab === "quick" && (
-        <form onSubmit={(e) => void handleQuickLog(e)} style={{ display: "flex", flexDirection: "column", gap: "0.5rem", marginTop: "0.8rem", padding: "0.8rem", background: "var(--bg-subtle)", borderRadius: "8px" }}>
+        <ValidatedForm onSubmit={(e) => void handleQuickLog(e)} style={{ display: "flex", flexDirection: "column", gap: "0.5rem", marginTop: "0.8rem", padding: "0.8rem", background: "var(--bg-subtle)", borderRadius: "8px" }}>
           <h4 style={{ margin: "0 0 0.3rem 0", fontSize: "0.9rem" }}>Log Calories & Macros</h4>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.5rem" }}>
             <div>
@@ -259,11 +261,11 @@ export function MyFitnessPalCard() {
               Cancel
             </Button>
           </div>
-        </form>
+        </ValidatedForm>
       )}
 
       {activeTab === "csv" && (
-        <form onSubmit={(e) => void handleCsvSubmit(e)} style={{ display: "flex", flexDirection: "column", gap: "0.5rem", marginTop: "0.8rem", padding: "0.8rem", background: "var(--bg-subtle)", borderRadius: "8px" }}>
+        <ValidatedForm onSubmit={(e) => void handleCsvSubmit(e)} style={{ display: "flex", flexDirection: "column", gap: "0.5rem", marginTop: "0.8rem", padding: "0.8rem", background: "var(--bg-subtle)", borderRadius: "8px" }}>
           <h4 style={{ margin: "0 0 0.3rem 0", fontSize: "0.9rem" }}>Import MyFitnessPal CSV Export</h4>
           <p style={{ fontSize: "0.75rem", color: "var(--fg-muted)", margin: "0" }}>
             Export your nutrition diary from MyFitnessPal settings as CSV and upload it here:
@@ -282,7 +284,7 @@ export function MyFitnessPalCard() {
               Cancel
             </Button>
           </div>
-        </form>
+        </ValidatedForm>
       )}
 
       {activeTab === "webhook" && (

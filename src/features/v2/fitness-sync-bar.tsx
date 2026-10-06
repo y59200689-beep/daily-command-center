@@ -1,5 +1,7 @@
 "use client";
 
+import { ValidatedForm } from "@/components/ui/validated-form";
+
 import { useCallback, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
@@ -174,7 +176,7 @@ export function FitnessSyncBar({ onSyncComplete }: Props) {
 
       {/* Inline Quick Modal: Log Steps */}
       {activeModal === "steps" && (
-        <form
+        <ValidatedForm
           onSubmit={(e) => void handleLogSteps(e)}
           style={{
             marginTop: "1rem",
@@ -246,12 +248,12 @@ export function FitnessSyncBar({ onSyncComplete }: Props) {
               Cancel
             </Button>
           </div>
-        </form>
+        </ValidatedForm>
       )}
 
       {/* Inline Quick Modal: Log Nutrition */}
       {activeModal === "nutrition" && (
-        <form
+        <ValidatedForm
           onSubmit={(e) => void handleLogNutrition(e)}
           style={{
             marginTop: "1rem",
@@ -335,7 +337,7 @@ export function FitnessSyncBar({ onSyncComplete }: Props) {
               Cancel
             </Button>
           </div>
-        </form>
+        </ValidatedForm>
       )}
     </section>
   );

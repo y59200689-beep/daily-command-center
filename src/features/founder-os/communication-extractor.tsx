@@ -87,7 +87,7 @@ export function CommunicationExtractor() {
       <div className="founder-form">
         <label>
           Communication text
-          <textarea
+          <textarea className="resize-none audit-textarea"
             id="communication-extract-input"
             value={text}
             onChange={(e) => { setText(e.target.value); setActions(null); }}

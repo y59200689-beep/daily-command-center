@@ -1,4 +1,6 @@
 "use client";
+
+import { ValidatedForm } from "@/components/ui/validated-form";
 import { useCallback, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useDeferredEffect } from "@/lib/use-deferred-effect";
@@ -96,7 +98,7 @@ export function DailyEnergyCheckin() {
       {error && <p role="alert" className="founder-error">{error}</p>}
       {message && <p role="status">{message}</p>}
 
-      <form
+      <ValidatedForm
         className="founder-form"
         onSubmit={(e) => { e.preventDefault(); void save(); }}
       >
@@ -141,7 +143,7 @@ export function DailyEnergyCheckin() {
 
         <label>
           Context notes (optional)
-          <textarea
+          <textarea className="resize-none audit-textarea"
             id="daily-cognitive-notes"
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
@@ -154,7 +156,7 @@ export function DailyEnergyCheckin() {
         <Button type="submit" disabled={saving}>
           {isToday ? "Update today's check-in" : "Save check-in"}
         </Button>
-      </form>
+      </ValidatedForm>
     </section>
   );
 }

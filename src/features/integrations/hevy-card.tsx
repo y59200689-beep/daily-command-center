@@ -1,5 +1,7 @@
 "use client";
 
+import { ValidatedForm } from "@/components/ui/validated-form";
+
 import { useCallback, useState } from "react";
 import { Icons } from "@/components/icons";
 import { Button } from "@/components/ui/button";
@@ -141,7 +143,7 @@ export function HevyCard() {
           </small>
         </>
       ) : showConnectForm ? (
-        <form onSubmit={(e) => void handleConnect(e)} style={{ display: "flex", flexDirection: "column", gap: "0.6rem", marginTop: "0.5rem" }}>
+        <ValidatedForm onSubmit={(e) => void handleConnect(e)} style={{ display: "flex", flexDirection: "column", gap: "0.6rem", marginTop: "0.5rem" }}>
           <div>
             <label style={{ fontSize: "0.8rem", color: "var(--fg-muted)", display: "block", marginBottom: "0.2rem" }}>
               Hevy API Key
@@ -180,7 +182,7 @@ export function HevyCard() {
               Cancel
             </Button>
           </div>
-        </form>
+        </ValidatedForm>
       ) : (
         <div style={{ marginTop: "0.5rem" }}>
           <Button emphasis="outline" onClick={() => setShowConnectForm(true)}>
