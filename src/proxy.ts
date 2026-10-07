@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 
 export async function proxy(request: NextRequest) {
   // Explicit server-to-server routes authenticate their own private bearer secrets.
-  if (["/api/integrations/clinahir/leads", "/api/integrations/radiology-growth/reports"].includes(request.nextUrl.pathname)) return NextResponse.next();
+  if (["/api/integrations/clinahir/leads", "/api/integrations/radiology-growth/reports", "/api/cron/radiology-growth"].includes(request.nextUrl.pathname)) return NextResponse.next();
   const publicPath = request.nextUrl.pathname.startsWith("/login") || request.nextUrl.pathname.startsWith("/auth/");
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY) {
     if(!publicPath&&!request.nextUrl.pathname.startsWith("/api/")){const url=request.nextUrl.clone();url.pathname="/login";url.searchParams.set("next",request.nextUrl.pathname);return NextResponse.redirect(url)}

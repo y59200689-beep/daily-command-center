@@ -25,10 +25,10 @@ export function mapRadiologyReport(payload: RadiologyReport, userId: string) {
     integration_source: "radiology-growth", external_id: payload.externalId,
   };
 }
-type Store = { find(userId: string, externalId: string): Promise<string | null>; insert(values: ReturnType<typeof mapRadiologyReport>): Promise<string> };
+export type RadiologyReportStore = { find(userId: string, externalId: string): Promise<string | null>; insert(values: ReturnType<typeof mapRadiologyReport>): Promise<string> };
 type Dependencies = {
   config: () => { secret?: string; userId?: string };
-  store: () => Store;
+  store: () => RadiologyReportStore;
   log: (event: string, details?: { reportId?: string; code?: string }) => void;
 };
 const json = (body: object, status: number) => Response.json(body, { status, headers: { "Cache-Control": "no-store" } });
@@ -63,20 +63,19 @@ export function createRadiologyReportHandler(deps: Dependencies) {
     catch { deps.log("invalid_payload"); return json({ error: "Invalid report payload. Provide externalId, title, periodStart/periodEnd (YYYY-MM-DD), contentMarkdown and valid HTTP(S) sources. Check date order and field lengths." }, 400); }
     const duplicate = (reportId: string) => { deps.log("duplicate", { reportId }); return json({ success: true, created: false, duplicate: true, reportId }, 200); };
     try {
-      const store = deps.store(); const existing = await store.find(userId!, payload.externalId);
-      if (existing) return duplicate(existing);
-      try {
-        const reportId = await store.insert(mapRadiologyReport(payload, userId!));
-        deps.log("created", { reportId }); return json({ success: true, created: true, reportId }, 201);
-      } catch (error) {
-        if (error && typeof error === "object" && "code" in error && error.code === "23505") {
-          const reportId = await store.find(userId!, payload.externalId); if (reportId) return duplicate(reportId);
-        }
-        throw error;
-      }
+      const saved = await saveRadiologyReport(payload, userId!, deps.store());
+      if (!saved.created) return duplicate(saved.reportId);
+      deps.log("created", { reportId: saved.reportId }); return json({ success: true, created: true, reportId: saved.reportId }, 201);
     } catch (error) {
       const code = error && typeof error === "object" && "code" in error ? String(error.code) : undefined;
       deps.log("database_error", { code }); return json({ error: "Report could not be saved. Retry with the same externalId." }, 500);
     }
   };
+}
+
+export async function saveRadiologyReport(payload: RadiologyReport, userId: string, store: RadiologyReportStore) {
+ const existing = await store.find(userId, payload.externalId);
+ if (existing) return { reportId: existing, created: false };
+ try { return { reportId: await store.insert(mapRadiologyReport(payload,userId)), created: true }; }
+ catch(error) { if (error && typeof error === "object" && "code" in error && error.code === "23505") {const id=await store.find(userId,payload.externalId);if(id)return {reportId:id,created:false};}throw error; }
 }

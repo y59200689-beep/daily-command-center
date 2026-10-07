@@ -1,1 +1,20 @@
-{"crons":[{"path":"/api/cron/integrations","schedule":"0 6 * * *"}]}
+{
+  "crons": [
+    {
+      "path": "/api/cron/integrations",
+      "schedule": "0 6 * * *"
+    },
+    {
+      "path": "/api/cron/radiology-growth?slot=7",
+      "schedule": "0 7 * * 1"
+    },
+    {
+      "path": "/api/cron/radiology-growth?slot=8",
+      "schedule": "0 8 * * 1"
+    },
+    {
+      "path": "/api/cron/radiology-growth?slot=9",
+      "schedule": "0 9 * * 1"
+    }
+  ]
+}

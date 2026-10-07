@@ -37,3 +37,15 @@ curl --fail-with-body -X POST \
 ```
 
 Do not use curl -v or shell tracing for authenticated requests. A ChatGPT Action should define this exact POST URL and JSON schema and configure Bearer authentication through its private authentication UI; enter the token there, not in the OpenAPI document or conversation.
+
+## Independent Monday workflow
+
+Vercel Cron calls `/api/cron/radiology-growth?slot=7`, `?slot=8`, and `?slot=9` at 07:00, 08:00 and 09:00 UTC Mondays. The handler uses IANA `Africa/Casablanca` time, refuses scheduled work before 08:00 local or outside Monday morning, and returns immediately if that week's report already exists. The first eligible trigger runs around 08:00 local, including Morocco's seasonal UTC offset. Vercel execution precision depends on plan (Hobby can invoke within the scheduled hour). Separate later triggers provide safe retries; Vercel does not automatically retry failed cron invocations.
+
+The existing `CRON_SECRET` authenticates scheduled GET requests. Manual POST recovery uses the existing private `RADIOLOGY_REPORTS_INTEGRATION_SECRET`, not cookies. Neither secret is exposed in browser code. No caller can set the owner or week. `OPENAI_API_KEY` must have paid OpenAI API access/balance and access to a web-search-capable Responses model. `RADIOLOGY_REPORTS_MODEL` optionally overrides the default `gpt-5-mini`. This is independent of ChatGPT Tasks and ChatGPT subscription billing. No separate search provider credential is required.
+
+Research covers the exact previous Monday–Sunday, in French/Arabic/English sources, distinguishing Moroccan rollout evidence from global announcements, verified publication dates from event dates and undated baseline context. Quiet weeks explicitly report no meaningful verified change. A web search call must complete, and output source URLs must occur in the provider's retrieved/cited evidence before the briefing is saved. Two or three prioritized actions must explain relevance to the radiology center and Clinahir.
+
+Jobs use `radiology-growth-YYYY-MM-DD` (Monday's Casablanca date). Server-only `radiology_report_jobs` stores a 10-minute lease, at most three attempts, a 30-minute retry cooldown, cached validated research drafts, report ID and safe error codes. Cached drafts avoid repeat AI charges when report persistence fails. Hard-crashed leases expire before the next hourly retry. Exhaustion returns an error and requires operator investigation; jobs never loop indefinitely. Logs contain week ID, attempt, report ID and error category only. Existing Reports ownership and duplicate constraints remain in force.
+
+On-demand POST runs the current week's briefing early if needed and consumes that week's ID, so Monday cron won't duplicate it. Run with the existing private report token, never curl -v or shell tracing. Inspect failures in Vercel Runtime Logs (`[radiology-weekly]`) and the job row's status/last_error_code. Correct credentials/billing or upstream problems before operator-authorized rearming of an exhausted job.
