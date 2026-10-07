@@ -29,6 +29,8 @@ export async function GET(request: Request) {
       scope: r.scope ?? scope,
       summary: r.summary ?? "",
       generatedAt: r.created_at,
+      periodStart: r.period_start,
+      periodEnd: r.period_end,
       route: `/executive/reports/${r.id}`,
     }));
 

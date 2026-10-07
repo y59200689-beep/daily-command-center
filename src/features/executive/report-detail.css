@@ -1,0 +1,13 @@
+.report-detail { max-width: 1100px; margin-inline: auto; color: var(--ink); }
+.report-detail__header { margin: 24px 0; padding: 24px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); }
+.report-detail__header h1 { font-size: clamp(24px, 3vw, 36px); line-height: 1.2; }
+.report-detail__header p { color: var(--muted); }
+.report-detail__content, .report-detail__sources { margin-block: 16px; padding: clamp(18px, 3vw, 32px); line-height: 1.75; overflow-wrap: anywhere; }
+.report-detail a { color: var(--attention); text-decoration: underline; text-underline-offset: 3px; }
+.report-detail :is(ul,ol) { padding-left: 24px; list-style: revert; }
+.report-detail :is(h2,h3,h4) { margin-top: 24px; margin-bottom: 12px; }
+.report-detail p { margin-block: 12px; }
+.report-detail blockquote { border-left: 3px solid var(--attention); padding-left: 16px; color: var(--muted); }
+.report-detail pre { padding: 16px; border-radius: 10px; background: var(--surface-2); overflow: auto; white-space: pre-wrap; }
+.report-detail table { display: block; width: 100%; overflow-x: auto; border-collapse: collapse; }
+.report-detail :is(th,td) { padding: 10px 14px; border: 1px solid var(--line); text-align: left; min-width: 120px; }

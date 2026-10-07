@@ -7,7 +7,9 @@ import "./executive.css";
 type ReportEntry = {
   id: string;
   title: string;
-  type: "daily_brief" | "weekly" | "monthly" | "quarterly" | "custom";
+  type: string;
+  periodStart?: string;
+  periodEnd?: string;
   scope: "business" | "personal" | "combined";
   summary: string;
   generatedAt: string;
@@ -17,6 +19,10 @@ type ReportEntry = {
 const TYPE_LABEL: Record<string, string> = {
   daily_brief: "Daily Brief",
   weekly: "Weekly Review",
+  weekly_executive: "Weekly Briefing",
+  monthly_business: "Monthly Review",
+  quarterly_executive: "Quarterly Review",
+  founder_report: "Founder Report",
   monthly: "Monthly Review",
   quarterly: "Quarterly Review",
   custom: "Custom Report",
@@ -25,6 +31,9 @@ const TYPE_LABEL: Record<string, string> = {
 const TYPE_COLOR: Record<string, string> = {
   daily_brief: "text-blue-400",
   weekly: "text-purple-400",
+  weekly_executive: "text-purple-400",
+  monthly_business: "text-amber-400",
+  quarterly_executive: "text-green-400",
   monthly: "text-amber-400",
   quarterly: "text-green-400",
   custom: "text-slate-400",
@@ -53,7 +62,7 @@ export function ExecutiveReportsView() {
     return () => { active = false; };
   }, []);
 
-  const filtered = typeFilter === "all" ? reports : reports.filter((r) => r.type === typeFilter);
+  const filtered = typeFilter === "all" ? reports : reports.filter((r) => ({ weekly: "weekly_executive", monthly: "monthly_business", quarterly: "quarterly_executive" }[r.type] ?? r.type) === typeFilter);
 
   return (
     <div className="executive-surface">
@@ -86,7 +95,7 @@ export function ExecutiveReportsView() {
 
       {/* Filter */}
       <div className="flex gap-2 overflow-x-auto pb-2 mb-6">
-        {["all", "daily_brief", "weekly", "monthly", "quarterly", "custom"].map((t) => (
+        {["all", "daily_brief", "weekly_executive", "monthly_business", "quarterly_executive", "founder_report", "custom"].map((t) => (
           <button
             key={t}
             onClick={() => setTypeFilter(t)}
@@ -112,7 +121,7 @@ export function ExecutiveReportsView() {
               <div className="flex items-start justify-between mb-2">
                 <div className="flex items-center gap-2">
                   <span className={`text-xs font-bold uppercase ${TYPE_COLOR[r.type]}`}>
-                    {TYPE_LABEL[r.type]}
+                    {TYPE_LABEL[r.type] ?? "Report"}
                   </span>
                   <span className="executive-badge executive-badge-domain">{r.scope}</span>
                 </div>
@@ -120,6 +129,7 @@ export function ExecutiveReportsView() {
               </div>
               <h3 className="text-sm font-semibold text-white mb-1">{r.title}</h3>
               <p className="text-xs text-slate-400 mb-3">{r.summary}</p>
+              {r.periodStart && r.periodEnd && <p className="text-xs text-slate-400 mb-3">{r.periodStart} — {r.periodEnd}</p>}
               <Link href={r.route} className="text-xs text-blue-400 hover:underline font-semibold">
                 Open Report →
               </Link>
