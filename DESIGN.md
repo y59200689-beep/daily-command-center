@@ -161,3 +161,6 @@ The requested operating, knowledge, learning, orchestration, executive, founder 
 Saved executive report details reuse the executive-surface and data-surface owners. Markdown presentation is scoped in report-detail.css, using existing ink/muted/surface/line/attention tokens. No integration credential enters client components; reporting period and source publication dates remain visible alongside receipt date.
 
 Fitness Exercise Library uses scoped exercise-library.css with shared surface/line/ink/muted/attention tokens, the existing Button/SearchInput/StyledSelect/Modal primitives, responsive cards and instruction dialogs. The pinned MIT reference catalog is server-only; no separately licensed Gym visual imagery is included.
+
+## Gym workout workspace
+`/fitness/workouts` extends Fitness with saved routines, resumable set logging, a deadline-based rest timer and paginated history. It uses canonical product-system surface/ink/line/attention tokens, Geist, Lucide, Button, Modal, SearchInput and ToastProvider. Routine targets and actual completed sets remain visibly distinct. The editor uses compact aligned number fields; narrow screens stack routine cards and wrap actions. No openGym code or third-party exercise media is copied.

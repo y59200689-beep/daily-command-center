@@ -1,0 +1,11 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import {routineSchema,sessionSchema,routineToWorkout,workoutTotals,restRemaining} from "../src/lib/workouts";
+const id="8c59a4bb-9a87-4c67-9c10-bf4ab76788f2";
+const plan={exerciseId:"0025",name:"Barbell bench press",sets:3,reps:10,weightKg:40,restSeconds:90};
+test("planned targets never count as completed sets",()=>{const sets=routineToWorkout([plan]);assert.equal(sets[0].sets.length,3);assert.deepEqual(workoutTotals(sets),{sets:0,reps:0,volumeKg:0});assert.equal(sets[0].sets[0].weightKg,40);});
+test("actual completed lifting volume ignores unchecked sets and handles bodyweight",()=>{const sets=routineToWorkout([plan]);sets[0].sets[0]={reps:8,weightKg:42.5,completed:true};sets[0].sets[1]={reps:12,weightKg:0,completed:true};assert.deepEqual(workoutTotals(sets),{sets:2,reps:20,volumeKg:340});});
+test("routines validate names, exercise counts and numeric bounds",()=>{assert.ok(routineSchema.safeParse({id,name:"Upper body",exercises:[plan]}).success);assert.ok(!routineSchema.safeParse({id,name:" ",exercises:[plan]}).success);assert.ok(!routineSchema.safeParse({id,name:"Upper",exercises:[]}).success);assert.ok(!routineSchema.safeParse({id,name:"Upper",exercises:[{...plan,weightKg:-1}]}).success);});
+test("completion needs actual work and valid integer reps",()=>{const session={id,routineId:null,name:"Upper",startedAt:"2026-10-07T10:00:00Z",exercises:routineToWorkout([plan]),status:"completed"};assert.ok(!sessionSchema.safeParse(session).success);session.exercises[0].sets[0].completed=true;assert.ok(sessionSchema.safeParse(session).success);session.exercises[0].sets[0].reps=0;assert.ok(!sessionSchema.safeParse(session).success);session.exercises[0].sets[0].reps=1.5;assert.ok(!sessionSchema.safeParse(session).success);});
+test("deadline timer catches up after background throttling and never becomes negative",()=>{assert.equal(restRemaining(91000,1000),90);assert.equal(restRemaining(91000,65000),26);assert.equal(restRemaining(91000,99000),0);assert.equal(restRemaining(null,1000),0);});
+test("database timestamp offsets remain valid when resuming a saved session",()=>{assert.ok(sessionSchema.safeParse({id,routineId:null,name:"Upper",startedAt:"2026-10-07T10:00:00+00:00",exercises:routineToWorkout([plan]),status:"in_progress"}).success);});
