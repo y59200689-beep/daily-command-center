@@ -92,5 +92,12 @@ export function isPersistedDomain(value: string): value is PersistedDomain { ret
 
 export function parseDomainInput(domain: PersistedDomain, value: unknown, partial = false) {
   const schema = domainConfig[domain].schema;
-  return partial && schema instanceof z.ZodObject ? schema.partial().safeParse(value) : schema.safeParse(value);
+  if (partial && schema instanceof z.ZodObject) {
+    // Zod defaults can materialize omitted fields even inside partial objects.
+    // PATCH must only update fields explicitly supplied by the caller.
+    return schema.partial().transform((parsed) => Object.fromEntries(
+      Object.entries(parsed).filter(([key]) => Object.hasOwn(value as object, key)),
+    )).safeParse(value);
+  }
+  return schema.safeParse(value);
 }

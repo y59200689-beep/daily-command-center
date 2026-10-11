@@ -16,6 +16,26 @@ test("partial updates cannot make an invalid status valid", () => {
   assert.equal(parseDomainInput("tasks", { status: "made_up" }, true).success, false);
   assert.equal(parseDomainInput("tasks", { status: "completed" }, true).success, true);
 });
+test("moving tasks preserves every existing priority and unrelated field", () => {
+  for (const priority of ["none", "low", "medium", "high", "urgent"]) {
+    for (const status of ["inbox", "planned", "in_progress", "waiting", "blocked", "completed", "cancelled"]) {
+      const result = parseDomainInput("tasks", { status }, true);
+      assert.equal(result.success, true);
+      if (result.success) {
+        assert.deepEqual(result.data, { status });
+        assert.equal({ priority, ...result.data }.priority, priority);
+      }
+    }
+  }
+});
+test("partial task updates allow explicit priority changes while creation keeps defaults", () => {
+  const changed = parseDomainInput("tasks", { priority: "medium" }, true);
+  assert.equal(changed.success, true);
+  if (changed.success) assert.deepEqual(changed.data, { priority: "medium" });
+  const created = parseDomainInput("tasks", { title: "New task" });
+  assert.equal(created.success, true);
+  if (created.success) assert.equal((created.data as Record<string, unknown>).priority, "none");
+});
 test("optional daily win positions preserve blank and bounded values", () => {
   const omitted = parseDomainInput("tasks", { title: "Ship" });
   assert.equal(omitted.success, true);
