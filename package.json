@@ -16,6 +16,7 @@
     "verify": "npm run lint && npm run typecheck && npm run test && npm run build"
   },
   "dependencies": {
+    "@excalidraw/excalidraw": "0.18.1",
     "@supabase/ssr": "latest",
     "@supabase/supabase-js": "2.117.0",
     "clsx": "latest",

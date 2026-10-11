@@ -164,3 +164,5 @@ Fitness Exercise Library uses scoped exercise-library.css with shared surface/li
 
 ## Gym workout workspace
 `/fitness/workouts` extends Fitness with saved routines, resumable set logging, a deadline-based rest timer and paginated history. It uses canonical product-system surface/ink/line/attention tokens, Geist, Lucide, Button, Modal, SearchInput and ToastProvider. Routine targets and actual completed sets remain visibly distinct. The editor uses compact aligned number fields; narrow screens stack routine cards and wrap actions. No openGym code or third-party exercise media is copied.
+
+Project brainstorming uses a full-height Excalidraw canvas with a compact document toolbar and task context rail. Boards remain private; no external collaboration service is used. Preserve project navigation and the existing button tokens. Canvas assets are served locally.
